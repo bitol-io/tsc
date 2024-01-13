@@ -13,21 +13,46 @@ TBD
 
 ### Option 1: Logical Type System
 
+| Type   | Options            | Example   |
+|--------|--------------------| -----------   |
+| string | length<br>encoding | |
+| integer| min<br>max<br>digits | |
+| float  | min<br>max<br>digits<br>decimals | |
+| character | encoding | |
+| boolean | encoding | |
+| binary | length | |
+| datetime | format<br>timezone | MM/dd/yyyy hh:mm:ss tt<br> -|
+| date | format<br>timezone | MM/dd/yyyy<br> - |
+| time | format<br>timezone | hh:mm:ss<br> - |
+| file | type | |
+
+
+##### Example:
 ```
-String : Length, Encoding ( ASCII, UTF-8, EBCDIC,…)
-Integer : Min value, Max value, Number of digits (if applicable)
-Float : Min value, Max value, Number of digits (if applicable), Number of decimals (if applicable)
-Character : Encoding (ASCII, UTF-8, EBCDIC,…)
-Boolean :True/False
-Binary: Length
-File: File type (png, jpg, …)
-DateTime: Format, Time zone (if applicable)
-Date: Format, Time zone (if applicable)
-Time: Format, Time Zone (if applicable)
+- column: name
+    logicalType: string
+        options:
+            min: 5
+            max: 25
+
+- column: date_of_birth
+    logicalType: date
+        options:
+            format: YYYY-MM-DD
+            
+- column: last_connection
+    logicalType: datetime
+        options:
+            format: MM/dd/yyyy hh:mm:ss tt
+
+- column: opt_in_sms
+    logicalType: boolean
+
 ```
 
 #### Consequences
-- TBD
+- Ease of use
+- Technology agnostic
 
 ### Option 2: Physical Type System
 
