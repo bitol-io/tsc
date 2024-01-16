@@ -66,3 +66,42 @@ Types defined by the physical type system.
 #### Consequences
 - TBD
 
+
+
+# Sketchpad
+
+```
+- column: name
+    logicalType: string
+        options:
+            min: 5
+            max: 25
+    physicalType: varchar[25]
+        toolingContext:
+            database: Oracle
+    physicalType: char[25]
+        toolingContext:
+            database: dBase III
+
+```
+
+Needs for both logical & physical type:
+ * Table generation.
+   * Need for multiple tools/context in the same contract.
+ * Data quality as validating the schema/schema changes.
+   * Need for multiple tools/context in the same contract.
+ * Creation of a reader dashboard (or any data-consuming application).
+ * Pushing metadata to data catalogs.
+ * Security aspects: masking, etc. work on logical type.
+ * Compatibility with OpenAPI.
+ * Support for object-type column/data element.
+ * Data contract -> Kafka registry/schema, etc.
+
+Notes/ideas:
+ * Bindings like in AsyncAPI.
+ * Should we support on SQL? NO.
+
+Exclusions:
+ * Consumer use cases -- TBD.
+
+
