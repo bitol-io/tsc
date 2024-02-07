@@ -50,3 +50,16 @@ owner: daustin
 - A migration is necessary for existing contracts to convert the current owner to the top level field `owner`
 - Users that really need this information need to use the extension mechanism to describe them. But they'll might have to duplicate the information about the current owner.
 - Tooling can now easily find out the current owner of a data contract, instead of computing it based on dateIn/dateOut and the Role = `"Owner"` convention.
+
+## Alternatives
+
+### Option: Add Owner as an Alternative to Stakeholders
+
+#### Decision
+
+We could add "owner" at the top level and decide that it's superseed by the block if the block is here and this is a v2.3 change that is not breaking.
+
+#### Consequences
+
+- Is a nonbreaking change that can be introduced quickly
+- The superseding mechanism makes the standard more complicated
