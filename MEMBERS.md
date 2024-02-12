@@ -2,5 +2,6 @@
 
 In alphabetical order by first name.
 
+- Jean-Georges Perrin (Chair), TBD, Abeadata, TBD
 - Jochen Christ, jochen.christ@innoq.com, INNOQ, Central European Time
 - Simon Harrer, simon.harrer@innoq.com, INNOQ, Central European Time
