@@ -8,3 +8,4 @@ In alphabetical order by first name.
 - Peter Flook, peter.flook@data.catering, Data Catering, Taipei Standard Time
 - Simon Harrer, simon.harrer@innoq.com, INNOQ, Central European Time
 - Dieter Wachters, dieter@raito.io, Raito, Central European Time
+- Manuel Destouesse,mdsoftengr@gmail.com, itracHealth, Eastern Standard Time
