@@ -2,6 +2,7 @@
 
 In alphabetical order by first name.
 
+- Andrew Jones, GoCardless, GMT
 - Dieter Wachters, dieter@raito.io, Raito, Central European Time
 - Jean-Georges Perrin (Chair), TBD, Abeadata, TBD
 - Jochen Christ, jochen.christ@innoq.com, INNOQ, Central European Time
