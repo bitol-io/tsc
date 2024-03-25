@@ -1,5 +1,7 @@
 # TBD
 
+Champion: Manuel Destouesse
+
 ## Context
 
 Data consumers come to the data contract for information on the types.
@@ -67,6 +69,8 @@ Types defined by the physical type system.
 - TBD
 
 ### Option 4: Align with JSON Schema
+
+Leverage: https://json-schema.org/understanding-json-schema/reference/type
 
 
 # Sketchpad
