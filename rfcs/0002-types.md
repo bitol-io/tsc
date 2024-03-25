@@ -66,6 +66,7 @@ Types defined by the physical type system.
 #### Consequences
 - TBD
 
+### Option 4: Align with JSON Schema
 
 
 # Sketchpad
