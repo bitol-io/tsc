@@ -1,4 +1,4 @@
-# Removal of stakeholders
+# Replacing stakeholers with productTeam structure
 
 The ODCS standard v2.2.1 contains a section about stakeholders.
 
@@ -36,30 +36,50 @@ To be discussed.
 
 ## Decision
 
-1. We remove the section for v3.
-2. We add a required, top level field named `owner`
+TBD
+
+## Options
+
+### Option 1 
 
 ```yaml
 # use email addresses, team names, any name you like
-owner: daustin
+productTeam:
+  - username: ceastwood
+    role: Product Owner
+    contact: ceastwood@sample-org.com
+  - username: mhopper
+    role: Tech Lead
+    contact: @mhopper [Slack]
+  - username: apandya
+    role: Data Engineer
+    contact: @apandya [Teams]
+  - username: gdavis
+    role: Marketing Data Analyst
+    contact: +1 800 201 8904 [Telephone]
+```
+
+### Option 2
+
+```yaml
+# use email addresses, team names, any name you like
+productTeam:
+  - productOwner: ceastwood
+    contact: ceastwood@sample-org.com
+  - techLead: mhopper
+    contact: @mhopper [Slack]
+  - engineer: apandya
+    contact: @apandya [Teams]
+  - analyst: gdavis
+    contact: +1 800 201 8904 [Telephone]
 ```
 
 ## Consequences
 
 - This is a major breaking change. Can only be part of v3.
-- A migration is necessary for existing contracts to convert the current owner to the top level field `owner`
-- Users that really need this information need to use the extension mechanism to describe them. But they'll might have to duplicate the information about the current owner.
-- Tooling can now easily find out the current owner of a data contract, instead of computing it based on dateIn/dateOut and the Role = `"Owner"` convention.
+- A migration is necessary for existing contracts to convert the current stakeholders list to productTeam list
+- Tooling can now easily find out the current product team, instead of computing it based on dateIn/dateOut and the Role.
+- More flexibility for tooling to interpret productTeam data to meet various persona needs
 
-## Alternatives
 
-### Option: Add Owner as an Alternative to Stakeholders
 
-#### Decision
-
-We could add "owner" at the top level and decide that it's superseed by the block if the block is here and this is a v2.3 change that is not breaking.
-
-#### Consequences
-
-- Is a nonbreaking change that can be introduced quickly
-- The superseding mechanism makes the standard more complicated
