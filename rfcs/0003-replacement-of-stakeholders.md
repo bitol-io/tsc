@@ -81,5 +81,5 @@ productTeam:
 - Tooling can now easily find out the current product team, instead of computing it based on dateIn/dateOut and the Role.
 - More flexibility for tooling to interpret productTeam data to meet various persona needs
 
-
-
+## External References
+- Geospatial Metadata standards (ISO-19115-1:2014) defines `CI_RoleCode` (cf. https://wiki.earthdata.nasa.gov/pages/viewpage.action?pageId=35851076). These are used across several concepts such as responsible party, citation, user, processor, etc (as the role depends on the context ofc).
