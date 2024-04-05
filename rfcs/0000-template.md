@@ -17,6 +17,7 @@ Champion:
 
 > This is the bulk of the RFC.
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
+> Offer at least two examples, one is minimalist, one is more structured.
 
 ## Alternatives
 

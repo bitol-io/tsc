@@ -44,4 +44,5 @@ schema:
     version: 2
     attributes:
     - field: date
-      physicalName: 
+      physicalName: trx_ts
+      description: Timestamp of the transaction.
