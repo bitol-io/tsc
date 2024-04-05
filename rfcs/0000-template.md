@@ -29,3 +29,7 @@ Champion:
 ## Consequences
 
 > The consequences of this decision.
+
+## References
+
+> Prior art, inspiration, and other references you used to create this based on what's worked well before.
