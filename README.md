@@ -23,3 +23,9 @@ List of TSC [members](MEMBERS.md).
 ## Meetings
 
 In the meetings folder.
+
+# Slack
+
+AIDA User Group also opened its Slack for Data Contract discussion. It is an alternate way of contributing to this project. The Slack channel is now [available](https://aidaug.slack.com/archives/C05UZRSBKLY).
+
+You have to be a member of AIDA User Group (it's free) to have access to our Slack channel. All the details are [here](https://aidausergroup.org/welcome/).

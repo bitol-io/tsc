@@ -2,6 +2,20 @@
 
 - Champion: Andrew Jones
 
+## Summary
+
+The current structure uses `dataset`, `name` and `columns` to define a data contract. However, these are all database terms - or specially, BigQuery terms, and they suggest very clearly an implementation (tables in a data warehouse). We want the data contract to be more generic than that, and suggest we rename these fields to be more generic.
+
+## Motivation
+
+Many of us are using data contracts for more than just the data warehouse. The second most popular technology used is streaming, for example Kafka or Google Pub/Sub. But as a concept, data contracts are not tied to any particular technology - it's more of a pattern to describe data, no matter where that data happens to be.
+
+We want to make the standard reflect that. It should be generic, so as technology changes, the standard remains relevant.
+
+This aligns with our guiding value of interoperability.
+
+## Design and examples
+
 We currently have the following structure:
 
 ```yaml
@@ -21,7 +35,7 @@ Found issues:
 Open Questions:
 - How do we capture other data, like unstructured data (scientific papers in form of PDFs), vectors, ... Do we want to specify unstructured or semistructured data in a data contract?
 
-## Options
+## Alternatives
 
 ### Field and Name
 
@@ -73,3 +87,17 @@ models:
   fields:
     - field: order_id
 ```
+
+## Decision
+
+TBD
+
+## Consequences
+
+This would be a breaking change and therefore should be considered for version 3.
+
+## References
+
+* At GoCardless [we use name](https://medium.com/gocardless-tech/implementing-data-contracts-at-gocardless-3b5c49074d13), and it's working well for both tables and streams. It has not caused any confusion in 3 years of production, despite most users being familiar with the underlying technology and its terms (BigQuery and Pub/Sub)
+* [Protobuf calls them "fields"](https://protobuf.dev/programming-guides/proto3/), as [does Avro](https://avro.apache.org/docs/1.11.1/specification/).
+* [OpenAPI uses "title"](https://spec.openapis.org/oas/latest.html), which could also work well instead of name
