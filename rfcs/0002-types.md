@@ -15,18 +15,19 @@ TBD
 
 ### Option 1: Logical Type System
 
-| Type      | Options                            | Example                      |
-|-----------|------------------------------------|------------------------------|
-| string    | minLength<br>maxLength<br>encoding | "hello","world"              |
-| integer   | min<br>max                         | 1,2,3                        |
-| number    | min<br>max<br>precision<br>scale   | -1.23,9.876                  |
-| character | encoding                           | 'a','b','c'                  |
-| boolean   |                                    | true/false                   |
-| binary    | minLength<br>maxLength             |                              |
-| datetime  | format<br>timezone                 | MM/dd/yyyy hh:mm:ss tt<br> - |
-| date      | format<br>timezone                 | MM/dd/yyyy<br> -             |
-| time      | format<br>timezone                 | hh:mm:ss<br> -               |
-| file      | type                               | csv,json,parquet             |
+| Type      | Options                            | Example                       |
+|-----------|------------------------------------|-------------------------------|
+| string    | minLength<br>maxLength<br>encoding | "hello","world"               |
+| integer   | min<br>max                         | 1,2,3                         |
+| number    | min<br>max<br>precision<br>scale   | -1.23,9.876                   |
+| character | encoding                           | 'a','b','c'                   |
+| boolean   |                                    | true/false                    |
+| binary    | minLength<br>maxLength             |                               |
+| datetime  | format<br>timezone                 | MM/dd/yyyy hh:mm:ss tt<br> -  |
+| date      | format<br>timezone                 | MM/dd/yyyy<br> -              |
+| time      | format<br>timezone                 | hh:mm:ss<br> -                |
+| file      | type                               | csv,json,parquet              |
+| object    | properties<br>required             | {"users": {"name": "pflook"}} |
 
 
 ##### Example:
