@@ -37,7 +37,7 @@ Open Questions:
 
 ## Alternatives
 
-### Field and Name
+### Option A - Field and Name
 
 We want the following structure:
 
@@ -58,7 +58,7 @@ dataset:
 - This is a breaking change. Would be targeted for v3.
 - We are very conscious in separating the logical representation of a dataset with the physical representation
 
-### Other option
+### Option B - Genericity
 
 The structure is fine. We want different naming.
 
@@ -74,7 +74,7 @@ dataset:
     - name: order_id
 ```
 
-### Yet another option
+### Option C - Genericity #2
 
 ```yaml
 models:
@@ -86,6 +86,65 @@ models:
   type: table
   fields:
     - field: order_id
+```
+
+### Option D - Genericity with hierachy
+
+```yaml
+schema:
+- object: MyTable
+  kind: table
+```
+
+```yaml
+schema:
+- object: MyTopic
+  kind: topic
+```
+
+```yaml
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  attrtibutes:
+  - field: Identifier
+    physicalName: id
+```
+
+```yaml
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  version: 1
+  attrtibutes:
+  - field: Identifier
+    physicalName: id
+    version: 2
+```
+
+```yaml
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  version: 1
+  attrtibutes:
+  - field: Identifier
+    version: 2
+  - object: TransactionDetail
+    kind: table
+    physicalName: trx_details_v1
+    description: Contains transactions.
+    version: 2
+    attributes:
+    - field: date
+      physicalName: trx_ts
+      description: Timestamp of the transaction.
 ```
 
 ## Decision
