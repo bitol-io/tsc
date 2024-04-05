@@ -15,18 +15,18 @@ TBD
 
 ### Option 1: Logical Type System
 
-| Type   | Options            | Example   |
-|--------|--------------------| -----------   |
-| string | length<br>encoding | |
-| integer| min<br>max<br>digits | |
-| float  | min<br>max<br>digits<br>decimals | |
-| character | encoding | |
-| boolean | encoding | |
-| binary | length | |
-| datetime | format<br>timezone | MM/dd/yyyy hh:mm:ss tt<br> -|
-| date | format<br>timezone | MM/dd/yyyy<br> - |
-| time | format<br>timezone | hh:mm:ss<br> - |
-| file | type | |
+| Type      | Options                            | Example                      |
+|-----------|------------------------------------|------------------------------|
+| string    | minLength<br>maxLength<br>encoding | "hello","world"              |
+| integer   | min<br>max                         | 1,2,3                        |
+| number    | min<br>max<br>precision<br>scale   | -1.23,9.876                  |
+| character | encoding                           | 'a','b','c'                  |
+| boolean   |                                    | true/false                   |
+| binary    | minLength<br>maxLength             |                              |
+| datetime  | format<br>timezone                 | MM/dd/yyyy hh:mm:ss tt<br> - |
+| date      | format<br>timezone                 | MM/dd/yyyy<br> -             |
+| time      | format<br>timezone                 | hh:mm:ss<br> -               |
+| file      | type                               | csv,json,parquet             |
 
 
 ##### Example:
@@ -70,7 +70,31 @@ Types defined by the physical type system.
 
 ### Option 4: Align with JSON Schema
 
-Leverage: https://json-schema.org/understanding-json-schema/reference/type
+[JSON Schema data types](https://json-schema.org/understanding-json-schema/reference/type)
+
+| Type     | Options                                                                                                                                         | Example                      |
+|----------|-------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------|
+| string   | minLength<br>maxLength<br>pattern<br>format                                                                                                     |                              |
+| number   | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum                                                                        |                              |
+| integer  | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum                                                                        |                              |
+| object   | properties<br>patternProperties<br>additionalProperties<br>unevaluatedProperties<br>required<br>propertyNames<br>minProperties<br>maxProperties |                              |
+| array    | items<br>prefixItems<br>unevaluatedItems<br>contains<br>minContains<br>maxContains<br>minItems<br>maxItems<br>uniqueItems                       |                              |
+| boolean  |                                                                                                                                                 |                              |
+| null     |                                                                                                                                                 |                              |
+
+### Option 5: OpenAPI/Swagger
+
+[OpenAPI/Swagger data types](https://swagger.io/docs/specification/data-models/data-types/)
+
+| Type                    | Options                                                                           | Example                      |
+|-------------------------|-----------------------------------------------------------------------------------|------------------------------|
+| string                  | minLength<br>maxLength<br>pattern<br>format                                       |                              |
+| number                  | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
+| integer                 | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
+| object                  | properties<br>required<br>minProperties<br>maxProperties<br>readOnly<br>writeOnly |                              |
+| array                   | items<br>minItems<br>maxItems<br>uniqueItems                                      |                              |
+| boolean                 |                                                                                   |                              |
+| file (OpenAPI 2.0 only) |                                                                                   |                              |
 
 
 # Sketchpad
