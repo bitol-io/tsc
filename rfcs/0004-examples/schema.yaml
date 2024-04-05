@@ -1,0 +1,47 @@
+
+
+schema:
+- object: MyTable
+  kind: table
+
+schema:
+- object: MyTopic
+  kind: topic
+
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  attrtibutes:
+  - field: Identifier
+    physicalName: id
+
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  version: 1
+  attrtibutes:
+  - field: Identifier
+    physicalName: id
+    version: 2
+
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  version: 1
+  attrtibutes:
+  - field: Identifier
+    version: 2
+  - object: TransactionDetail
+    kind: table
+    physicalName: trx_details_v1
+    description: Contains transactions.
+    version: 2
+    attributes:
+    - field: date
+      physicalName: 
