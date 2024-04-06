@@ -62,6 +62,17 @@ schema: # ex dataset
 
 In this situation, the rule will pass if the result of the `SELECT count(*) FROM stock_v1 WHERE qty >= 0;` is true.
 
+```YAML
+schema: # ex dataset
+- object: StockTable
+  physicalName: stock_v1
+  quality:
+  - code: sql
+    query: SELECT count(*) FROM ${table} WHERE ${column} >= 0;
+```
+
+In this situation, the rule should fail: ${column} cannot be identified.
+
 ## Alternatives
 
 ### Current Spec v2.2.1
