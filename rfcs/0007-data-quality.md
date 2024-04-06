@@ -16,11 +16,13 @@ Build more genericity around the definition of the data quality rules.
 * Standard block that can be applied at the table (object) level or at the column (field) level.
 * Support for SQL directly in the contract.
 * Support for `customProperties`.
+* Easier scheduling.
 
 Changes:
 
 * `templateName` is now a custom property.
 * `toolName` is optional.
+* `scheduleCronExpression` is now replaced by `schedule` and `scheduler`. `scheduleCronExpression: 0 20 * * *` becomes `schedule: 0 20 * * *` and `scheduler: cron`.
 
 ### Example 1 - Implicit call to rule
 
