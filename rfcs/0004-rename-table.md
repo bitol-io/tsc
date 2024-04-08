@@ -39,6 +39,8 @@ Open Questions:
 
 ### Option A - Field and Name
 
+Status: rejected.
+
 We want the following structure:
 
 ```yaml
@@ -60,6 +62,8 @@ dataset:
 
 ### Option B - Genericity
 
+Status: rejected.
+
 The structure is fine. We want different naming.
 
 ```yaml
@@ -75,6 +79,8 @@ dataset:
 ```
 
 ### Option C - Genericity #2
+
+Status: rejected.
 
 ```yaml
 models:
@@ -141,6 +147,9 @@ schema:
       physicalName: trx_ts
       description: Timestamp of the transaction.
 ```
+
+### Option E = Option D + Support for Array
+
 
 ## Decision
 
