@@ -150,6 +150,7 @@ schema:
 
 ### Option E = Option D + Support for Array
 
+TBD
 
 ## Decision
 
