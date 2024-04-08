@@ -1,6 +1,6 @@
 # Drop datasetName
 
-champion: jgp, simon
+Champion: Simon Harrer & Jean-Georges Perrin.
 
 Keep ODCS small and free from vendor specific infos. 
 `datasetName` is GCP specific. 

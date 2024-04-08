@@ -1,6 +1,6 @@
 # Standard support channels
 
-Champion: @jgperrin
+Champion:Jean-Georges Perrin.
 
 ## Needs
 * Better desciption of communication channel.

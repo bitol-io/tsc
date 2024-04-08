@@ -2,7 +2,7 @@
 
 > The champion is the person who is primarily supporting the RFC.
 
-Champion: Martin / JGP.
+Champion: Martin Meermeyer & Jean-Georges Perrin.
 
 ## Summary
 
