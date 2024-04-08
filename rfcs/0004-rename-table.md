@@ -88,7 +88,7 @@ models:
     - field: order_id
 ```
 
-### Option D - Genericity with hierachy
+### Option D - Genericity with hierarchy
 
 ```yaml
 schema:
@@ -119,11 +119,9 @@ schema:
   kind: table
   physicalName: trx_v1
   description: Contains transactions.
-  version: 1
   attrtibutes:
   - field: Identifier
     physicalName: id
-    version: 2
 ```
 
 ```yaml
@@ -132,15 +130,12 @@ schema:
   kind: table
   physicalName: trx_v1
   description: Contains transactions.
-  version: 1
   attrtibutes:
   - field: Identifier
-    version: 2
   - object: TransactionDetail
     kind: table
     physicalName: trx_details_v1
     description: Contains transactions.
-    version: 2
     attributes:
     - field: date
       physicalName: trx_ts
