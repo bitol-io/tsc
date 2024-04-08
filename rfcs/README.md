@@ -1,6 +1,6 @@
 # RFCs
 
-The RFC (request for comments) process is intended is intended to provide a consistent and controlled path for changes to the Open Data Contract Standard (ODCS) so that all stakeholders can be confident about the direction of the project.
+The RFC (request for comments) process is intended to provide a consistent and controlled path for changes to the Open Data Contract Standard (ODCS) so that all stakeholders can be confident about the direction of the project.
 
 ## Table of Contents
 [Table of Contents]: #table-of-contents

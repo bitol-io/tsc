@@ -1,17 +1,25 @@
-# TBD
+# Data Types
 
 Champion: Manuel Destouesse
 
-## Context
+## Summary
 
-Data consumers come to the data contract for information on the types.
+Define data types for fields so that both consumers and producers have a common understanding of the data types expected.
+
+## Motivation
+
+Data consumers can come to the data contract for information on the types.
 Data consumers might not be too tech-savy. They might not understand what a `VARCHAR(2)` is.
 
-## Decision
+- **We favor a small standard over a large one**
+  - Define minimal set of data types required
+  - Allow for additional information about data types to be optional (i.e. what type of integer int32, int64, etc.)
 
-TBD
+- **We favor interoperability over readability**
+  - Common understanding of data types for producers and consumers of the data contract
+  - Retain information about source system data types to allow for direct interactions with data sources to still occur
 
-## Options
+## Design and examples
 
 ### Option 1: Logical Type System
 
@@ -30,27 +38,26 @@ TBD
 | object    | properties<br>required             | {"users": {"name": "pflook"}} |
 
 
-##### Example:
-```
+#### Example
+```yaml
 - column: name
-    logicalType: string
-        options:
-            min: 5
-            max: 25
+  logicalType: string
+  options:
+    min: 5
+    max: 25
 
 - column: date_of_birth
-    logicalType: date
-        options:
-            format: YYYY-MM-DD
+  logicalType: date
+  options:
+    format: YYYY-MM-DD
             
 - column: last_connection
-    logicalType: datetime
-        options:
-            format: MM/dd/yyyy hh:mm:ss tt
+  logicalType: datetime
+  options:
+    format: MM/dd/yyyy hh:mm:ss tt
 
 - column: opt_in_sms
-    logicalType: boolean
-
+  logicalType: boolean
 ```
 
 #### Consequences
@@ -64,7 +71,7 @@ Types defined by the physical type system.
 #### Consequences
 - TBD
 
-### Option 3: Both
+### Option 3: Both Physical and Logical
 
 #### Consequences
 - TBD
@@ -83,6 +90,46 @@ Types defined by the physical type system.
 | boolean  |                                                                                                                                                 |                              |
 | null     |                                                                                                                                                 |                              |
 
+#### Example
+
+```yaml
+- column: name
+  logicalType: string
+  options:
+    minLength: 5
+    maxLength: 25
+    pattern: "[a-z]{5,25}"
+
+- column: date_of_birth
+  logicalType: string
+  options:
+    format: yyyy-MM-dd
+            
+- column: last_connection
+  logicalType: string
+  options:
+    format: MM/dd/yyyy hh:mm:ss tt
+
+- column: opt_in_sms
+  logicalType: boolean
+
+- column: details
+  logicalType: object
+  options:
+    properties:
+      - column: sum_amount
+        logicalType: number
+      - column: sum_amount_today
+        logicalType: number
+        options:
+          minimum: 0
+
+- column: previous_transactions
+  logicalType: array
+  options:
+    items: number
+```
+
 ### Option 5: OpenAPI/Swagger
 
 [OpenAPI/Swagger data types](https://swagger.io/docs/specification/data-models/data-types/)
@@ -97,8 +144,65 @@ Types defined by the physical type system.
 | boolean                 |                                                                                   |                              |
 | file (OpenAPI 2.0 only) |                                                                                   |                              |
 
+#### Example
 
-# Sketchpad
+```yaml
+- column: name
+  logicalType: string
+  options:
+    minLength: 5
+    maxLength: 25
+    pattern: "[a-z]{5,25}"
+
+- column: date_of_birth
+  logicalType: string
+  options:
+    format: yyyy-MM-dd
+            
+- column: last_connection
+  logicalType: string
+  options:
+    format: MM/dd/yyyy hh:mm:ss tt
+
+- column: opt_in_sms
+  logicalType: boolean
+
+- column: details
+  logicalType: object
+  options:
+    properties:
+      - column: sum_amount
+        logicalType: number
+      - column: sum_amount_today
+        logicalType: number
+        options:
+          minimum: 0
+
+- column: previous_transactions
+  logicalType: array
+  options:
+    items: number
+```
+
+
+## Alternatives
+
+> Rejected alternative solutions and the reasons why.
+
+## Decision
+
+> The decision made by the TSC.
+
+## Consequences
+
+> The consequences of this decision.
+
+## References
+
+> Prior art, inspiration, and other references you used to create this based on what's worked well before.
+
+
+## Sketchpad
 
 ```
 - column: name
@@ -116,22 +220,20 @@ Types defined by the physical type system.
 ```
 
 Needs for both logical & physical type:
- * Table generation.
+* Table generation.
    * Need for multiple tools/context in the same contract.
- * Data quality as validating the schema/schema changes.
+* Data quality as validating the schema/schema changes.
    * Need for multiple tools/context in the same contract.
- * Creation of a reader dashboard (or any data-consuming application).
- * Pushing metadata to data catalogs.
- * Security aspects: masking, etc. work on logical type.
- * Compatibility with OpenAPI.
- * Support for object-type column/data element.
- * Data contract -> Kafka registry/schema, etc.
+* Creation of a reader dashboard (or any data-consuming application).
+* Pushing metadata to data catalogs.
+* Security aspects: masking, etc. work on logical type.
+* Compatibility with OpenAPI.
+* Support for object-type column/data element.
+* Data contract -> Kafka registry/schema, etc.
 
 Notes/ideas:
- * Bindings like in AsyncAPI.
- * Should we support on SQL? NO.
+* Bindings like in AsyncAPI.
+* Should we support on SQL? NO.
 
 Exclusions:
- * Consumer use cases -- TBD.
-
-
+* Consumer use cases -- TBD.
