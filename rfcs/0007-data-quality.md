@@ -1,6 +1,7 @@
 # Data Quality
 
-Champion: Jean-Georges Perrin
+* Champion: Jean-Georges Perrin
+* Discusssion channel: [Slack](https://aidaug.slack.com/archives/C06TC4X4KD1).
 
 ## Summary
 
