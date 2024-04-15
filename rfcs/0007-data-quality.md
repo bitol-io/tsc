@@ -45,6 +45,17 @@ quality:
     value: 2%
 ```
 
+```YAML
+quality:
+- code: invalid_count
+  engine: soda # namespace, library
+  parameters:
+  - parameter: valid_values
+    value: ['S', 'M', 'L']
+  - parameter: must_be_greater_than_or_equal
+    value: 10
+```
+
 If there is less than 2% of NULL in this field, then the rule is valid.
 
 ### Example 3 - Support for SQL 
