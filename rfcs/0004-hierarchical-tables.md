@@ -1,10 +1,12 @@
-# Columns are dead, long live fields
+# Generic, hierarchical tables
 
-- Champion: Andrew Jones
+- Champion: JGP
 
 ## Summary
 
-The current structure uses `dataset`, `name` and `columns` to define a data contract. However, these are all database terms - or specially, BigQuery terms, and they suggest very clearly an implementation (tables in a data warehouse). We want the data contract to be more generic than that, and suggest we rename these fields to be more generic.
+The current structure uses `dataset`, `name` and `columns` to define a data contract. However, these are all database terms - or specially, BigQuery terms, and they suggest very clearly an implementation (tables in a data warehouse). We want the data contract to be more generic than that.
+
+Moreover, we think there is a need for a hierarchical representation, to represent complex data types.
 
 ## Motivation
 
@@ -52,13 +54,6 @@ dataset:
   fields:
     - name: order_id
 ```
-
-#### Consequences
-
-- Makes the structure more applicable for users for other data structures
-- Nudges users more towards creating a logical model and less a physical model here
-- This is a breaking change. Would be targeted for v3.
-- We are very conscious in separating the logical representation of a dataset with the physical representation
 
 ### Option B - Genericity
 
@@ -158,7 +153,10 @@ TBD
 
 ## Consequences
 
-This would be a breaking change and therefore should be considered for version 3.
+- Makes the structure more applicable for users for other data structures
+- Nudges users more towards creating a logical model and less a physical model here
+- This is a breaking change. Would be targeted for v3.
+- We are very conscious in separating the logical representation of a dataset with the physical representation
 
 ## References
 
