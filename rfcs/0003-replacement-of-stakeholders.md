@@ -1,5 +1,7 @@
 # Replacing stakeholers with productTeam structure
 
+Champion: Simon Harrer
+
 The ODCS standard v2.2.1 contains a section about stakeholders.
 
 ```yaml
