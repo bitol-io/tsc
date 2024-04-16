@@ -1,4 +1,4 @@
-# Drop datasetName
+# Drop datasetName (& other infrastructure/implementation-specific properties)
 
 Champion: Simon Harrer & Jean-Georges Perrin.
 
