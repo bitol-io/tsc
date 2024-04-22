@@ -147,6 +147,52 @@ schema:
 
 TBD
 
+### Option F = More generic tags
+```yaml
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  attrtibutes:
+  - object: Identifier
+    kind: field
+    physicalName: id_whatever
+    description: Identifier for the table in this instance.
+  - object: TransactionDetail
+    kind: table
+    physicalName: trx_details_v1
+    description: Contains transactions.
+    attributes:
+    - field: date
+      physicalName: trx_ts
+      description: Timestamp of the transaction.
+```
+Alternative: Leaf is always an attribute. If there is non-trivial substructure it is an object.
+```yaml
+schema:
+- object: Transactions
+  kind: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  objects:
+  - attribute: Identifier
+    kind: field
+    physicalName: id_whatever
+    description: Identifier for the table in this instance.
+  - object: TransactionDetail
+    kind: table
+    physicalName: trx_details_v1
+    description: Contains transactions.
+    attributes:
+    - attribute: date
+      kind: field
+      physicalName: trx_ts
+      description: Timestamp of the transaction.
+```
+
+
+
 ## Decision
 
 TBD
