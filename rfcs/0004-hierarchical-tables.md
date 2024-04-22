@@ -191,7 +191,63 @@ schema:
       description: Timestamp of the transaction.
 ```
 
+### Option G - JSON Schema-inspired
 
+https://json-schema.org/learn/getting-started-step-by-step
+
+```yaml
+schema:
+- Transactions: table # `Transactions` is the name of the table
+  physicalName: trx_v1
+  description: Contains transactions.
+  properties:
+  - Identifier: string
+    physicalName: id_whatever
+    description: Identifier for the table in this instance.
+  - TransactionDetail: table
+    physicalName: trx_details_v1
+    description: Contains transactions.
+    properties:
+    - trx_ts: timestamp
+      physicalName: trx_ts
+      description: Timestamp of the transaction.
+    - transactions: array
+      items:
+        - type: string
+      description: List of transactions.
+```
+
+Discussion:
+* The tech changes the schema
+
+### Option H - JSON Schema-inspired with names
+
+```yaml
+schema:
+- name: Transactions
+  type: table
+  physicalName: trx_v1
+  description: Contains transactions.
+  properties:
+  - name: Identifier
+    type: string
+    physicalName: id_whatever
+    description: Identifier for the table in this instance.
+  - name: TransactionDetail
+    type: table
+    physicalName: trx_details_v1
+    description: Contains transactions.
+    properties:
+    - name: trx_ts
+      type: timestamp
+      physicalName: trx_ts
+      description: Timestamp of the transaction.
+    - name: transactions
+      type: array
+      items:
+        - type: string
+      description: List of transactions.
+```
 
 ## Decision
 
