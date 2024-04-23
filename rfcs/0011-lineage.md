@@ -48,7 +48,7 @@ In line ith the guiding value of keeping the standard small, if the proposal to 
 
 ### Example
 
-![Data Products Example](https://klarr.io/wp-content/uploads/odcs-lineage-2.png)
+![Data Products Example](https://klarr.io/wp-content/uploads/odcs-lineage-v2.png)
 
 The picture above illustrates an example topology with a number of data products (Data Product), their data contracts (DC), data processing jobs (Job) and data sets (DS) in de pipeline(s).
 
