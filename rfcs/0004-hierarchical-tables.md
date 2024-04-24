@@ -265,5 +265,5 @@ TBD
 * At GoCardless [we use name](https://medium.com/gocardless-tech/implementing-data-contracts-at-gocardless-3b5c49074d13), and it's working well for both tables and streams. It has not caused any confusion in 3 years of production, despite most users being familiar with the underlying technology and its terms (BigQuery and Pub/Sub)
 * [Protobuf calls them "fields"](https://protobuf.dev/programming-guides/proto3/), as [does Avro](https://avro.apache.org/docs/1.11.1/specification/).
 * [OpenAPI uses "title"](https://spec.openapis.org/oas/latest.html), which could also work well instead of name
-* [OpenLineate uses "Dataset"](https://openlineage.io/docs), so the current usage may be fine given that it is not exclusively used in GCP/BigQuery
+* [OpenLineage uses "Dataset"](https://openlineage.io/docs), so the current usage may be fine given that it is not exclusively used in GCP/BigQuery
 * [AsyncAPI v3.0.0 uses "Channel" for conveying messages](https://www.asyncapi.com/docs/reference/specification/v3.0.0), so that may be appropriate to use for messaging/streaming data (e.g. Apache Kafka topic)
