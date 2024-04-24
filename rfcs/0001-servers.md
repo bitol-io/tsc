@@ -6,7 +6,28 @@ Champion: Simon
 
 As a data consumer, when looking at a data contract, I want to access the actual data. I want to know where the data is.
 
-Add the why
+The other way around, when having access to given datasets I need to be able to correlate them to a given data contract.
+
+Currently there are already a number of fields defined in ODCS which are related to they "physical" location.  From the ODCS  example:
+
+```yaml
+# Physical parts / GCP / BigQuery specific
+sourcePlatform: googleCloudPlatform
+sourceSystem: bigQuery
+datasetProject: edw # BQ dataset
+datasetName: access_views # BQ dataset
+
+# Physical access
+driver: null
+driverVersion: null
+server: null
+database: pypl-edw.pp_access_views
+username: '${env.username}'
+password: '${env.password}'
+schedulerAppName: name_coming_from_scheduler
+```
+
+The above fields may be replaced or moved.
 
 *Note: secrets should not be part of the contract!*
 
