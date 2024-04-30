@@ -6,7 +6,7 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 
 ## Summary
 
-> One paragraph explanation of the RFC.
+> Due to changes in business processes data payloads change by means of allowed values.
 
 ## Motivation
 
