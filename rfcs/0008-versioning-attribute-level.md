@@ -11,6 +11,8 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 ## Motivation
 
 > Communication: Substantial changes in business data payloads should be announced. Be able to refer to a data contracts is helpful here.
+
+
 > Documentation: Especially for retrospective data usage (reporting, business analysis, data science applications, balancing/auditing) it is important to have a proper documentation.
 > Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance.
 > Principal of Parsimony: Versioning on attribute level is more parsimonious than versioning on contract level.
