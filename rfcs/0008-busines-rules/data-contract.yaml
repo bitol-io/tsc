@@ -1,0 +1,27 @@
+
+# DATA CONTRACT
+
+schema:
+- object: Orders
+  kind: table
+  physicalName: order_v1
+  description: List of online orders.
+  attrtibutes:
+  - field: Identifier
+    physicalName: id
+    physicalType: integer
+    logicalType: numeric
+  - field: CountryCode
+    physicalName: country_cd
+    physicalType: char[2]
+    logicalType: string
+    rules: # Could be part of DQ
+    - rule: not_null
+    - rule: CountryList
+      definition: $ref/cc1c1b4b-45a2-4691-b860-2b1d36f0c524
+      ruleVersion: 1
+    - rule: CountryList
+      definition: $ref/cc1c1b4b-45a2-4691-b860-2b1d36f0c524
+      ruleVersion: 2
+      effective: 2022-04-01T04:00:00.000+0200
+

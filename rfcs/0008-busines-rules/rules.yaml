@@ -1,0 +1,24 @@
+
+# RULES
+
+name: Shipping Business Rules
+id: cc1c1b4b-45a2-4691-b860-2b1d36f0c524
+version: 3.0.5
+kind: RuleBook
+apiVersion: 1.0.0
+rules:
+  - rule: CountryList
+    type: listOfValues
+    value:
+      - DE
+      - NL
+      - BE
+    version: 1
+  - rule: CountryList
+    type: listOfValuesFromSelect
+    value: SELECT ctry_code FROM reference_list_country_v2 WHERE avail_date > '2022-02-28'
+    version: 2
+    effectiveDate: 2022-03-01T20:15:00.000+0200
+    customProperties:
+    - name: date_format
+      value: ISO
