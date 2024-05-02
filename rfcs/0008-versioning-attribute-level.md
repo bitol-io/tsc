@@ -6,12 +6,15 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 
 ## Summary
 
-> Due to changes in business processes data payloads change by means of allowed values.
+> There are two use cases. First: Due to changes in business structures and processes (e. g. new counties, new warehouse, etc.) data payloads change as well which could heavily affect subsequent business processes. This holds even in the case that the technical definition of a field carrying such information remains the same. A versioning allows to keep track of such changes. Second: If more than one version of a business payload is active at the same time a versioning allows to keep things in one data contract. 
 
 ## Motivation
 
-> Why are we doing this? What use cases does it support? What is the expected outcome?
-> How does it align with our guiding values?
+> Communication: Substantial changes in business data payloads should be announced. Be able to refer to a data contracts is helpful here.
+> Documentation: Especially for retrospective data usage (reporting, business analysis, data science applications, balancing/auditing) it is important to have a proper documentation.
+> Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance.
+> Principal of Parsimony: Versioning on attribute level is more parsimonious than versioning on contract level.
+> How does it align with our guiding values? 
 
 ## Design and examples
 
