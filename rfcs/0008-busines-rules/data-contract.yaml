@@ -1,6 +1,12 @@
 
 # DATA CONTRACT
 
+name: Data contract governing orders
+id: 7c96fc1d-11c0-43b6-8f9f-923ecfc3da1e
+version: 3.0.5
+kind: DataContract
+apiVersion: 3.0.0
+
 schema:
 - object: Orders
   kind: table
@@ -23,5 +29,5 @@ schema:
     - rule: CountryList
       definition: $ref/cc1c1b4b-45a2-4691-b860-2b1d36f0c524
       ruleVersion: 2
-      effective: 2022-04-01T04:00:00.000+0200
+      effectiveDate: 2022-04-01T04:00:00.000+0200
 
