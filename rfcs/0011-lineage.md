@@ -36,6 +36,7 @@ In addition to referencing upstream data contracts, a link is added to the outpu
 
 | Key                              | UX label                 | Required | Description                                                                                                                                                             |
 |----------------------------------|--------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| lineage                          | Object                   | No       | Object. Data lineage related properties.                                                                                                                                |                  
 | inputDataContracts               | Input Data Contracts     | No       | Array. A list of input data contracts on which this data contract hence data product depends.                                                                           |                   
 | inputDataContracts.UUID          | Input Data Contract UUID | No       | UUID of the referenced Data Contract that defines the datasets that servce as input for this Data Product.                                                              |
 | outputDatasets                   | Output Datasets          | No       | Array. A list of Data Contract output datasets to link the Data Contract to OpenLineage for operational data lineage and data pipeline tracebility.                     |
@@ -66,19 +67,21 @@ This output datasets information is optional and not all Data Contracts are expe
 quantumName: Data Product Z 
 version: 1.1.0 
 uuid: 3c17473d-94c3-4456-98ad-81eb316df788
-inputDataContracts:
-  - UUID: 789ecec3-69c7-4d0e-9038-6cb97965e679
-outputDatasets:
-  - name: DSZ2-name # output dataset name corresponding to OpenLineage event output dataset emitted by Job F
-    namespace: DSZ2-namespace # output dataset namespace corresponding to OpenLineage event output dataset emitted by Job F
+lineage:
+  inputDataContracts:
+    - UUID: 789ecec3-69c7-4d0e-9038-6cb97965e679
+  outputDatasets:
+    - name: DSZ2-name # output dataset name corresponding to OpenLineage event output dataset emitted by Job F
+      namespace: DSZ2-namespace # output dataset namespace corresponding to OpenLineage event output dataset emitted by Job F
 
 # Data Contract Y
 quantumName: Data Product Y
 version: 2.0.0 
 uuid: 789ecec3-69c7-4d0e-9038-6cb97965e679
-inputDataContracts:
-  - UUID: 251f4798-63e9-457d-aa57-d14e61f1ab40
-  - UUID: 512e9887-9fec-43f2-afe6-d8d7d891a2ff
+lineage:
+  inputDataContracts:
+    - UUID: 251f4798-63e9-457d-aa57-d14e61f1ab40
+    - UUID: 512e9887-9fec-43f2-afe6-d8d7d891a2ff
 
 # Data Contract X
 quantumName: Data Product X
