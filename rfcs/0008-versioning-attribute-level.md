@@ -32,7 +32,7 @@ YAML example taken from rfc-0004, option F
 
 The usage over time is important, consider the following scenario.
 
-Business delivers it's products in the USA from January 2020. For a transactinal system the dc from the very beginning looks like this:
+A business starts in January 2020 and  delivers it's products in the US only. For a transactinal system the dc from the very beginning looks like this:
 
 ```YAML
 schema:
@@ -43,18 +43,40 @@ schema:
     attributes:
     - attribute: Receiver country code
       kind: field
-      description: Receiver country. 
+      description: Receiver country. Currently this is always 'USA'.
       version_number: 1
       version_validFrom: 2020-01-01
       version_flagActive: true
 ...
  ```
 
+In the first half of 2023 the business decision was made to expand to Mexico on 2023-06-01
+The data producers of the transactional systems learn about this on in the first quater of 2023 and documents the projected changes as soon as possible:
 
-Important for customs and VAT regulations.
+```YAML
+schema:
+ - object: TransactionDetail
+    kind: table
+    physicalName: trx_details
+    description: Contains transactions.
+    attributes:
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. Currently this is always 'USA'.
+      version_number: 1
+      version_validFrom: 2020-01-01
+      version_flagActive: true
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. Could be 'USA' or 'MEX'. This is very important for customs, VAT and shipping fee regulations.
+      version_number: 2
+      version_validFrom: 2023-01-01
+      version_flagActive: false
+...
+ ```
 
-In the first half of 2023 the business decision was made to expand to Mexico. 
-The data producers of the transactional systems learn about this on the 2023-06-13
+
+
 
 
 
