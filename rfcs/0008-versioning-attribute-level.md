@@ -6,7 +6,9 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 
 ## Summary
 
-> There are two use cases. First: Due to changes in business structures and processes (e. g. new counties, new warehouse, etc.) data payloads change as well which could heavily affect subsequent business processes. This holds even in the case that the technical definition of a field carrying such information remains the same. A versioning allows to keep track of such changes. Second: If more than one version of a business payload is active at the same time a versioning allows to keep things in one data contract. 
+> There are two use cases.
+> 1) Due to changes in business structures and processes (e. g. new counties, new warehouse, etc.) data payloads change as well which could heavily affect subsequent business processes. This holds even in the case that the technical definition of a field carrying such information remains the same. A versioning allows to keep track of such changes. This being said, this usecase could be covered by versioning of the corresponding data quality rules, which are assosiated with the attributes.
+> 2) If more than one version of a business payload is active at the same time a versioning allows to keep things in one data contract. 
 
 ## Motivation
 
