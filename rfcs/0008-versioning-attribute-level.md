@@ -12,13 +12,13 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 
 ## Motivation
 
-> Communication: Substantial changes in business data payloads should be announced. Be able to refer to a data contracts is helpful here.
+> Communication: Substantial changes in business data payloads should be announced within an organisation. Refering to an explicit new version which is already "published" in a data contracts helps to foster communication.
 > 
-> Documentation: Especially for retrospective data usage (reporting, business analysis, data science applications, balancing/auditing) it is important to have a proper documentation.
+> Documentation: Especially for retrospective data usage (reporting, business analysis, data science applications, balancing/auditing) it is important to have a proper and easily accessible documentation of business payload in the past.
 >
-> Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance.
+> Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance of the data contract concept as a whole.
 >
-> Principal of Parsimony: Versioning on attribute level is more parsimonious than versioning on contract level.
+> Principal of Parsimony: Versioning on attribute level is more parsimonious than versioning on contract level. This being said, versioning on data quality rule level is even more parsimonious.  
 >
 > How does it align with our guiding values? 
 
@@ -27,6 +27,9 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 > This is the bulk of the RFC.
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
+
+
+
 
 ## Alternatives
 
