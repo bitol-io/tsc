@@ -28,21 +28,33 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
 
+YAML example taken from rfc-0004, option F
+
+The usage over time is important, consider the following scenario.
+
+Business delivers it's products in the USA from January 2020. For a transactinal system the dc from the very beginning looks like this:
 
 ```YAML
-- table: tbl
-  columns:
-  - column: rcvr_cntry_code
-    businessName: Receiver country code
-    logicalType: string
-    physicalType: varchar(2)
-    isPrimaryKey: true
-    primaryKeyPosition: 1
-    partitionStatus: true
-    partitionKeyPosition: 1
-    clusterStatus: false
-```
+schema:
+ - object: TransactionDetail
+    kind: table
+    physicalName: trx_details
+    description: Contains transactions.
+    attributes:
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. 
+      version_number: 1
+      version_validFrom: 2020-01-01
+      version_flagActive: true
+...
+ ```
 
+
+Important for customs and VAT regulations.
+
+In the first half of 2023 the business decision was made to expand to Mexico. 
+The data producers of the transactional systems learn about this on the 2023-06-13
 
 
 
