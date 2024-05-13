@@ -19,8 +19,7 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 > Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance of the data contract concept as a whole.
 >
 > Principal of Parsimony: Versioning on attribute level is more parsimonious than versioning on contract level. This being said, versioning on data quality rule level is even more parsimonious.  
->
-> How does it align with our guiding values? 
+
 
 ## Design and examples
 
