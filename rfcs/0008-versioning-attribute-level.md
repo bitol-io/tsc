@@ -29,6 +29,21 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 > Offer at least two examples, one is minimalist, one is more structured.
 
 
+```YAML
+- table: tbl
+  columns:
+  - column: rcvr_cntry_code
+    businessName: Receiver country code
+    logicalType: string
+    physicalType: varchar(2)
+    isPrimaryKey: true
+    primaryKeyPosition: 1
+    partitionStatus: true
+    partitionKeyPosition: 1
+    clusterStatus: false
+```
+
+
 
 
 ## Alternatives
