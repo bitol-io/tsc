@@ -27,7 +27,7 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
 
-# Option A
+### Option A
 
 YAML example taken from rfc-0004, option F
 
@@ -100,7 +100,7 @@ schema:
 ...
  ```
 
-# Option B
+### Option B
 
 Instead of 'version_flagActive' a field 'version_validTo' would also be possible. This would require less changes in the contract itself when the new version becomes active. Communication scheme is identical to Option A
 ```YAML
