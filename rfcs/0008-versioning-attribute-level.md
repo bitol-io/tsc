@@ -50,7 +50,7 @@ schema:
  ```
 
 In the first half of 2023 the business decision was made to expand to Mexico on 2023-06-01
-The data producers of the transactional systems learn about this on in the first quater of 2023 and documents the projected changes as soon as possible:
+The data producers of the transactional systems learn about this in the first quarter of 2023. The projected changes as incorporated into the DC as soon as possible:
 
 ```YAML
 schema:
@@ -73,7 +73,7 @@ schema:
       version_flagActive: false
 ...
  ```
-Communication could look like this: "Dear transaction data consumer, please note the upcoming change in our payload (attribute 'Receiver country code') due to the scheduled expansion to Mexico starting from 2023-06-01. For details please refer to the description in our data contract."
+Announcement to every consumer in an appropriate channel (also as soon as possible) could look like this: "Dear transaction data consumer, please note the upcoming change in our payload (attribute 'Receiver country code') due to the scheduled expansion to Mexico starting from 2023-06-01. For details please refer to the description in our data contract."
 
 
 
