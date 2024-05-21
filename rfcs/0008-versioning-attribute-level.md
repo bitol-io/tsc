@@ -75,6 +75,28 @@ schema:
  ```
 Announcement to every consumer in an appropriate channel (also as soon as possible) could look like this: "Dear transaction data consumer, please note the upcoming change in our payload (attribute 'Receiver country code') due to the scheduled expansion to Mexico starting from 2023-06-01. For details please refer to the description in our data contract."
 
+Finally, on the 2023-06-01 the field 'version_flagActive' must be toggled:
+```YAML
+schema:
+ - object: TransactionDetail
+    kind: table
+    physicalName: trx_details
+    description: Contains transactions.
+    attributes:
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. Currently this is always 'USA'.
+      version_number: 1
+      version_validFrom: 2020-01-01
+      version_flagActive: false
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. Could be 'USA' or 'MEX'. This is very important for customs, VAT and shipping fee regulations.
+      version_number: 2
+      version_validFrom: 2023-06-01
+      version_flagActive: true
+...
+ ```
 
 
 
