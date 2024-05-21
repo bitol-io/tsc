@@ -27,6 +27,8 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
 
+# Option A
+
 YAML example taken from rfc-0004, option F
 
 The usage over time is important, consider the following scenario.
@@ -91,12 +93,38 @@ schema:
       version_flagActive: false
     - attribute: Receiver country code
       kind: field
-      description: Receiver country. Could be 'USA' or 'MEX'. This is very important for customs, VAT and shipping fee regulations.
+      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for customs, VAT and shipping fee regulations.
       version_number: 2
       version_validFrom: 2023-06-01
       version_flagActive: true
 ...
  ```
+
+# Option B
+
+Instead of 'version_flagActive' a field 'version_validTo' would also be possible. This would require less changes in the contract itself when the new version becomes active. Communication scheme is identical to Option A
+```YAML
+schema:
+ - object: TransactionDetail
+    kind: table
+    physicalName: trx_details
+    description: Contains transactions.
+    attributes:
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. Currently this is always 'USA'.
+      version_number: 1
+      version_validFrom: 2020-01-01
+      version_validTo: 2023-05-31
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for customs, VAT and shipping fee regulations.
+      version_number: 2
+      version_validFrom: 2023-06-01
+      version_validTo: 2099-12-31
+...
+ ```
+
 
 
 
