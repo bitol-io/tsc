@@ -49,7 +49,7 @@ schema:
 ...
  ```
 
-In the first half of 2023 the business decision was made to expand to Mexico on 2023-06-01
+In the first half of 2023 the business decision was made to expand to Canada on 2023-06-01
 The data producers of the transactional systems learn about this in the first quarter of 2023. The projected changes as incorporated into the DC as soon as possible:
 
 ```YAML
@@ -67,13 +67,13 @@ schema:
       version_flagActive: true
     - attribute: Receiver country code
       kind: field
-      description: Receiver country. Could be 'USA' or 'MEX'. This is very important for customs, VAT and shipping fee regulations.
+      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for customs, VAT and shipping fee regulations.
       version_number: 2
       version_validFrom: 2023-06-01
       version_flagActive: false
 ...
  ```
-Announcement to every consumer in an appropriate channel (also as soon as possible) could look like this: "Dear transaction data consumer, please note the upcoming change in our payload (attribute 'Receiver country code') due to the scheduled expansion to Mexico starting from 2023-06-01. For details please refer to the description in our data contract."
+Announcement to every consumer in an appropriate channel (also as soon as possible) could look like this: "Dear transaction data consumer, please note the upcoming change in our payload (attribute 'Receiver country code') due to the scheduled expansion to Canada starting from 2023-06-01. For details please refer to the description in our data contract."
 
 Finally, on the 2023-06-01 the field 'version_flagActive' must be toggled:
 ```YAML
