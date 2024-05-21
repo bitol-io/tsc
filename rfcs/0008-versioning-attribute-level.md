@@ -69,7 +69,7 @@ schema:
       version_flagActive: true
     - attribute: Receiver country code
       kind: field
-      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for customs, VAT and shipping fee regulations.
+      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for the automtic processing of customs, VAT and shipping fee regulations in subsequent systems.
       version_number: 2
       version_validFrom: 2023-06-01
       version_flagActive: false
@@ -93,7 +93,7 @@ schema:
       version_flagActive: false
     - attribute: Receiver country code
       kind: field
-      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for customs, VAT and shipping fee regulations.
+      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for the automtic processing of customs, VAT and shipping fee regulations in subsequent systems.
       version_number: 2
       version_validFrom: 2023-06-01
       version_flagActive: true
@@ -102,7 +102,9 @@ schema:
 
 ### Option B
 
-Instead of 'version_flagActive' a field 'version_validTo' would also be possible. This would require less changes in the contract itself when the new version becomes active. Communication scheme is identical to Option A
+Instead of 'version_flagActive' a field 'version_validTo' would also be possible. This would require less changes in the contract itself when the new version becomes active. Communication scheme is identical to Option A.
+
+Intitial DC looks like this:
 ```YAML
 schema:
  - object: TransactionDetail
@@ -112,13 +114,29 @@ schema:
     attributes:
     - attribute: Receiver country code
       kind: field
-      description: Receiver country. Currently this is always 'USA'.
+      description: Receiver country. This is always 'USA'.
+      version_number: 1
+      version_validFrom: 2020-01-01
+      version_validTo: 2099-12-31
+...
+ ```
+
+```YAML
+schema:
+ - object: TransactionDetail
+    kind: table
+    physicalName: trx_details
+    description: Contains transactions.
+    attributes:
+    - attribute: Receiver country code
+      kind: field
+      description: Receiver country. This is always 'USA'.
       version_number: 1
       version_validFrom: 2020-01-01
       version_validTo: 2023-05-31
     - attribute: Receiver country code
       kind: field
-      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for customs, VAT and shipping fee regulations.
+      description: Receiver country. Could be 'USA' or 'CAN'. This is very important for the automtic processing of customs, VAT and shipping fee regulations in subsequent systems.
       version_number: 2
       version_validFrom: 2023-06-01
       version_validTo: 2099-12-31
