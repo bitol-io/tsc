@@ -69,11 +69,11 @@ schema:
       kind: field
       description: Receiver country. Could be 'USA' or 'MEX'. This is very important for customs, VAT and shipping fee regulations.
       version_number: 2
-      version_validFrom: 2023-01-01
+      version_validFrom: 2023-06-01
       version_flagActive: false
 ...
  ```
-
+Communication could look like this: "Dear transaction data consumer, please note the upcoming change in our payload (attribute 'Receiver country code') due to the scheduled expansion to Mexico starting from 2023-06-01. For details please refer to the description in our data contract."
 
 
 
