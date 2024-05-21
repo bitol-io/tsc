@@ -7,14 +7,14 @@ Champion: Martin Meermeyer & Jean-Georges Perrin.
 ## Summary
 
 > There are two use cases.
-> 1) Due to changes in business structures and processes (e. g. new counties, new warehouse, etc.) data payloads change as well which could heavily affect subsequent business processes. This holds even in the case that the technical definition of a field carrying such information remains the same. A versioning allows to keep track of such changes. This being said, this usecase could be covered by versioning of the corresponding data quality rules, which are assosiated with the attributes.
-> 2) If more than one version of a business payload is active at the same time a versioning allows to keep things in one data contract. 
+> 1) Due to changes in business structures and processes (e. g. new counties, new warehouse, etc.) data payloads change as well which could heavily affect subsequent business processes. This holds even in the case that the technical definition of a field carrying such information remains the same. A versioning allows to keep track of such changes. This being said, this usecase could also be covered by versioning of corresponding data quality rules, which are assosiated with the attributes.
+> 2) If more than one version of a business payload is active at the same time a versioning allows to keep different versions of the same payload in one data contract. 
 
 ## Motivation
 
-> Communication: Substantial changes in business data payloads should be announced within an organisation. Refering to an explicit new version which is already "published" in a data contracts helps to foster communication.
+> Communication: Substantial changes in business data payloads should be announced within an organisation toward each and every consumer of a particular data source. Refering to an explicit new version which is already "published" in a data contract helps to foster communication.
 > 
-> Documentation: Especially for retrospective data usage (reporting, business analysis, data science applications, balancing/auditing) it is important to have a proper and easily accessible documentation of business payload in the past.
+> Documentation: Especially for retrospective data usage (reporting/controlling, balancing/auditing, business analysis, data science applications) it is important to have a proper and for non-technical people easy-to-understand documentation of actual and past business payloads.
 >
 > Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance of the data contract concept as a whole.
 >
