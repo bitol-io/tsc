@@ -9,6 +9,7 @@ Build more genericity around the definition of the data quality rules.
 
 ## Motivation
 
+* Support for multiple rules engine/data quality providers (support for some edge cases).
 * The current (v2.x) implementation of data quality rules is too close to the PayPal tooling.
 
 ## Design and examples
