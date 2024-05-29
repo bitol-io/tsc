@@ -71,7 +71,55 @@ Types defined by the physical type system.
 #### Consequences
 - TBD
 
-### Option 3: Both Physical and Logical
+### Option 3: Both Physical and Logical (OpenApi / Swagger)
+
+#### Logical type
+- [OpenAPI/Swagger data types](https://swagger.io/docs/specification/data-models/data-types/)
+- New datetime type
+ 
+
+| Type                    | Options                                                                                     | Example                      |
+|-------------------------|---------------------------------------------------------------------------------------------|------------------------------|
+| string                  | minLength<br>maxLength<br>pattern<br>format                                                 |                              |
+| number                  | format<br>multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
+| integer                 | format<br>multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
+| object                  | format<br>properties<br>required<br>minProperties<br>maxProperties<br>readOnly<br>writeOnly |                              |
+| array                   | items<br>minItems<br>maxItems<br>uniqueItems                                                |                              |
+| boolean                 |                                                                                             |                              |
+| file (OpenAPI 2.0 only) |                                                                                             |                              |
+| datetime                | format<br>minimum<br>maximum                                                                |                              |
+|
+
+##### string / number / integer / object /array boolean 
+Same behaviour as for OpenApi 
+
+##### datetime
+format: this should remain open so both options below are allowed: 
+
+
+###### Option 1: formated string following [RFC 3339, section 5.6,](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)
+
+examples:
+
+ Description                    | Value                                                                                     | Example                      |
+|-------------------------|---------------------------------------------------------------------------------------------|------------------------------|
+| Year                             |yyyy          | 2024 |
+| Year and month                   |yyyy-MM       | 2024-05|
+| Complete date                    |yyyy-MM-dd    | 2025-05-13|
+| Complete date, hours and minutes |yyyy-MM-ddThh:mmTZD | 2024-05-13T19:20+01:00|
+|Complete date, hours, minutes and seconds|  YYYY-MM-ddThh:mm:ssTZD|2024-05-13T19:20:30+01:00|
+|Complete date, hours, minutes, seconds and a decimal fraction of a second |      yyyy-MM-ddThh:mm:ss.sTZD |2024-05-13T19:20:30.45+01:00|
+
+
+###### Option 2: The format could also be a custom sting like:
+- yyyy/MM/dd 
+- MM/dd/yyyy
+- using separator '/'
+
+
+
+#### Physical type
+- Types defined by the physical type system (Postgres, Mysql, ...).
 
 #### Consequences
 - TBD
