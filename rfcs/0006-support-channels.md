@@ -1,6 +1,6 @@
 # Standard support channels
 
-Champion:Jean-Georges Perrin.
+Champion: Jean-Georges Perrin (jgp).
 
 ## Needs
 * Better desciption of communication channel.
