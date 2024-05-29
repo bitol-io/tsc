@@ -1,6 +1,6 @@
 # Servers
 
-Champion: Simon
+Champion: Simon Harrer
 
 ## Context
 
