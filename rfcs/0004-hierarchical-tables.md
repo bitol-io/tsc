@@ -1,6 +1,6 @@
 # Generic, hierarchical tables
 
-- Champion: JGP
+Champion: Andrew Jones & Jean-Georges Perrin (jgp).
 
 ## Summary
 
