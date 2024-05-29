@@ -1,39 +1,33 @@
-# Support for versioning at the attribute level
-
-> The champion is the person who is primarily supporting the RFC.
+# Support for business rules & versioning at the attribute level
 
 Champion: Martin Meermeyer & Jean-Georges Perrin.
 
 ## Summary
 
-> There are two use cases.
-> 1) Due to changes in business structures and processes (e. g. new counties, new warehouse, etc.) data payloads change as well which could heavily affect subsequent business processes. This holds even in the case that the technical definition of a field carrying such information remains the same. A versioning allows to keep track of such changes. This being said, this usecase could also be covered by versioning of corresponding data quality rules, which are assosiated with the attributes.
-> 2) If more than one version of a business payload is active at the same time a versioning allows to keep different versions of the same payload in one data contract. 
+There are two use cases.
+1) Due to changes in business structures and processes (e. g. new counties, new warehouse, etc.) data payloads change as well which could heavily affect subsequent business processes. This holds even in the case that the technical definition of a field carrying such information remains the same. A versioning allows to keep track of such changes. This being said, this usecase could also be covered by versioning of corresponding data quality rules, which are assosiated with the attributes.
+2) If more than one version of a business payload is active at the same time a versioning allows to keep different versions of the same payload in one data contract. 
 
 ## Motivation
 
-> Communication: Substantial changes in business data payloads should be announced within an organisation toward each and every consumer of a particular data source. Refering to an explicit new version which is already "published" in a data contract helps to foster communication.
-> 
-> Documentation: Especially for retrospective data usage (reporting/controlling, balancing/auditing, business analysis, data science applications) it is important to have a proper and for non-technical people easy-to-understand documentation of actual and past business payloads.
->
-> Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance of the data contract concept as a whole.
->
-> Principal of Parsimony: Versioning on attribute level is more parsimonious than versioning on contract level. This being said, versioning on data quality rule level is even more parsimonious.  
+Communication: Substantial changes in business data payloads should be announced within an organisation toward each and every consumer of a particular data source. Refering to an explicit new version which is already "published" in a data contract helps to foster communication.
+
+Documentation: Especially for retrospective data usage (reporting/controlling, balancing/auditing, business analysis, data science applications) it is important to have a proper and for non-technical people easy-to-understand documentation of actual and past business payloads.
+
+Readability: Hiding versions of data descriptions in versioning tools like GIT or SVN is often not feasible for a non-technical audience. The standard should be inclusive for business people to the greatest extent to achieve widespread acceptance of the data contract concept as a whole.
+
+Principal of Parsimony: Versioning on attribute level is more parsimonious than versioning on contract level. This being said, versioning on data quality rule level is even more parsimonious.  
 
 
 ## Design and examples
 
-> This is the bulk of the RFC.
-> Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
-> Offer at least two examples, one is minimalist, one is more structured.
-
 ### Option A
 
-YAML example taken from rfc-0004, option F
+YAML example taken from/based on rfc-0004, option F
 
 The usage over time is important, consider the following scenario.
 
-A business starts in January 2020 and  delivers it's products in the US only. For a transactinal system the dc from the very beginning looks like this:
+A business starts in January 2020 and  delivers its products in the US only. For a transactional system the dc from the very beginning looks like this:
 
 ```YAML
 schema:
@@ -149,16 +143,16 @@ schema:
 
 ## Alternatives
 
-> Rejected alternative solutions and the reasons why.
+TBD
 
 ## Decision
 
-> The decision made by the TSC.
+TBD
 
 ## Consequences
 
-> The consequences of this decision.
+New feature, should not break compatibility.
 
 ## References
 
-> Prior art, inspiration, and other references you used to create this based on what's worked well before.
+N/A
