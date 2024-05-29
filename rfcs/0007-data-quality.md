@@ -12,6 +12,17 @@ Build more genericity around the definition of the data quality rules.
 * Support for multiple rules engine/data quality providers (support for some edge cases).
 * The current (v2.x) implementation of data quality rules is too close to the PayPal tooling.
 
+## Working group
+
+* Jean-Georges Perrin
+* Jochen Christ
+* Eugene Stakhov
+* Martin Meermeyer
+* Tom Baeyens 
+* Todd Nemanich 
+* Manuel Destouesse 
+* Peter Flook 
+
 ## Design and examples
 
 * Assumes the new schema structure (RFC 0004, option D).
@@ -227,7 +238,20 @@ dataset:
 
 ## Decision
 
-> The decision made by the TSC.
+### Working Group
+
+* Support for multiple engines or data quality providers: yes.
+* Default engine: yes.
+* No need to specify engine when one engine: yes.
+* No need to specify engine when default engine: yes.
+* Support for DQ rules at the field/attribute level: yes.
+* Support for DQ rules at the object/field level: yes.
+* Support for DQ rules for multiple tables/objects or cross table/object: TBD.
+* Support for a core set of rules at the standard level: TBD, could be inspired by [Soda's implementation](https://docs.soda.io/soda/data-contracts-checks.html).
+
+### TSC
+
+TBD
 
 ## Consequences
 
