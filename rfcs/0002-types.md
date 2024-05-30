@@ -101,14 +101,14 @@ format: this should remain open so both options below are allowed:
 
 examples:
 
- Description                    | Value                                                                                     | Example                      |
-|-------------------------|---------------------------------------------------------------------------------------------|------------------------------|
-| Year                             |yyyy          | 2024 |
-| Year and month                   |yyyy-MM       | 2024-05|
-| Complete date                    |yyyy-MM-dd    | 2025-05-13|
-| Complete date, hours and minutes |yyyy-MM-ddThh:mmTZD | 2024-05-13T19:20+01:00|
-|Complete date, hours, minutes and seconds|  YYYY-MM-ddThh:mm:ssTZD|2024-05-13T19:20:30+01:00|
-|Complete date, hours, minutes, seconds and a decimal fraction of a second |      yyyy-MM-ddThh:mm:ss.sTZD |2024-05-13T19:20:30.45+01:00|
+ | Description                                                               | Value                    | Example                      |
+|---------------------------------------------------------------------------|--------------------------|------------------------------|
+| Year                                                                      | yyyy                     | 2024                         |
+| Year and month                                                            | yyyy-MM                  | 2024-05                      |
+| Complete date                                                             | yyyy-MM-dd               | 2025-05-13                   |
+| Complete date, hours and minutes                                          | yyyy-MM-ddThh:mmTZD      | 2024-05-13T19:20+01:00       |
+| Complete date, hours, minutes and seconds                                 | YYYY-MM-ddThh:mm:ssTZD   | 2024-05-13T19:20:30+01:00    |
+| Complete date, hours, minutes, seconds and a decimal fraction of a second | yyyy-MM-ddThh:mm:ss.sTZD | 2024-05-13T19:20:30.45+01:00 |
 
 
 ###### Option 2: The format could also be a custom sting like:
@@ -143,19 +143,19 @@ examples:
 ```yaml
 - column: name
   logicalType: string
-  options:
+  logicalTypeOptions:
     minLength: 5
     maxLength: 25
     pattern: "[a-z]{5,25}"
 
 - column: date_of_birth
   logicalType: string
-  options:
+  logicalTypeOptions:
     format: yyyy-MM-dd
             
 - column: last_connection
   logicalType: string
-  options:
+  logicalTypeOptions:
     format: MM/dd/yyyy hh:mm:ss tt
 
 - column: opt_in_sms
@@ -163,61 +163,64 @@ examples:
 
 - column: details
   logicalType: object
-  options:
+  logicalTypeOptions:
     properties:
       - column: sum_amount
         logicalType: number
       - column: sum_amount_today
         logicalType: number
-        options:
+        logicalTypeOptions:
           minimum: 0
 
 - column: previous_transactions
   logicalType: array
-  options:
+  logicalTypeOptions:
     items: number
 ```
 
-### Option 5: OpenAPI/Swagger
+### Option 5: OpenAPI/Swagger with Date
 
 [OpenAPI/Swagger data types](https://swagger.io/docs/specification/data-models/data-types/)
 
-| Type                    | Options                                                                           | Example                      |
-|-------------------------|-----------------------------------------------------------------------------------|------------------------------|
-| string                  | minLength<br>maxLength<br>pattern<br>format                                       |                              |
-| number                  | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
-| integer                 | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
-| object                  | properties<br>required<br>minProperties<br>maxProperties<br>readOnly<br>writeOnly |                              |
-| array                   | items<br>minItems<br>maxItems<br>uniqueItems                                      |                              |
-| boolean                 |                                                                                   |                              |
-| file (OpenAPI 2.0 only) |                                                                                   |                              |
+| Type                           | Options                                                                           | Example                      |
+|--------------------------------|-----------------------------------------------------------------------------------|------------------------------|
+| string                         | minLength<br>maxLength<br>pattern<br>format                                       |                              |
+| number                         | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
+| integer                        | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |                              |
+| object                         | properties<br>required<br>minProperties<br>maxProperties<br>readOnly<br>writeOnly |                              |
+| array                          | items<br>minItems<br>maxItems<br>uniqueItems                                      |                              |
+| boolean                        |                                                                                   |                              |
+| file (OpenAPI 2.0 only)        |                                                                                   |                              |
+| date (new type not in OpenAPI) | format<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum              |                              |
 
 #### Example
 
 ```yaml
 - column: name
   logicalType: string
-  options:
+  logicalTypeOptions:
     minLength: 5
     maxLength: 25
     pattern: "[a-z]{5,25}"
 
 - column: date_of_birth
-  logicalType: string
-  options:
-    format: yyyy-MM-dd
+  logicalType: date
+  logicalTypeOptions:
+    format: "yyyy-MM-dd"
+    example: 2024-01-25
             
 - column: last_connection
-  logicalType: string
-  options:
-    format: MM/dd/yyyy hh:mm:ss tt
+  logicalType: date
+  logicalTypeOptions:
+    format: "yyyy-MM-dd'T'HH:mm:ss'Z'"
+    example: 2024-01-25T15:23:45Z
 
 - column: opt_in_sms
   logicalType: boolean
 
 - column: details
   logicalType: object
-  options:
+  logicalTypeOptions:
     properties:
       - column: sum_amount
         logicalType: number
@@ -228,7 +231,7 @@ examples:
 
 - column: previous_transactions
   logicalType: array
-  options:
+  logicalTypeOptions:
     items: number
 ```
 
