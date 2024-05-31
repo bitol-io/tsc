@@ -99,20 +99,17 @@ schema: # ex dataset
 
 In this situation, the rule should fail: ${column} cannot be identified.
 
-## Option 2
+## Option 2: Adopt Soda's Data Contract Check Reference
 
-Data quality attributes can be:
-- Text: A human-readable text that describes the quality of the data.
-- SQL: An individual SQL query that returns a single value that can be compared.
-- Predefined types: Some commonly-used predefined quality attributes such as `row_count`, `unique`, `freshness`
-- Vendor-specific: Quality attributes that are specific to a vendor, such as Great Expectations, SodaCL or Montecarlo.
+Design principles:
+- Quality attributes can be defined on table or column level.
+- Support different levels/stages of data quality attributes
+  - __Text:__ A human-readable text that describes the quality of the data.
+  - __Predefined types:__ A maintained library of commonly-used predefined quality attributes such as `row_count`, `unique`, `freshness`
+  - __SQL:__ An individual SQL query that returns a value that can be compared.
+  - __Custom:__ Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
+- The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
 
-
-Changes:
-- quality attributes can be defined on table or column level. 
-- Use `type` instead of `code`, to follow Soda/Great Expectations terminology. Also, `code` feels not fitting for some types.
-- The fields/keys are dependent on the `type` of quality attribute.
-- No explicit `parameters` array, keep it simple
 
 __Text__
 
@@ -124,27 +121,14 @@ quality:
     description: The email address was verified by the system
 ```
 
-__SQL__
-
-An individual SQL query that returns a single number or boolean value that can be compared. The SQL query must be in the SQL dialect of the provided server.
-
-We should to specify the expected comparator. For comparison, the Soda [List of threshold keys](https://docs.soda.io/soda/data-contracts-checks.html#list-of-threshold-keys) could be adopted.
-
-```yaml
-quality:
-  - type: sql
-    query: SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL
-    must_be_less_than: 3600    
-```
-
 __Predefined types__
 
-We can also support a list of predefined types that are commonly used in data quality checks. These should be executable in all common data quality engines.
+We should support a list of predefined types that are commonly used in data quality checks. These should be executable in all common data quality engines.
 
 This makes live simpler for data engineers, as they don't have to write the SQL query themselves.
 
-The experimental [Data contract check reference](
-https://docs.soda.io/soda/data-contracts-checks.html) are a good starting point (Todo: Check the license and their strategy with Tom).
+The experimental [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html) are a good starting point.
+Instead of creating a new library, I propose to use these as a reference.
 
 Column-level
 ```yaml
@@ -155,6 +139,14 @@ quality:
   name: Fewer than 10 duplicate names
 - type: duplicate_percent
   must_be_less_than: 1
+- type: no_invalid_values
+  valid_values: ['pounds']
+  filter_sql: country = 'UK'
+- type: invalid_percent
+  must_be_less_than: 3
+  valid_values_reference_data:
+    dataset: countryID
+    column: id
 ```
 
 Table-level
@@ -166,13 +158,37 @@ quality:
     name: Verify row count range
 ```
 
-__Vendor-specific__
+I would suggest some minor changes to the Soda reference:
+- Instead `checks:` use `quality:` as the key for the list of quality attributes.
+- Rename `metric_query` to `sql`.
+- Drop `metric_expression`
+- In `valid_values_reference_data` adopt `dataset` and `column` to the terms used in ODCS
 
-We should also support vendor specific checks, such as Great Expectations, SodaCL or Montecarlo:
+__SQL__
+
+_(This actually represents the `metric_query` type in the Soda reference)_
+
+An individual SQL query that returns a single number or boolean value that can be compared. 
+The SQL query must be in the SQL dialect of the provided server.
+
+For comparison, the Soda [List of threshold keys](https://docs.soda.io/soda/data-contracts-checks.html#list-of-threshold-keys) should be adopted.
 
 ```yaml
 quality:
-- type: great-expectations
+  - type: sql
+    query: SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL
+    must_be_less_than: 3600    
+```
+
+__Custom__
+
+We should also support vendor specific checks, such as Great Expectations, dbt-tests or Montecarlo:
+Any properties should be acceptable here.
+
+```yaml
+quality:
+- type: custom
+  engine: great-expectations
   expectation_type: expect_table_row_count_to_be_between
   kwargs:
     min_value: 10000
