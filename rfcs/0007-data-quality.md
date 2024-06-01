@@ -135,16 +135,15 @@ Column-level
 quality:
 - type: no_duplicate_values
 - type: duplicate_count
-  must_be_less_than: 10
+  musstBeLessThan: 10
   name: Fewer than 10 duplicate names
 - type: duplicate_percent
-  must_be_less_than: 1
+  mustBeLessThan: 1
 - type: no_invalid_values
-  valid_values: ['pounds']
-  filter_sql: country = 'UK'
+  validValues: ['pounds']
 - type: invalid_percent
-  must_be_less_than: 3
-  valid_values_reference_data:
+  mustBeLessThan: 3
+  validValuesReferenceData:
     dataset: countryID
     column: id
 ```
@@ -154,15 +153,16 @@ Table-level
 ```yaml
 quality:
   - type: row_count
-    must_be_between: [100, 120]
+    mustBeBetween: [100, 120]
     name: Verify row count range
 ```
 
 I would suggest some minor changes to the Soda reference:
+- Use lowerCamelCase instead of snake_case
 - Instead `checks:` use `quality:` as the key for the list of quality attributes.
 - Rename `metric_query` to `sql`.
 - Drop `metric_expression`
-- In `valid_values_reference_data` adopt `dataset` and `column` to the terms used in ODCS
+- In references, such as `valid_values_reference_data` adopt `dataset` and `column` to the terms used in ODCS
 
 __SQL__
 
@@ -177,7 +177,7 @@ For comparison, the Soda [List of threshold keys](https://docs.soda.io/soda/data
 quality:
   - type: sql
     query: SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL
-    must_be_less_than: 3600    
+    mustBeLessThan: 3600    
 ```
 
 __Custom__
@@ -185,14 +185,16 @@ __Custom__
 We should also support vendor specific checks, such as Great Expectations, dbt-tests or Montecarlo:
 Any properties should be acceptable here.
 
+> TBD: Camel Case feels a bit odd here
+
 ```yaml
 quality:
 - type: custom
   engine: great-expectations
-  expectation_type: expect_table_row_count_to_be_between
+  expectationType: expect_table_row_count_to_be_between
   kwargs:
-    min_value: 10000
-    max_value: 50000
+    minValue: 10000
+    maxValue: 50000
 ```
 
 ## Alternatives
