@@ -249,6 +249,29 @@ schema:
       description: List of transactions.
 ```
 
+### Option I
+
+```
+schema:
+  - object|name: MyObjectName
+    type|logicalType: object # defaults to object, can be left away
+    attributes|properties|fields|objects:
+      - object|field|name|attribute: shipment_date
+        type|logicalType: date
+      - object|name: shipment_address
+        type|logicalType: object # defaults to object, can be left away
+        attributes|properties|fields|objects:
+          - object|field|name|attribute: postal_code
+            type|logicalType: string 
+          - object|field|name|attribute: street_lines
+            type|logicalType: array 
+            items|objects: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+              field|name: street_line
+              type|logicalType: string
+```
+
+Structure is agreed on. Naming is still open. Perhaps go alongside json schema?
+
 ## Decision
 
 TBD
