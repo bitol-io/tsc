@@ -57,8 +57,8 @@ Requires:
 
 Optional:
 * `name`
-* `tool`: email|slack|teams|discord|other
-* `scope`: interactive|announcements
+* `tool`: email|slack|teams|discord|ticket|other
+* `scope`: interactive|announcements|issues
 * `invitationUrl`
 
 ## Notes
@@ -69,11 +69,8 @@ Optional:
 
 * For Slack, we could have:
   * a link to the channel `url` and
-  * a link to the invitation - `invitationUrl`. 
-
-
-
+  * a link to the invitation - `invitationUrl`.
 
 ## Consequences
 
-Breaking change for ODCS v2.2.1.
+Breaking change for ODCS v2.2+.
