@@ -20,17 +20,15 @@ The updated system should support several tools and scope.
 ```YAML
 support:
   - channel: # Simple Slack communication channel
-      - tool: slack
-        url: https://aidaug.slack.com/archives/C05UZRSBKLY
+      - url: https://aidaug.slack.com/archives/C05UZRSBKLY
   - channel: # Simple distribution list
-      - tool: email
-        url: datacontract-ann@bitol.io
+      - url: mailto:datacontract-ann@bitol.io
 ```
 
 #### Complex
 ```YAML
 support:
-  - channel: 
+  - channel:
       - tool: teams
         scope: interactive
         url: https://bitol.io/teams/channel/my-data-contract-interactive
@@ -38,29 +36,41 @@ support:
       - tool: teams
         scope: announcements
         url: https://bitol.io/teams/channel/my-data-contract-announcements
+        invitationUrl: https://bitol.io/teams/channel/my-data-contract-announcements-invit
   - channel: # all announcement
-      - tool: teams
+      - name: All announcement for all data contracts
+        tool: teams
         scope: announcements
         url: https://bitol.io/teams/channel/all-announcements
   - channel:
       - tool: email
         scope: announcements
-        url: datacontract-ann@bitol.io
+        url: mailto:datacontract-ann@bitol.io
 ```
 
 ### Allowed values
 
+Requires: 
+* `support`
+* `channel`
+* `url`
+
+Optional:
+* `name`
+* `tool`: email|slack|teams|discord|other
+* `scope`: interactive|announcements
+* `invitationUrl`
+
 ## Notes
 
 * For Teams, we could have:
-  * a link to the channel (by default after accepting the invitation) and
-  * a link to the invitation.
+  * a link to the channel `url` and
+  * a link to the invitation `invitationUrl` (if you're already connected, it brings you to the default channel).
 
 * For Slack, we could have:
   * a link to the channel `url` and
   * a link to the invitation - `invitationUrl`. 
 
-* Tools: email|slack|teams|discord|other
 
 
 
