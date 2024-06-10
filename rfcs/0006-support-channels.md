@@ -46,6 +46,9 @@ support:
       - tool: email
         scope: announcements
         url: mailto:datacontract-ann@bitol.io
+  - channel:
+      - tool: ticket
+        url: https://bitol.io/ticket/my-product
 ```
 
 ### Allowed values
