@@ -3,6 +3,7 @@
 In alphabetical order by first name.
 
 - Andrew Jones, GoCardless, GMT
+- Atanas Iliev, atanas@aidaug.org, Central European Time
 - Dieter Wachters, dieter@raito.io, Raito, Central European Time
 - Dirk Van de Poel, dirk.vandepoel@klarrio.com, Klarrio, Central European Time
 - Gene Stakhov, gstakhov@gmail.com, enChoice, Eastern Standard Time
