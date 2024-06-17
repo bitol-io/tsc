@@ -14,7 +14,7 @@ The updated system should support several tools and scope.
 
 ## Decision
 
-### Examples
+### Examples - Option A
 
 #### Minimalist
 ```YAML
@@ -49,6 +49,43 @@ support:
   - channel:
       - tool: ticket
         url: https://bitol.io/ticket/my-product
+```
+
+### Examples - Option B
+
+#### Minimalist
+```YAML
+support:
+  - channel: channel-name-or-identifier # Simple Slack communication channel
+    url: https://aidaug.slack.com/archives/C05UZRSBKLY
+  - channel: channel-name-or-identifier # Simple distribution list
+    url: mailto:datacontract-ann@bitol.io
+```
+
+#### Complex
+```YAML
+support:
+  - channel: channel-name-or-identifier
+    tool: teams
+    scope: interactive
+    url: https://bitol.io/teams/channel/my-data-contract-interactive
+  - channel: channel-name-or-identifier
+    tool: teams
+    scope: announcements
+    url: https://bitol.io/teams/channel/my-data-contract-announcements
+    invitationUrl: https://bitol.io/teams/channel/my-data-contract-announcements-invit
+  - channel: channel-name-or-identifier # all announcement
+    name: All announcement for all data contracts
+    tool: teams
+    scope: announcements
+    url: https://bitol.io/teams/channel/all-announcements
+  - channel: channel-name-or-identifier
+    tool: email
+    scope: announcements
+    url: mailto:datacontract-ann@bitol.io
+  - channel: channel-name-or-identifier
+    tool: ticket
+    url: https://bitol.io/ticket/my-product
 ```
 
 ### Allowed values
