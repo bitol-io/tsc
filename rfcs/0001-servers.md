@@ -45,31 +45,42 @@ dataset:
   - table: orders
   - table: line_items
 servers:
-  - environment: production
+  - environment: prod_bigquery
     type: BigQuery
     project: acme_orders_prod
     dataset: bigquery_orders_latest_npii_v1
-    usage: "Low latency queries here"
-    roles: # perhaps put this in custom properties or not?
-      - role: acme-order-prod-reader # link to role vs. specify here
-      - role: acme-order-prod-pii-reader # link to role vs. specify here
+    description: "Low latency queries here"
+    custom:
+      roles:
+        - role: acme-order-prod-reader
+        - role: acme-order-prod-pii-reader
   - environment: dev
     type: BigQuery
     project: acme_orders_dev
     dataset: bigquery_orders_latest_npii_v1
-    customProperties:
-      - property: username # migration from 'username' field
-        value: my-username
-      - property: password # migration from 'password' field
-        value: secret
-  - environment: production
+    custom:
+      - username: my-username # migration from 'username' field
+      - password: secret # migration from 'password' field
+  - environment: prod_s3
     type: S3
     location: s3://some-url/
-    usage: "Use this for batch processing"
-  - environment: production
+    description: "Use this for batch processing"
+  - environment: prod_jdbc
     type: JDBC
     connection: "jdbc:postgresql://localhost:5432/database/orders"
+  - environment: legacy-dev
+    type: sftp
+    location: my-sftp-location-dev
+    filetype: csv
 ```
+
+
+**Should we enumerate all possible types in the standard?** We want to have an "extension" for this, not hardcoded in the standard. We support the three main server types sql, file, message.
+
+**How should we handle "standard" technical properties?** TBD
+
+**How should we handle custom properties?** TBD
+
 
 We want to put only so much information in here, so the interested data consumer can find the data.
 
