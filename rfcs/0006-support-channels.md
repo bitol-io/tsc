@@ -64,6 +64,10 @@ Optional:
 * `scope`: interactive|announcements|issues
 * `invitationUrl`
 
+### Out of scope
+
+* Hours of support: can be implemented as an extension if needed for now.
+
 ## Notes
 
 * For Teams, we could have:
@@ -76,4 +80,10 @@ Optional:
 
 ## Consequences
 
-Breaking change for ODCS v2.2+.
+Breaking change for ODCS v2.2+: replaces:
+
+```YAML
+productDl: product-dl@ClimateQuantum.org
+productSlackChannel: '#product-help'
+productFeedbackUrl: https://product-feedback.com/sellers
+```
