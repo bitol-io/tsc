@@ -150,3 +150,7 @@ servers:
 Same as option 1, but all fields are basically custom.
 
 Not helpful for automation based on that.
+
+### Option 4: Do nothing
+
+Do not include the servers.
