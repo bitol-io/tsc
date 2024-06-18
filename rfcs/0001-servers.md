@@ -37,7 +37,7 @@ TBD
 
 ## Options
 
-### Option 1: Included
+### Option 1: Explicit Servers
 
 ```yaml
 dataset:
@@ -71,16 +71,12 @@ servers:
   - environment: legacy-dev
     type: sftp
     location: my-sftp-location-dev
-    filetype: csv
+    format: csv
+  - environment: kafka-dev
+    type: kafka
+    topic: orders
+    format: json
 ```
-
-
-**Should we enumerate all possible types in the standard?** We want to have an "extension" for this, not hardcoded in the standard. We support the three main server types sql, file, message.
-
-**How should we handle "standard" technical properties?** TBD
-
-**How should we handle custom properties?** TBD
-
 
 We want to put only so much information in here, so the interested data consumer can find the data.
 
@@ -98,20 +94,59 @@ We want to put only so much information in here, so the interested data consumer
 - Standardization of connection details is more feasible
 - Data producers can more easily communicate the connection details to data consumers (due to standardization)
 
-
-
-### Option 2: Referenced
+### Option 2: Generic server types
 
 ```yaml
-
+dataset:
+  tables:
+  - table: orders
+  - table: line_items
+servers:
+  - environment: prod_bigquery
+    type: dbms
+    host: https://www.googleapis.com/bigquery/v2
+    port: 443
+    dialect: bigquery
+    database: acme_orders_prod
+    description: Low latency queries here
+    custom:
+      project: acme_orders_prod
+      dataset: bigquery_orders_latest_npii_v1
+      roles:
+        - role: acme-order-prod-reader
+        - role: acme-order-prod-pii-reader
+      username: my-username # migration from 'username' field
+      password: secret # migration from 'password' field
+  - environment: prod_s3
+    type: objectstorage
+    location: s3://some-url/
+    format: json
+    delimiter: newline
+    description: Use this for batch processing
+  - environment: prod_jdbc
+    type: dbms
+    host: localhost
+    port: 5432
+    database: database
+    schema: orders
+    dialect: postgresql
+  - environment: legacy-dev
+    type: objectstorage
+    location: sftp://my-sftp-location-dev
+    format: csv
+    delimiter: newline
+  - environment: kafka-dev
+    type: messaging
+    channel: orders
+    format: json
+    host: my-kafka-cluster 
+    custom:
+      partitions: 10
+      partitionKey: orderId
 ```
 
-#### Consequences
-- Link is necessary to another place.
+### Option 3: Generic structure
 
+Same as option 1, but all fields are basically custom.
 
-### Option 3: Out of scope
-
-#### Consequences
-- Put it somewhere else.
-
+Not helpful for automation based on that.
