@@ -6,7 +6,7 @@ Champion: Andrew Jones & Jean-Georges Perrin (jgp).
 
 The current structure uses `dataset`, `name` and `columns` to define a data contract. However, these are all database terms - or specially, BigQuery terms, and they suggest very clearly an implementation (tables in a data warehouse). We want the data contract to be more generic than that.
 
-Moreover, we think there is a need for a hierarchical representation, to represent complex data types.
+Moreover, there is a need for a hierarchical representation to represent complex data types.
 
 ## Motivation
 
@@ -35,9 +35,37 @@ Found issues:
 - The term dataset is problematic as it has a very specific meaning in the context of GCP, and some fields in the ODCS are GCP specific and also use the term dataset (e.g., `datasetName`).
 
 Open Questions:
-- How do we capture other data, like unstructured data (scientific papers in form of PDFs), vectors, ... Do we want to specify unstructured or semistructured data in a data contract?
+- How do we capture other data, like unstructured data (scientific papers as PDFs), vectors, more... Do we want to specify unstructured or semistructured data in a data contract?
 
-## Alternatives
+## Current proposition
+
+```
+schema:
+  - object|name: MyObjectName
+    type|logicalType: object # defaults to object, can be left away
+    attributes|properties|fields|objects:
+      - object|field|name|attribute: shipment_date
+        type|logicalType: date
+      - object|name: shipment_address
+        type|logicalType: object # defaults to object, can be left away
+        attributes|properties|fields|objects:
+          - object|field|name|attribute: postal_code
+            type|logicalType: string 
+          - object|field|name|attribute: street_lines
+            type|logicalType: array 
+            items|objects: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+              field|name: street_line
+              type|logicalType: string
+```
+
+The structure is agreed on. Naming og properties is still open.
+
+- Perhaps go alongside JSON schema?
+- Lesson from the Avro schema: confusion around physical & logical type.
+
+
+
+## Rejected alternatives
 
 ### Option A - Field and Name
 
@@ -274,7 +302,7 @@ Structure is agreed on. Naming is still open. Perhaps go alongside json schema?
 
 ## Decision
 
-TBD
+- 2024-06-18: Rejection of options A, B, C, D, E, F, G, and H. Approval of option I.
 
 ## Consequences
 
