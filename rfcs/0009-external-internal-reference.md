@@ -1,6 +1,6 @@
 # External & Internal References 
 
-Champion: Jean-Georges Perrin.
+Champion: Todd Nemanich.
 
 ## Summary
 
