@@ -135,7 +135,7 @@ Column-level
 quality:
 - type: no_duplicate_values
 - type: duplicate_count
-  musstBeLessThan: 10
+  mustBeLessThan: 10
   name: Fewer than 10 duplicate names
 - type: duplicate_percent
   mustBeLessThan: 1
