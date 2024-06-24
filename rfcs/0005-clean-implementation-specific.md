@@ -1,6 +1,6 @@
 # Clean infrastructure/implementation-specific properties
 
-Champion: Simon Harrer & Jean-Georges Perrin.
+Champion: Jochen Christ.
 
 Keep ODCS small and free from vendor specific infos. 
 `datasetName` is GCP specific. 
