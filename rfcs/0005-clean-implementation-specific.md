@@ -41,6 +41,7 @@ Dataset
 - Drop `dataset.table.columns.column.encryptedColumnName` (not sure, shouldn't this be another column)
 - Rename `dataset.table.columns.column.sampleValues` to `examples`
 - Drop `dataset.table.columns.column.criticalDataElementStatus` or rename to `isCriticalDataElement`
+- Rename `dataset.table.columns.column.isNullable` to `required` (and negate!)
 
 ## TBD
 - For boolean values use `is` prefix or not (`isUnique` vs `partitionStatus`).
