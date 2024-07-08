@@ -35,13 +35,15 @@ Top-Level
 Dataset
 - Drop `dataset.table.priorTableName`
 - Drop `dataset.table.dataGranularity`
-- Rename `dataset.table.columns.column.partitionStatus` to `isPartitioned` (TBD use `is` prefix or not)
+- Rename `dataset.table.columns.column.partitionStatus` to `partitioned`
 - Drop `dataset.table.columns.column.clusterStatus`
 - Drop `dataset.table.columns.column.clusterKeyPosition`
 - Drop `dataset.table.columns.column.encryptedColumnName` (not sure, shouldn't this be another column)
 - Rename `dataset.table.columns.column.sampleValues` to `examples`
-- Drop `dataset.table.columns.column.criticalDataElementStatus` or rename to `isCriticalDataElement`
-- Rename `dataset.table.columns.column.isNullable` to `required` (and negate!)
+- Drop `dataset.table.columns.column.criticalDataElementStatus` or rename to `criticalDataElement`
+- Change `dataset.table.columns.column.isNullable` to `required` (TBD)
+- Rename `dataset.table.columns.column.isUnique` to `unique`
+- Rename `dataset.table.columns.column.isPrimaryKey` to `primaryKey`
 
 ## TBD
 - For boolean values use `is` prefix or not (`isUnique` vs `partitionStatus`).
