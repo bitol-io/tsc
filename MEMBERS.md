@@ -12,4 +12,5 @@ In alphabetical order by first name.
 - Manuel Destouesse, mdsoftengr@gmail.com, itracHealth, Eastern Standard Time
 - Martin Meermeyer, m.meermeyer@gmail.com, Lidl e-commerce, Central European Time
 - Peter Flook, peter.flook@data.catering, Data Catering, Taipei Standard Time
+- Sandro Pugliese, sandro@sandro.org, TelevisaUnivision, Eastern Standard Time 
 - Simon Harrer, simon.harrer@innoq.com, INNOQ, Central European Time
