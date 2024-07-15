@@ -45,6 +45,10 @@ Dataset
 - Rename `dataset.table.columns.column.isUnique` to `unique`
 - Rename `dataset.table.columns.column.isPrimaryKey` to `primaryKey`
 
+Roles
+- Make `role.access` optional
+- Add `role.description` as an optional field
+
 ## TBD
 - For boolean values use `is` prefix or not (`isUnique` vs `partitionStatus`).
 - Follow Kubernetes conventions for apiVersion? (e.g., `odcs.bitol.io/v3`) 
