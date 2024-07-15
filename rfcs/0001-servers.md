@@ -45,34 +45,41 @@ dataset:
   - table: orders
   - table: line_items
 servers:
-  - environment: prod_bigquery
+  - server: prod_bigquery
+    environment: prod
     type: BigQuery
     project: acme_orders_prod
     dataset: bigquery_orders_latest_npii_v1
     description: "Low latency queries here"
-    custom:
-      roles:
-        - role: acme-order-prod-reader
-        - role: acme-order-prod-pii-reader
-  - environment: dev
+    roles:
+      - role: acme-order-prod-reader
+        description: just the reader role
+      - role: acme-order-prod-pii-reader
+        description: the PII reader role # optional
+  - server: dev
+    environment: dev
     type: BigQuery
     project: acme_orders_dev
     dataset: bigquery_orders_latest_npii_v1
-    custom:
+    customProperties:
       - username: my-username # migration from 'username' field
       - password: secret # migration from 'password' field
-  - environment: prod_s3
+  - server: prod_s3
+    environment: prod
     type: S3
     location: s3://some-url/
     description: "Use this for batch processing"
-  - environment: prod_jdbc
+  - server: prod_jdbc
+    environment: prod
     type: JDBC
     connection: "jdbc:postgresql://localhost:5432/database/orders"
-  - environment: legacy-dev
+  - server: legacy-dev
+    environment: dev
     type: sftp
     location: my-sftp-location-dev
     format: csv
-  - environment: kafka-dev
+  - server: kafka-dev
+    environment: dev
     type: kafka
     topic: orders
     format: json
@@ -94,7 +101,7 @@ We want to put only so much information in here, so the interested data consumer
 - Standardization of connection details is more feasible
 - Data producers can more easily communicate the connection details to data consumers (due to standardization)
 
-### Option 2: Generic server types
+### Option 2: Generic server types (DISCARDED)
 
 ```yaml
 dataset:
@@ -145,12 +152,12 @@ servers:
       partitionKey: orderId
 ```
 
-### Option 3: Generic structure
+### Option 3: Generic structure (DISCARDED)
 
 Same as option 1, but all fields are basically custom.
 
 Not helpful for automation based on that.
 
-### Option 4: Do nothing
+### Option 4: Do nothing (DISCARDED)
 
 Do not include the servers.
