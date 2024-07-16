@@ -38,15 +38,9 @@ To be discussed.
 
 ## Decision
 
-TBD
-
-## Options
-
-### Option 1 
-
 ```yaml
 # use email addresses, team names, any name you like
-productTeam:
+team:
   - username: ceastwood
     role: Product Owner
     contact: ceastwood@sample-org.com
@@ -60,6 +54,8 @@ productTeam:
     role: Marketing Data Analyst
     contact: +1 800 201 8904 [Telephone]
 ```
+
+## Discarded Options
 
 ### Option 2
 
