@@ -74,12 +74,15 @@ servers:
 ```
 
 - `server`: STRING REQUIRED identifier of the server
-- `type`: STRING REQUIRED supported server types: a union of SODA server types and Data Contract Specification server types along with their properties. (examples: kafka, bigquery, s3, ...)
+- `type`: STRING REQUIRED supported server types: a union of SODA server types and Data Contract Specification server types along with their properties. (examples: kafka, bigquery, s3, ...).
 - type-dependent REQUIRED and OPTIONAL parameters (examples (kafka): topic, host; examples (bigquery): project, dataset) 
 - `description`: STRING OPTIONAL textual description, only an info block
 - `environment`: STRING OPTIONAL use for "prod", "preprod", ...
 - `roles`: ARRAY OPTIONAL list of offered roles, similar to the roles on top level of the data contract, but local to a specific server
 - `customProperties`: MAP OPTIONAL anything custom
+
+**Open Questions**
+- What about the properties of SODA and DCS: which naming convention should we apply here?
 
 ## Consequences
 
