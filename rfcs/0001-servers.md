@@ -4,7 +4,7 @@ Champion: Simon Harrer
 
 ## Summary
 
-We introduce a way to specify the "physical" location of the data protected by the contract. The contract protect data on different environments (prod, preprod, ...) and technologies (bigquery, kafka,  s3, ...). 
+We introduce a way to specify the "physical" location of the data protected by the contract. A data contract can protect data on different environments (prod, preprod, ...) and technologies (bigquery, kafka,  s3, ...).
 
 ## Motivation
 
@@ -15,10 +15,10 @@ Use Cases:
 Status Quo:
 - Currently, there are already a number of fields defined in ODCS which are related to they "physical" location that are BigQuery/JDBC dependent.
 - RFC 5 removes them which are scheduled to be removed via RFC 5.
+- We already have support for roles at the top-level.
 
 Assumption:
 - A data contract can protect data on different technologies and environments
-- Role-Based Security is the 80% case
 
 ## Decision
 
