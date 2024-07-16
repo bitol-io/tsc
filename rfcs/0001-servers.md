@@ -73,19 +73,19 @@ servers:
     format: json
 ```
 
-- `server`: REQUIRED identifier
-- `type`: REQUIRED supported server types: a union of SODA server types and Data Contract Specification server types along with their properties.
-- type-dependent REQUIRED and OPTIONAL parameters
-- `description`: OPTIONAL textual description, only an info block
-- `environment`: OPTIONAL use for "prod", "preprod", ...
-- `roles`: OPTIONAL list of offered roles, similar to the roles on top level of the data contract, but local to a specific server
-- `customProperties`: OPTIONAL anything custom
+- `server`: STRING REQUIRED identifier of the server
+- `type`: STRING REQUIRED supported server types: a union of SODA server types and Data Contract Specification server types along with their properties. (examples: kafka, bigquery, s3, ...)
+- type-dependent REQUIRED and OPTIONAL parameters (examples (kafka): topic, host; examples (bigquery): project, dataset) 
+- `description`: STRING OPTIONAL textual description, only an info block
+- `environment`: STRING OPTIONAL use for "prod", "preprod", ...
+- `roles`: ARRAY OPTIONAL list of offered roles, similar to the roles on top level of the data contract, but local to a specific server
+- `customProperties`: MAP OPTIONAL anything custom
 
 ## Consequences
 
 - Standardization of connection details is more feasible
 - Data producers can more easily communicate the connection details to data consumers (due to standardization)
-- There are no "server-specific" quality checks, SLAs, etc. If those are different per server, one needs to create separate data contracts.
+- There are no "server-specific" quality checks, SLAs, etc. If those are different per server, one needs to create separate data contracts or add additional limitations via the `description` for `customProperties` to each server.
 - Support for "monoserver" is indirectly available by simply adding only a single server to the list
 
 ## Discarded Options
