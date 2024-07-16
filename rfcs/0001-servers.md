@@ -2,42 +2,30 @@
 
 Champion: Simon Harrer
 
-## Context
+## Summary
 
-As a data consumer, when looking at a data contract, I want to access the actual data. I want to know where the data is.
+We introduce a way to specify the "physical" location of the data protected by the contract. The contract protect data on different environments (prod, preprod, ...) and technologies (bigquery, kafka,  s3, ...). 
 
-The other way around, when having access to given datasets I need to be able to correlate them to a given data contract.
+## Motivation
 
-Currently there are already a number of fields defined in ODCS which are related to they "physical" location.  From the ODCS  example:
+Use Cases:
+- As a data consumer, when looking at a data contract, I want to access the actual data. I want to know where the data is and have details on how to get info.
+- The other way around, when having access to given datasets I need to be able to correlate them to a given data contract.
 
-```yaml
-# Physical parts / GCP / BigQuery specific
-sourcePlatform: googleCloudPlatform
-sourceSystem: bigQuery
-datasetProject: edw # BQ dataset
-datasetName: access_views # BQ dataset
+Status Quo:
+- Currently, there are already a number of fields defined in ODCS which are related to they "physical" location that are BigQuery/JDBC dependent.
+- RFC 5 removes them which are scheduled to be removed via RFC 5.
 
-# Physical access
-driver: null
-driverVersion: null
-server: null
-database: pypl-edw.pp_access_views
-username: '${env.username}'
-password: '${env.password}'
-schedulerAppName: name_coming_from_scheduler
-```
-
-The above fields may be replaced or moved.
-
-*Note: secrets should not be part of the contract!*
+Assumption:
+- A data contract can protect data on different technologies and environments
+- Role-Based Security is the 80% case
 
 ## Decision
 
 TBD
 
-## Options
+## Explicit Servers
 
-### Option 1: Explicit Servers
 
 ```yaml
 dataset:
@@ -47,7 +35,7 @@ dataset:
 servers:
   - server: prod_bigquery
     environment: prod
-    type: BigQuery
+    type: bigquery
     project: acme_orders_prod
     dataset: bigquery_orders_latest_npii_v1
     description: "Low latency queries here"
@@ -58,7 +46,7 @@ servers:
         description: the PII reader role # optional
   - server: dev
     environment: dev
-    type: BigQuery
+    type: bigquery
     project: acme_orders_dev
     dataset: bigquery_orders_latest_npii_v1
     customProperties:
@@ -85,21 +73,22 @@ servers:
     format: json
 ```
 
-We want to put only so much information in here, so the interested data consumer can find the data.
+- `server`: REQUIRED identifier
+- `type`: REQUIRED supported server types: a union of SODA server types and Data Contract Specification server types along with their properties.
+- type-dependent REQUIRED and OPTIONAL parameters
+- `description`: OPTIONAL textual description, only an info block
+- `environment`: OPTIONAL use for "prod", "preprod", ...
+- `roles`: OPTIONAL list of offered roles, similar to the roles on top level of the data contract, but local to a specific server
+- `customProperties`: OPTIONAL anything custom
 
-*Note: secrets should not be part of the contract! (Passwords are secrets!)*
+## Consequences
 
-*Open Questions*
-
-- What about (additional) links? We currently don't plan to add them.
-- What about having environment-specific pricing, quality checks, etc.? Do we want to support this? If really are a lot of environment specifics, should it be a second contract?
-- Where does one get access?
-- What about the roles section? The roles section uses a monoserver approach whereas this option would support multiserver approach.
-- How to add custom properties?
-
-#### Consequences
 - Standardization of connection details is more feasible
 - Data producers can more easily communicate the connection details to data consumers (due to standardization)
+- There are no "server-specific" quality checks, SLAs, etc. If those are different per server, one needs to create separate data contracts.
+- Support for "monoserver" is indirectly available by simply adding only a single server to the list
+
+## Discarded Options
 
 ### Option 2: Generic server types (DISCARDED)
 
