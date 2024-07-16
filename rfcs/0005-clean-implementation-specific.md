@@ -27,6 +27,7 @@ Top-Level
 - Drop `password` (credentials should not be stored in the data contract)
 - Drop `driverVersion` (will move to servers if needed)
 - Drop `driver` (will move to servers if needed)
+- Drop `server` (will move to servers if needed)
 - Drop `project` (BigQuery-specific, will move to servers)
 - Drop `datasetName` (BigQuery-specific, will move to servers)
 - Drop `database` (BigQuery-specific, will move to servers)
