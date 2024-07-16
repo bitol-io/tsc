@@ -85,8 +85,8 @@ servers:
 
 - Standardization of connection details is more feasible
 - Data producers can more easily communicate the connection details to data consumers (due to standardization)
-- There are no "server-specific" quality checks, SLAs, etc. If those are different per server, one needs to create separate data contracts or add additional limitations via the `description` for `customProperties` to each server.
-- Support for "monoserver" is indirectly available by simply adding only a single server to the list
+- There are no "server-specific" quality checks, SLAs, etc. *Workaround*: create separate data contracts or add additional limitations via the `description` for `customProperties` to each server.
+- Support for "monoserver" is not available on the top level. *Workaround*: have a servers list with one server
 
 ## Discarded Options
 
