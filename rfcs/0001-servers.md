@@ -8,17 +8,17 @@ We introduce a way to specify the "physical" location of the data protected by t
 
 ## Motivation
 
-Use Cases:
-- As a data consumer, when looking at a data contract, I want to access the actual data. I want to know where the data is and have details on how to get info.
-- The other way around, when having access to given datasets I need to be able to correlate them to a given data contract.
+**Use Cases**
+- As a data consumer, when looking at a data contract, I want to access the actual data. I want to know where the data is accessible to me and have details on how to get access.
+- As a platform engineer, when automating access, I need to know the offered roles per technology and environment so I can set up the appropriate ACL for the data marketplace.
 
-Status Quo:
+**Status Quo**
 - Currently, there are already a number of fields defined in ODCS which are related to they "physical" location that are BigQuery/JDBC dependent.
 - RFC 5 removes them which are scheduled to be removed via RFC 5.
 - We already have support for roles at the top-level.
 
-Assumption:
-- A data contract can protect data on different technologies and environments
+**Assumptions**
+- A data contract can protect data on different technologies and environments: one contract for data that is available on BigQuery and Kafka, one contract for data that is available on the PROD and the NONPROP Snowflake account, ...
 
 ## Decision
 
