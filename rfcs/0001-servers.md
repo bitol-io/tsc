@@ -13,9 +13,9 @@ We introduce a way to specify the "physical" location of the data protected by t
 - As a platform engineer, when automating access, I need to know the offered roles per technology and environment so I can set up the appropriate ACL for the data marketplace.
 
 **Status Quo**
-- Currently, there are already a number of fields defined in ODCS which are related to they "physical" location that are BigQuery/JDBC dependent.
-- RFC 5 removes them which are scheduled to be removed via RFC 5.
-- We already have support for roles at the top-level.
+- We have a number of top-level attributes on "physical" location that are BigQuery/JDBC dependent. RFC5 removes it.
+- We have support for roles at the top-level.
+- We have physicalType at the column/table level.
 
 **Assumptions**
 - A data contract can protect data on different technologies and environments: one contract for data that is available on BigQuery and Kafka, one contract for data that is available on the PROD and the NONPROP Snowflake account, ...
@@ -25,7 +25,6 @@ We introduce a way to specify the "physical" location of the data protected by t
 TBD
 
 ## Explicit Servers
-
 
 ```yaml
 dataset:
@@ -83,6 +82,7 @@ servers:
 
 **Open Questions**
 - What about the properties of SODA and DCS: which naming convention should we apply here?
+- Possible conflict with `physicalType` at the table/column level
 
 ## Consequences
 
