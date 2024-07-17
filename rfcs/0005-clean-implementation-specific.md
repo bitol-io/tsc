@@ -6,7 +6,7 @@ Keep ODCS small and free from vendor-specific or platform-specific parameters.
 
 ## Status
 
-Approved.
+2024-07-24 Approved.
 
 ## Decision
 
