@@ -35,7 +35,7 @@ Top-Level
 
 Dataset
 - Drop `dataset.table.priorTableName`
-- Drop `dataset.table.dataGranularity`
+- Drop `dataset.table.dataGranularity` or rename to `dataset.table.granularityDescription`
 - Rename `dataset.table.columns.column.partitionStatus` to `partitioned`
 - Drop `dataset.table.columns.column.clusterStatus`
 - Drop `dataset.table.columns.column.clusterKeyPosition`
