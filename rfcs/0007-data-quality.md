@@ -31,75 +31,13 @@ Build more genericity around the definition of the data quality rules.
 * Support for `customProperties`.
 * Easier scheduling.
 
-## Option 1
-
-Changes:
+## General Changes
 
 * `templateName` is now a custom property.
 * `toolName` is optional.
 * `scheduleCronExpression` is now replaced by `schedule` and `scheduler`. `scheduleCronExpression: 0 20 * * *` becomes `schedule: 0 20 * * *` and `scheduler: cron`.
 
-### Example 1 - Implicit call to rule
-
-```YAML
-quality:
-- code: required
-```
-
-* Applied on a column: it will apply a rule called `required` to this column.
-* Applied on a table: it will apply a rule called `required` to all the required columns in the table.
-
-### Example 2 - Named parameters
-
-```YAML
-quality:
-- code: required
-  parameters:
-  - parameter: tolerance
-    value: 2%
-```
-
-```YAML
-quality:
-- code: invalid_count
-  engine: soda # namespace, library
-  parameters:
-  - parameter: valid_values
-    value: ['S', 'M', 'L']
-  - parameter: must_be_greater_than_or_equal
-    value: 10
-```
-
-If there is less than 2% of NULL in this field, then the rule is valid.
-
-### Example 3 - Support for SQL 
-
-```YAML
-schema: # ex dataset
-- object: StockTable
-  physicalName: stock_v1
-  attributes: # ex columns
-  - field: Quantity
-    physicalName: qty
-    quality:
-    - code: sql
-      query: SELECT count(*) FROM ${table} WHERE ${column} >= 0;
-```
-
-In this situation, the rule will pass if the result of the `SELECT count(*) FROM stock_v1 WHERE qty >= 0;` is true.
-
-```YAML
-schema: # ex dataset
-- object: StockTable
-  physicalName: stock_v1
-  quality:
-  - code: sql
-    query: SELECT count(*) FROM ${table} WHERE ${column} >= 0;
-```
-
-In this situation, the rule should fail: ${column} cannot be identified.
-
-## Option 2: Adopt Soda's Data Contract Check Reference
+## Syntax Change
 
 Design principles:
 - Quality attributes can be defined on table or column level.
@@ -111,9 +49,9 @@ Design principles:
 - The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
 
 
-__Text__
+### Text
 
-A human-readable text that describe the quality of the data. Later in the development process, these might be translated into an executable check (such as `sql`), or checked through an AI engine.
+A human-readable text that describes the quality of the data. Later in the development process, these might be translated into an executable check (such as `sql`), or checked through an AI engine.
 
 ```yaml
 quality:
@@ -121,7 +59,7 @@ quality:
     description: The email address was verified by the system
 ```
 
-__Predefined types__
+### Predefined types
 
 We should support a list of predefined types that are commonly used in data quality checks. These should be executable in all common data quality engines.
 
@@ -164,7 +102,7 @@ I would suggest some minor changes to the Soda reference:
 - Drop `metric_expression`
 - In references, such as `valid_values_reference_data` adopt `dataset` and `column` to the terms used in ODCS
 
-__SQL__
+### SQL
 
 _(This actually represents the `metric_query` type in the Soda reference)_
 
@@ -180,7 +118,7 @@ quality:
     mustBeLessThan: 3600    
 ```
 
-__Custom__
+### Custom
 
 We should also support vendor specific checks, such as Great Expectations, dbt-tests or Montecarlo:
 Any properties should be acceptable here.
@@ -278,3 +216,68 @@ TBD
 ## References
 
 > Prior art, inspiration, and other references you used to create this based on what's worked well before.
+>
+
+## Rejected Option
+
+
+
+### Example 1 - Implicit call to rule
+
+```YAML
+quality:
+- code: required
+```
+
+* Applied on a column: it will apply a rule called `required` to this column.
+* Applied on a table: it will apply a rule called `required` to all the required columns in the table.
+
+### Example 2 - Named parameters
+
+```YAML
+quality:
+- code: required
+  parameters:
+  - parameter: tolerance
+    value: 2%
+```
+
+```YAML
+quality:
+- code: invalid_count
+  engine: soda # namespace, library
+  parameters:
+  - parameter: valid_values
+    value: ['S', 'M', 'L']
+  - parameter: must_be_greater_than_or_equal
+    value: 10
+```
+
+If there is less than 2% of NULL in this field, then the rule is valid.
+
+### Example 3 - Support for SQL 
+
+```YAML
+schema: # ex dataset
+- object: StockTable
+  physicalName: stock_v1
+  attributes: # ex columns
+  - field: Quantity
+    physicalName: qty
+    quality:
+    - code: sql
+      query: SELECT count(*) FROM ${table} WHERE ${column} >= 0;
+```
+
+In this situation, the rule will pass if the result of the `SELECT count(*) FROM stock_v1 WHERE qty >= 0;` is true.
+
+```YAML
+schema: # ex dataset
+- object: StockTable
+  physicalName: stock_v1
+  quality:
+  - code: sql
+    query: SELECT count(*) FROM ${table} WHERE ${column} >= 0;
+```
+
+In this situation, the rule should fail: ${column} cannot be identified.
