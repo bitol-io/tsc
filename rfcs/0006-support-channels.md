@@ -14,6 +14,84 @@ The updated system should support several tools and scope.
 
 ## Decision
 
+* 2024-07-16 Approved
+
+## Examples 
+
+### Minimalist
+```YAML
+support:
+  - channel: channel-name-or-identifier # Simple Slack communication channel
+    url: https://aidaug.slack.com/archives/C05UZRSBKLY
+  - channel: channel-name-or-identifier # Simple distribution list
+    url: mailto:datacontract-ann@bitol.io
+```
+
+### Complex
+```YAML
+support:
+  - channel: channel-name-or-identifier
+    tool: teams
+    scope: interactive
+    url: https://bitol.io/teams/channel/my-data-contract-interactive
+  - channel: channel-name-or-identifier
+    tool: teams
+    scope: announcements
+    url: https://bitol.io/teams/channel/my-data-contract-announcements
+    invitationUrl: https://bitol.io/teams/channel/my-data-contract-announcements-invit
+  - channel: channel-name-or-identifier # all announcement
+    name: All announcement for all data contracts
+    tool: teams
+    scope: announcements
+    url: https://bitol.io/teams/channel/all-announcements
+  - channel: channel-name-or-identifier
+    tool: email
+    scope: announcements
+    url: mailto:datacontract-ann@bitol.io
+  - channel: channel-name-or-identifier
+    tool: ticket
+    url: https://bitol.io/ticket/my-product
+```
+
+## Allowed values
+
+Requires: 
+* `support`
+* `channel`
+* `url`
+
+Optional:
+* `name`
+* `tool`: email|slack|teams|discord|ticket|other
+* `scope`: interactive|announcements|issues
+* `invitationUrl`
+
+## Out of scope
+
+* Hours of support: can be implemented as an extension if needed for now.
+
+## Notes
+
+* For Teams, we could have:
+  * a link to the channel `url` and
+  * a link to the invitation `invitationUrl` (if you're already connected, it brings you to the default channel).
+
+* For Slack, we could have:
+  * a link to the channel `url` and
+  * a link to the invitation - `invitationUrl`.
+
+## Consequences
+
+Breaking change for ODCS v2.2+: replaces:
+
+```YAML
+productDl: product-dl@ClimateQuantum.org
+productSlackChannel: '#product-help'
+productFeedbackUrl: https://product-feedback.com/sellers
+```
+
+## Rejected option
+
 ### Examples - Option A
 
 #### Minimalist
@@ -49,78 +127,4 @@ support:
   - channel:
       - tool: ticket
         url: https://bitol.io/ticket/my-product
-```
-
-### Examples - Option B
-
-#### Minimalist
-```YAML
-support:
-  - channel: channel-name-or-identifier # Simple Slack communication channel
-    url: https://aidaug.slack.com/archives/C05UZRSBKLY
-  - channel: channel-name-or-identifier # Simple distribution list
-    url: mailto:datacontract-ann@bitol.io
-```
-
-#### Complex
-```YAML
-support:
-  - channel: channel-name-or-identifier
-    tool: teams
-    scope: interactive
-    url: https://bitol.io/teams/channel/my-data-contract-interactive
-  - channel: channel-name-or-identifier
-    tool: teams
-    scope: announcements
-    url: https://bitol.io/teams/channel/my-data-contract-announcements
-    invitationUrl: https://bitol.io/teams/channel/my-data-contract-announcements-invit
-  - channel: channel-name-or-identifier # all announcement
-    name: All announcement for all data contracts
-    tool: teams
-    scope: announcements
-    url: https://bitol.io/teams/channel/all-announcements
-  - channel: channel-name-or-identifier
-    tool: email
-    scope: announcements
-    url: mailto:datacontract-ann@bitol.io
-  - channel: channel-name-or-identifier
-    tool: ticket
-    url: https://bitol.io/ticket/my-product
-```
-
-### Allowed values
-
-Requires: 
-* `support`
-* `channel`
-* `url`
-
-Optional:
-* `name`
-* `tool`: email|slack|teams|discord|ticket|other
-* `scope`: interactive|announcements|issues
-* `invitationUrl`
-
-### Out of scope
-
-* Hours of support: can be implemented as an extension if needed for now.
-
-## Notes
-
-* For Teams, we could have:
-  * a link to the channel `url` and
-  * a link to the invitation `invitationUrl` (if you're already connected, it brings you to the default channel).
-
-* For Slack, we could have:
-  * a link to the channel `url` and
-  * a link to the invitation - `invitationUrl`.
-
-## Consequences
-
-Breaking change for ODCS v2.2+: replaces:
-
-```YAML
-productDl: product-dl@ClimateQuantum.org
-productSlackChannel: '#product-help'
-productFeedbackUrl: https://product-feedback.com/sellers
 ```
