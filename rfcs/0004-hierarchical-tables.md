@@ -37,7 +37,7 @@ Found issues:
 Open Questions:
 - How do we capture other data, like unstructured data (scientific papers as PDFs), vectors, more... Do we want to specify unstructured or semistructured data in a data contract?
 
-## Current proposition
+## Updated syntax
 
 ```yaml
 schema:
