@@ -242,7 +242,7 @@ examples:
 
 ## Decision
 
-> The decision made by the TSC.
+Approved.
 
 ## Consequences
 
