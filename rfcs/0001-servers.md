@@ -22,7 +22,7 @@ We introduce a way to specify the "physical" location of the data protected by t
 
 ## Decision
 
-TBD
+Approved 2024-07-16.
 
 ## Explicit Servers
 
