@@ -39,31 +39,55 @@ Open Questions:
 
 ## Current proposition
 
-```
+```yaml
 schema:
-  - object|name: MyObjectName
-    type|logicalType: object # defaults to object, can be left away
-    attributes|properties|fields|objects:
-      - object|field|name|attribute: shipment_date
-        type|logicalType: date
-      - object|name: shipment_address
-        type|logicalType: object # defaults to object, can be left away
-        attributes|properties|fields|objects:
-          - object|field|name|attribute: postal_code
-            type|logicalType: string 
-          - object|field|name|attribute: street_lines
-            type|logicalType: array 
-            items|objects: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
-              field|name: street_line
-              type|logicalType: string
+  - object: MyObjectName
+    logicalType: object # defaults to object, can be left away
+    physicalType: table|view|topic
+    properties:
+      - attribute: id
+        logicalType: id
+        physicalType: SERIAL
+      - attribute: shipment_date
+        logicalType: date
+      - attribute: name
+        logicalType: string
 ```
 
-The structure is agreed on. Naming og properties is still open.
+```yaml
+schema:
+  - object: MyObjectName
+    logicalType: object # defaults to object, can be left away
+    properties:
+      - attribute: shipment_date
+        logicalType: date
+      - object: shipment_address
+        logicalType: object # defaults to object, can be left away
+        properties:
+          - attribute: postal_code
+            logicalType: string 
+            physicalType: VARCHAR(15)
+          - attribute: street_lines
+            logicalType: array 
+            items: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+              logicalType: string
 
-- Perhaps go alongside JSON schema?
-- Lesson from the Avro schema: confusion around physical & logical type.
+          - attribute: x
+            logicalType: array 
+            items: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+              logicalType: object
+              properties:
+                - attribute: id
+                  logicalType: uuid 
+                  physicalType: VARCHAR(40)
+                - attribute: b
+                  logicalType: string 
+                  physicalType: VARCHAR(15)
+```
 
+The structure and naming of keys are agreed on.
 
+Lesson from the Avro schema: confusion around physical & logical type: let's explicitly call them `logicalType` and `physicalType`.
 
 ## Rejected alternatives
 
@@ -298,12 +322,12 @@ schema:
               type|logicalType: string
 ```
 
-Structure is agreed on. Naming is still open. Perhaps go alongside json schema?
 
 ## Decision
 
 - 2024-06-18: Rejection of options A, B, C, D, E, F, G, and H. Approval of option I.
-
+- 2024-07-16: Approval of final options w/ terms above.
+- 
 ## Consequences
 
 - Makes the structure more applicable for users for other data structures
