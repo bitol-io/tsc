@@ -41,7 +41,7 @@ Dataset
 - Drop `dataset.table.columns.column.clusterKeyPosition`
 - Drop `dataset.table.columns.column.encryptedColumnName` (not sure, shouldn't this be another column)
 - Rename `dataset.table.columns.column.sampleValues` to `examples`
-- Drop `dataset.table.columns.column.criticalDataElementStatus` or rename to `criticalDataElement`
+- Rename to `criticalDataElement`
 - Change `dataset.table.columns.column.isNullable` to `required` (TBD)
 - Rename `dataset.table.columns.column.isUnique` to `unique`
 - Rename `dataset.table.columns.column.isPrimaryKey` to `primaryKey`
@@ -50,14 +50,14 @@ Roles
 - Make `role.access` optional
 - Add `role.description` as an optional field
 
-## TBD
+## Philosophy
+
 - For boolean values use `is` prefix or not (`isUnique` vs `partitionStatus`).
-- Follow Kubernetes conventions for apiVersion? (e.g., `odcs.bitol.io/v3`) 
 
 ## Example
 
 ```yaml
-apiVersion: odcs.bitol.io/v3 # TBD
+apiVersion: v3.0.0 # TBD
 kind: DataContract
 id: 53581432-6c55-4ba2-a65f-72344a91553a # Renamed from uuid
 name: Transactions 
