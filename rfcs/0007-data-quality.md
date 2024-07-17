@@ -45,11 +45,13 @@ Design principles:
   - __Text:__ A human-readable text that describes the quality of the data.
   - __Predefined types:__ A maintained library of commonly-used predefined quality attributes such as `row_count`, `unique`, `freshness`
   - __SQL:__ An individual SQL query that returns a value that can be compared.
-  - __Custom:__ Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
+  - __Custom:__ (future) Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
 - The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
 
 
 ### Text
+
+Status: this is approved as part of ODCS v3.
 
 A human-readable text that describes the quality of the data. Later in the development process, these might be translated into an executable check (such as `sql`), or checked through an AI engine.
 
@@ -59,25 +61,26 @@ quality:
     description: The email address was verified by the system
 ```
 
-### Predefined types
+### Predefined data quality rules
+
+Status: this is approved as part of ODCS v3.
 
 We should support a list of predefined types that are commonly used in data quality checks. These should be executable in all common data quality engines.
 
 This makes live simpler for data engineers, as they don't have to write the SQL query themselves.
 
-The experimental [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html) are a good starting point.
-Instead of creating a new library, I propose to use these as a reference.
+The experimental [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html) is a good starting point. Instead of creating a new library, I propose to use these as a reference.
 
 Column-level
 ```yaml
 quality:
-- type: no_duplicate_values
-- type: duplicate_count
+- type: duplicateCount
   mustBeLessThan: 10
   name: Fewer than 10 duplicate names
+  unit: rows
 - type: duplicate_percent
   mustBeLessThan: 1
-- type: no_invalid_values
+- type: validValues
   validValues: ['pounds']
 - type: invalid_percent
   mustBeLessThan: 3
@@ -98,13 +101,12 @@ quality:
 I would suggest some minor changes to the Soda reference:
 - Use lowerCamelCase instead of snake_case
 - Instead `checks:` use `quality:` as the key for the list of quality attributes.
-- Rename `metric_query` to `sql`.
 - Drop `metric_expression`
 - In references, such as `valid_values_reference_data` adopt `dataset` and `column` to the terms used in ODCS
 
 ### SQL
 
-_(This actually represents the `metric_query` type in the Soda reference)_
+Status: this is approved as part of ODCS v3.
 
 An individual SQL query that returns a single number or boolean value that can be compared. 
 The SQL query must be in the SQL dialect of the provided server.
@@ -118,9 +120,13 @@ quality:
     mustBeLessThan: 3600    
 ```
 
+Note: _This actually represents the `metric_query` type in the Soda reference._
+
 ### Custom
 
-We should also support vendor specific checks, such as Great Expectations, dbt-tests or Montecarlo:
+Status: this is not part of ODCS v3.
+
+We should also support vendor-specific checks, such as Great Expectations, dbt-tests, or Montecarlo:
 Any properties should be acceptable here.
 
 > TBD: Camel Case feels a bit odd here
