@@ -13,3 +13,4 @@ In alphabetical order by first name.
 - Peter Flook, peter.flook@data.catering, Data Catering, Taipei Standard Time
 - Sandro Pugliese, sandro@sandro.org, TelevisaUnivision, Eastern Standard Time 
 - Simon Harrer, simon.harrer@innoq.com, INNOQ, Central European Time
+- Todd Nemanich, nemanich@abeadata.com, AbeaData, Eastern Standard Time
