@@ -10,8 +10,7 @@ Keep ODCS small and free from vendor-specific or platform-specific parameters.
 
 ## Decision
 
-Top-Level
-
+### Top-Level
 - Rename `uuid` to `id`
 - Add `name` (did I miss anything?)
 - Rename `quantumName` to `dataProduct` and make it optional
@@ -33,20 +32,20 @@ Top-Level
 - Drop `database` (BigQuery-specific, will move to servers)
 - Drop `schedulerAppName` (not part of the contract)
 
-Dataset
-- Drop `dataset.table.priorTableName`
-- Drop `dataset.table.dataGranularity` or rename to `dataset.table.granularityDescription`
-- Rename `dataset.table.columns.column.partitionStatus` to `partitioned`
-- Drop `dataset.table.columns.column.clusterStatus`
-- Drop `dataset.table.columns.column.clusterKeyPosition`
-- Drop `dataset.table.columns.column.encryptedColumnName` (not sure, shouldn't this be another column)
-- Rename `dataset.table.columns.column.sampleValues` to `examples`
-- Rename to `criticalDataElement`
-- Change `dataset.table.columns.column.isNullable` to `required` (TBD)
-- Rename `dataset.table.columns.column.isUnique` to `unique`
-- Rename `dataset.table.columns.column.isPrimaryKey` to `primaryKey`
+### Dataset
+Those changes were transferred to working spec and CHANGELOG.
+- Drop `dataset.table.priorTableName`.
+- Rename `dataset.table.dataGranularity` to `dataset.table.granularityDescription`.
+- Rename `dataset.table.columns.column.partitionStatus` to `partitioned`.
+- Drop `dataset.table.columns.column.clusterStatus`.
+- Drop `dataset.table.columns.column.clusterKeyPosition`.
+- Rename `dataset.table.columns.column.sampleValues` to `examples`.
+- Rename `criticalDataElementStatus` to `criticalDataElement`.
+- Change `dataset.table.columns.column.isNullable` to `required`.
+- Rename `dataset.table.columns.column.isUnique` to `unique`.
+- Rename `dataset.table.columns.column.isPrimaryKey` to `primaryKey`.
 
-Roles
+### Roles
 - Make `role.access` optional
 - Add `role.description` as an optional field
 
