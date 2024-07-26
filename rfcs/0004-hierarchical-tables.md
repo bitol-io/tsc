@@ -34,53 +34,82 @@ Found issues:
 - Confusion whether this is a logical or physical data model. Table suggests a physical one. We assume, it means a logical data model.
 - The term dataset is problematic as it has a very specific meaning in the context of GCP, and some fields in the ODCS are GCP specific and also use the term dataset (e.g., `datasetName`).
 
-Open Questions:
-- How do we capture other data, like unstructured data (scientific papers as PDFs), vectors, more... Do we want to specify unstructured or semistructured data in a data contract?
+Closed Questions:
+- How do we capture other data, like unstructured data (scientific papers as PDFs), vectors, more... Do we want to specify unstructured or semistructured data in a data contract? Via metadata for now.
 
 ## Updated syntax
 
 ```yaml
 schema:
-  - object: MyObjectName
-    logicalType: object # defaults to object, can be left away
+  - name: MyObjectName
+    logicalType: object 
     physicalType: table|view|topic
     properties:
-      - attribute: id
+      - name: id
         logicalType: id
         physicalType: SERIAL
-      - attribute: shipment_date
+      - name: shipment_date
         logicalType: date
-      - attribute: name
+      - name: name
         logicalType: string
 ```
 
 ```yaml
 schema:
-  - object: MyObjectName
-    logicalType: object # defaults to object, can be left away
+  - name: Invoice
+    logicalType: object 
+    physicalType: table
     properties:
-      - attribute: shipment_date
+      - name: id
+        logicalType: id
+        physicalType: SERIAL
+      - name: shipment_date
         logicalType: date
-      - object: shipment_address
-        logicalType: object # defaults to object, can be left away
+      - name: comment
+        logicalType: string
+      - name: LineItem
+          logicalType: object 
+          physicalType: table
+          properties:
+          - name: position
+            logicalType: numeric
+            physicalType: integer
+      - name: Address
+          logicalType: object 
+          physicalType: table
+          properties:
+          - name: city
+            logicalType: string
+            physicalType: varchar(45)
+```
+
+```yaml
+schema:
+  - name: MyObjectName
+    logicalType: object 
+    properties:
+      - name: shipment_date
+        logicalType: date
+      - name: shipment_address
+        logicalType: object 
         properties:
-          - attribute: postal_code
+          - name: postal_code
             logicalType: string 
             physicalType: VARCHAR(15)
-          - attribute: street_lines
+          - name: street_lines
             logicalType: array 
-            items: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+            items:
               logicalType: string
 
-          - attribute: x
+          - name: x
             logicalType: array 
-            items: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+            items: 
               logicalType: object
               properties:
-                - attribute: id
+                - name: id
                   logicalType: uuid 
                   physicalType: VARCHAR(40)
-                - attribute: b
+                - name: b
                   logicalType: string 
                   physicalType: VARCHAR(15)
 ```
@@ -322,12 +351,60 @@ schema:
               type|logicalType: string
 ```
 
+### Option J
+
+```yaml
+schema:
+  - object: MyObjectName
+    logicalType: object # defaults to object, can be left away
+    physicalType: table|view|topic
+    properties:
+      - attribute: id
+        logicalType: id
+        physicalType: SERIAL
+      - attribute: shipment_date
+        logicalType: date
+      - attribute: name
+        logicalType: string
+```
+
+```yaml
+schema:
+  - object: MyObjectName
+    logicalType: object # defaults to object, can be left away
+    properties:
+      - attribute: shipment_date
+        logicalType: date
+      - object: shipment_address
+        logicalType: object # defaults to object, can be left away
+        properties:
+          - attribute: postal_code
+            logicalType: string 
+            physicalType: VARCHAR(15)
+          - attribute: street_lines
+            logicalType: array 
+            items: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+              logicalType: string
+
+          - attribute: x
+            logicalType: array 
+            items: # BE AWARE, THIS IS DIFFERENT FOR ARRAY
+              logicalType: object
+              properties:
+                - attribute: id
+                  logicalType: uuid 
+                  physicalType: VARCHAR(40)
+                - attribute: b
+                  logicalType: string 
+                  physicalType: VARCHAR(15)
+```
 
 ## Decision
 
 - 2024-06-18: Rejection of options A, B, C, D, E, F, G, and H. Approval of option I.
 - 2024-07-16: Approval of final options w/ terms above.
-- 
+- 2024-07-25: Rejected of option J, validation of current syntax.
+
 ## Consequences
 
 - Makes the structure more applicable for users for other data structures
