@@ -39,6 +39,8 @@ Closed Questions:
 
 ## Updated syntax
 
+### Basic example
+
 ```yaml
 schema:
   - name: MyObjectName
@@ -53,6 +55,8 @@ schema:
       - name: name
         logicalType: string
 ```
+
+### An invoice stored hierarchically
 
 ```yaml
 schema:
@@ -82,6 +86,46 @@ schema:
             logicalType: string
             physicalType: varchar(45)
 ```
+
+### An invoice stored linearly
+
+```yaml
+schema:
+  - name: orders
+    description: One record per order. Includes cancelled and deleted orders.
+    logicalType: table
+    properties:
+      - name: order_id
+        logicalType: string
+      - name: order_timestamp
+        description: The business timestamp in UTC when the order was successfully registered in the source system and the payment was successful.
+        logicalType: timestamp
+      - name: order_total
+        description: Total amount the smallest monetary unit (e.g., cents).
+        logicalType: long
+      - name: customer_id
+        description: Unique identifier for the customer.
+        logicalType: string
+      - name: customer_email_address
+        description: The email address, as entered by the customer. The email address was not verified.
+        logicalType: string
+      - name: processed_timestamp
+        description: The timestamp when the record was processed by the data platform.
+        logicalType: timestamp
+        physicalType: string
+  - name: line_items:
+    description: A single article that is part of an order.
+    logicalType: table
+    properties:
+      - name: lines_item_id
+        logicalType: text
+        description: Primary key of the lines_item_id table
+      - name: order_id
+      - name: sku
+        description: The purchased article number
+```
+
+### An array
 
 ```yaml
 schema:
@@ -172,6 +216,8 @@ models:
 
 ### Option D - Genericity with hierarchy
 
+Status: rejected.
+
 ```yaml
 schema:
 - object: MyTable
@@ -226,7 +272,7 @@ schema:
 
 ### Option E = Option D + Support for Array
 
-TBD
+Status: rejected.
 
 ### Option F = More generic tags
 ```yaml
@@ -249,6 +295,7 @@ schema:
       physicalName: trx_ts
       description: Timestamp of the transaction.
 ```
+
 Alternative: Leaf is always an attribute. If there is non-trivial substructure it is an object.
 ```yaml
 schema:
@@ -273,6 +320,8 @@ schema:
 ```
 
 ### Option G - JSON Schema-inspired
+
+Status: rejected.
 
 https://json-schema.org/learn/getting-started-step-by-step
 
@@ -303,6 +352,8 @@ Discussion:
 
 ### Option H - JSON Schema-inspired with names
 
+Status: rejected.
+
 ```yaml
 schema:
 - name: Transactions
@@ -332,7 +383,9 @@ schema:
 
 ### Option I
 
-```
+Status: rejected.
+
+```yaml
 schema:
   - object|name: MyObjectName
     type|logicalType: object # defaults to object, can be left away
@@ -352,6 +405,8 @@ schema:
 ```
 
 ### Option J
+
+Status: rejected.
 
 ```yaml
 schema:
@@ -409,7 +464,7 @@ schema:
 
 - Makes the structure more applicable for users for other data structures
 - Nudges users more towards creating a logical model and less a physical model here
-- This is a breaking change. Would be targeted for v3.
+- This is a breaking change. Targeted for v3.
 - We are very conscious in separating the logical representation of a dataset with the physical representation
 
 ## References
