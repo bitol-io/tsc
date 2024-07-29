@@ -1,11 +1,12 @@
-# Members of the Technical Steering Committee
+# Members
 
 In alphabetical order by first name.
 
+## Technical Steering Committee (TSC)
 - Andrew Jones, GoCardless, GMT
 - Atanas Iliev, atanas@aidaug.org, Central European Time
+- Christian Foyer, chrfoyer@gmail.com, Systematic, Central European Time
 - Dirk Van de Poel, dirk.vandepoel@klarrio.com, Klarrio, Central European Time
-- Enrique Catalá, enrique@enriquecatala.com, SCRM Lidl International Hub, Central European Time
 - Gene Stakhov, gstakhov@gmail.com, enChoice, Eastern Standard Time
 - Jean-Georges Perrin (Chair), jgp@..., AbeaData, Eastern Standard Time
 - Jochen Christ, jochen.christ@innoq.com, INNOQ, Central European Time
@@ -15,4 +16,6 @@ In alphabetical order by first name.
 - Sandro Pugliese, sandro@sandro.org, TelevisaUnivision, Eastern Standard Time 
 - Simon Harrer, simon.harrer@innoq.com, INNOQ, Central European Time
 - Todd Nemanich, nemanich@abeadata.com, AbeaData, Eastern Standard Time
-- Christian Foyer, chrfoyer@gmail.com, Systematic, Central European Time
+
+## Contributors, Advisors, & Working Group
+- Enrique Catalá, enrique@enriquecatala.com, SCRM Lidl International Hub, Central European Time
