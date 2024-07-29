@@ -14,6 +14,8 @@ Build more genericity around the definition of the data quality rules.
 
 ## Working group
 
+(order is not significant)
+
 * Jean-Georges Perrin
 * Jochen Christ
 * Eugene Stakhov
@@ -21,7 +23,11 @@ Build more genericity around the definition of the data quality rules.
 * Tom Baeyens 
 * Todd Nemanich 
 * Manuel Destouesse 
-* Peter Flook 
+* Peter Flook
+* Enrique Catala
+* Chris Foyer
+* Keith John Ellis
+* Simon Harrer
 
 ## Design and examples
 
@@ -40,7 +46,7 @@ Build more genericity around the definition of the data quality rules.
 ## Common Elements to Each Rule
 
 * `name`: required, a short name
-* `description`: a description of what the rule does / applies to.
+* `description`: a description of what the rule does/applies to.
 * `dimension`: optional, valid values are case insensitive (based on the 7 dimensions from Data QoS & EDM Council):
   * `Accuracy` (synonym `Ac`),
   * `Completeness` (synonym `Cp`),
@@ -49,9 +55,12 @@ Build more genericity around the definition of the data quality rules.
   * `Coverage` (synonym `Cv`),
   * `Timeliness` (synonym `Tm`),
   * `Uniqueness` (synonym `Uq`).
-* `method`: optional, values are open and include `reconciliation`.
-* `severity`: optional, values are open and include and can be `error`, `warning`, `info`.
-* `businessImpact`: optional, values are open and include: `operational`, `regulatory`.
+* `method`: optional; values are open and include `reconciliation`.
+* `severity`: optional; values are open and include and can be `error,` `warning,` or `info`.
+* `businessImpact`: optional; values are open and include: `operational` and `regulatory`.
+* `tags`: optional.
+* `customProperties`: optional.
+* `authoritativeDefinitions`: optional.
 
 ## Syntax Change
 
@@ -59,8 +68,8 @@ Design principles:
 - Quality attributes can be defined on table or column level (replaced by object or property in ODCS v3).
 - Support different levels/stages of data quality attributes
   - __Text:__ A human-readable text that describes the quality of the data.
-  - __Predefined types:__ A maintained library of commonly-used predefined quality attributes such as `rowCount`, `unique`, `freshness`, and more.
-  - __SQL:__ An individual SQL query that returns a value that can be compared.
+  - __Implicit rules:__ A maintained library of commonly-used predefined quality attributes such as `rowCount`, `unique`, `freshness`, and more.
+  - __SQL:__ An individual SQL query that returns a value that can be compared. Can be extended to `Python` or other.
   - __Custom:__ (future) Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
 - The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
 
@@ -69,65 +78,80 @@ Design principles:
 
 Status: this is approved as part of ODCS v3.
 
-A human-readable text that describes the quality of the data. Later in the development process, these might be translated into an executable check (such as `sql`), or checked through an AI engine.
+A human-readable text that describes the quality of the data. Later in the development process, these might be translated into an executable check (such as `sql`), an implicit rule, or checked through an AI engine.
 
 ```yaml
 quality:
   - type: text
-    description: The email address was verified by the system
+    description: The email address was verified by the system.
 ```
 
 ### Predefined data quality rules
 
 Status: this is approved as part of ODCS v3.
 
-We should support a list of predefined types that are commonly used in data quality checks. These should be executable in all common data quality engines.
+We should support a list of predefined rules that are commonly used in data quality checks. These should be executable in all common data quality engines.
 
-This makes live simpler for data engineers, as they don't have to write the SQL query themselves.
+This makes life simpler for data engineers, as they don't have to write the SQL query themselves.
 
-The experimental [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html) is a good starting point. Instead of creating a new library, I propose to use these as a reference.
 
-Column-level
+#### Column-level
+
+##### Duplicate count on rows
+
 ```yaml
 quality:
-- type: duplicateCount
+- type: implicit # optional and default value
+  rule: duplicateCount
   mustBeLessThan: 10
   name: Fewer than 10 duplicate names
   unit: rows
 ```
 
+##### Duplicate count on %
+
 ```yaml
 quality:
-- type: duplicateCount
+- rule: duplicateCount
   mustBeLessThan: 1
   unit: percent
 ```
 
+##### Valid values
+
 ```yaml
 quality:
-- type: validValues
+- rule: validValues
   validValues: ['pounds']
 ```
 
+##### Invalid values
+
 ```yaml
 quality:
-- type: invalid_percent
+- rule: invalid
   mustBeLessThan: 3
-  validValuesReferenceData:
-    dataset: countryID
-    column: id
+  unit: percent
+  object: country
+  property: id
 ```
 
-Table-level
+#### Table-level
+
+##### Row count
 
 ```yaml
 quality:
-  - type: rowCount
+  - rule: rowCount
     mustBeBetween: [100, 120]
     name: Verify row count range
 ```
 
-I would suggest some minor changes to the Soda reference:
+#### Soda influence
+
+The experimental [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html) is a good starting point.
+
+However, some minor changes to the Soda reference:
 - Use lowerCamelCase instead of snake_case
 - Instead `checks:` use `quality:` as the key for the list of quality attributes.
 - Drop `metric_expression`
