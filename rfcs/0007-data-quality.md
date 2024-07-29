@@ -35,15 +35,31 @@ Build more genericity around the definition of the data quality rules.
 
 * `templateName` is now a custom property.
 * `toolName` is optional.
-* `scheduleCronExpression` is now replaced by `schedule` and `scheduler`. `scheduleCronExpression: 0 20 * * *` becomes `schedule: 0 20 * * *` and `scheduler: cron`.
+* `scheduleCronExpression` is replaced by `schedule` and `scheduler`. `scheduleCronExpression: 0 20 * * *` becomes `schedule: 0 20 * * *` and `scheduler: cron`.
+
+## Common Elements to Each Rule
+
+* `name`: required, a short name
+* `description`: a description of what the rule does / applies to.
+* `dimension`: optional, valid values are case insensitive (based on the 7 dimensions from Data QoS & EDM Council):
+  * `Accuracy` (synonym `Ac`),
+  * `Completeness` (synonym `Cp`),
+  * `Conformity` (synonym `Cf`),
+  * `Consistency` (synonym `Cs`),
+  * `Coverage` (synonym `Cv`),
+  * `Timeliness` (synonym `Tm`),
+  * `Uniqueness` (synonym `Uq`).
+* `method`: optional, values are open and include `reconciliation`.
+* `severity`: optional, values are open and include and can be `error`, `warning`, `info`.
+* `businessImpact`: optional, values are open and include: `operational`, `regulatory`.
 
 ## Syntax Change
 
 Design principles:
-- Quality attributes can be defined on table or column level.
+- Quality attributes can be defined on table or column level (replaced by object or property in ODCS v3).
 - Support different levels/stages of data quality attributes
   - __Text:__ A human-readable text that describes the quality of the data.
-  - __Predefined types:__ A maintained library of commonly-used predefined quality attributes such as `row_count`, `unique`, `freshness`
+  - __Predefined types:__ A maintained library of commonly-used predefined quality attributes such as `rowCount`, `unique`, `freshness`, and more.
   - __SQL:__ An individual SQL query that returns a value that can be compared.
   - __Custom:__ (future) Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
 - The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
@@ -78,10 +94,23 @@ quality:
   mustBeLessThan: 10
   name: Fewer than 10 duplicate names
   unit: rows
-- type: duplicate_percent
+```
+
+```yaml
+quality:
+- type: duplicateCount
   mustBeLessThan: 1
+  unit: percent
+```
+
+```yaml
+quality:
 - type: validValues
   validValues: ['pounds']
+```
+
+```yaml
+quality:
 - type: invalid_percent
   mustBeLessThan: 3
   validValuesReferenceData:
@@ -93,7 +122,7 @@ Table-level
 
 ```yaml
 quality:
-  - type: row_count
+  - type: rowCount
     mustBeBetween: [100, 120]
     name: Verify row count range
 ```
@@ -115,8 +144,9 @@ For comparison, the Soda [List of threshold keys](https://docs.soda.io/soda/data
 
 ```yaml
 quality:
-  - type: sql
-    query: SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL
+  - type: sql 
+    query: |
+      SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL
     mustBeLessThan: 3600    
 ```
 
@@ -124,21 +154,35 @@ Note: _This actually represents the `metric_query` type in the Soda reference._
 
 ### Custom
 
-Status: this is not part of ODCS v3.
+Status: this is **NOT YET** part of ODCS v3.
 
-We should also support vendor-specific checks, such as Great Expectations, dbt-tests, or Montecarlo:
-Any properties should be acceptable here.
+This enables vendor-specific checks, such as Great Expectations, dbt-tests, or Montecarlo. Any properties should be acceptable here, whether the property is written in YAML, JSON, XML, or even uuencoded binary.
 
-> TBD: Camel Case feels a bit odd here
+#### Soda Example
 
 ```yaml
 quality:
 - type: custom
   engine: great-expectations
-  expectationType: expect_table_row_count_to_be_between
-  kwargs:
-    minValue: 10000
-    maxValue: 50000
+  implementation: |
+        type: duplicate_percent  # Block
+        columns:                 # passed as-is
+          - carrier              # to the tool
+          - shipment_numer       # (Soda in this situation)
+        must_be_less_than: 1.0   #
+```
+
+#### Great Expectation Example
+
+```yaml
+quality:
+- type: custom
+  engine: great-expectations
+  implementation: |
+    type: expect_table_row_count_to_be_between # Block
+    kwargs:                                    # passed as-is
+      minValue: 10000                          # to the tool
+      maxValue: 50000                          # (GX in this situation)
 ```
 
 ## Alternatives
@@ -208,8 +252,8 @@ dataset:
 * No need to specify engine when default engine: yes.
 * Support for DQ rules at the field/attribute level: yes.
 * Support for DQ rules at the object/field level: yes.
-* Support for DQ rules for multiple tables/objects or cross table/object: TBD.
-* Support for a core set of rules at the standard level: TBD, could be inspired by [Soda's implementation](https://docs.soda.io/soda/data-contracts-checks.html).
+* Support for DQ rules for multiple tables/objects or cross table/object: No.
+* Support for a core set of rules at the standard level: Yes, could be inspired by [Soda's implementation](https://docs.soda.io/soda/data-contracts-checks.html).
 
 ### TSC
 
@@ -217,16 +261,13 @@ TBD
 
 ## Consequences
 
-> The consequences of this decision.
+Breaking change over v2.x.
 
 ## References
 
-> Prior art, inspiration, and other references you used to create this based on what's worked well before.
->
+N.A
 
 ## Rejected Option
-
-
 
 ### Example 1 - Implicit call to rule
 
