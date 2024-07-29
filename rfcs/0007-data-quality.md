@@ -3,76 +3,50 @@
 * Champion: Jean-Georges Perrin
 * Discusssion channel: [Slack](https://aidaug.slack.com/archives/C06TC4X4KD1).
 
+
 ## Summary
 
 Build more genericity around the definition of the data quality rules.
+
 
 ## Motivation
 
 * Support for multiple rules engine/data quality providers (support for some edge cases).
 * The current (v2.x) implementation of data quality rules is too close to the PayPal tooling.
 
+
 ## Working group
 
 (order is not significant)
 
+* Chris Foyer
+* Enrique Catala
+* Eugene Stakhov
 * Jean-Georges Perrin
 * Jochen Christ
-* Eugene Stakhov
-* Martin Meermeyer
-* Tom Baeyens 
-* Todd Nemanich 
-* Manuel Destouesse 
-* Peter Flook
-* Enrique Catala
-* Chris Foyer
 * Keith John Ellis
+* Manuel Destouesse 
+* Martin Meermeyer
+* Peter Flook
 * Simon Harrer
+* Todd Nemanich 
+* Tom Baeyens 
 
-## Design and examples
 
-* Assumes the new schema structure (RFC 0004, option D).
-* Standard block that can be applied at the table (object) level or at the column (field) level.
+## Design principles
+
+* Assumes the new schema structure (RFC 0004, approved July 2024).
+* Standard block that can be applied at the table (object) level or at the column (property) level.
 * Support for SQL directly in the contract.
 * Support for `customProperties`.
 * Easier scheduling.
-
-## General Changes
-
-* `templateName` is now a custom property.
-* `toolName` is optional.
-* `scheduleCronExpression` is replaced by `schedule` and `scheduler`. `scheduleCronExpression: 0 20 * * *` becomes `schedule: 0 20 * * *` and `scheduler: cron`.
-
-## Common Elements to Each Rule
-
-* `name`: required, a short name
-* `description`: a description of what the rule does/applies to.
-* `dimension`: optional, valid values are case insensitive (based on the 7 dimensions from Data QoS & EDM Council):
-  * `Accuracy` (synonym `Ac`),
-  * `Completeness` (synonym `Cp`),
-  * `Conformity` (synonym `Cf`),
-  * `Consistency` (synonym `Cs`),
-  * `Coverage` (synonym `Cv`),
-  * `Timeliness` (synonym `Tm`),
-  * `Uniqueness` (synonym `Uq`).
-* `method`: optional; values are open and include `reconciliation`.
-* `severity`: optional; values are open and include and can be `error,` `warning,` or `info`.
-* `businessImpact`: optional; values are open and include: `operational` and `regulatory`.
-* `tags`: optional.
-* `customProperties`: optional.
-* `authoritativeDefinitions`: optional.
-
-## Syntax Change
-
-Design principles:
-- Quality attributes can be defined on table or column level (replaced by object or property in ODCS v3).
-- Support different levels/stages of data quality attributes
-  - __Text:__ A human-readable text that describes the quality of the data.
-  - __Implicit rules:__ A maintained library of commonly-used predefined quality attributes such as `rowCount`, `unique`, `freshness`, and more.
-  - __SQL:__ An individual SQL query that returns a value that can be compared. Can be extended to `Python` or other.
-  - __Custom:__ (future) Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
-- The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
-
+* Quality attributes can be defined on table or column level (replaced by object or property in ODCS v3).
+* Support different levels/stages of data quality attributes
+  - __Text__: A human-readable text that describes the quality of the data.
+  - __Implicit__ rules: A maintained library of commonly-used predefined quality attributes such as `rowCount`, `unique`, `freshness`, and more.
+  - __SQL__: An individual SQL query that returns a value that can be compared. Can be extended to `Python` or other.
+  - __Custom__: Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
+* The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
 
 ### Text
 
@@ -86,7 +60,7 @@ quality:
     description: The email address was verified by the system.
 ```
 
-### Predefined data quality rules
+### Implicit (or predefined) data quality rules
 
 Status: this is approved as part of ODCS v3.
 
@@ -209,9 +183,62 @@ quality:
       maxValue: 50000                          # (GX in this situation)
 ```
 
-## Alternatives
 
-### Current Spec v2.2.1
+## General changes
+
+* `templateName` is now a custom property.
+* `toolName` is obsolete, replaced by `type=custom; engine: <engine name>`.
+* `scheduleCronExpression` is replaced by `schedule` and `scheduler`. `scheduleCronExpression: 0 20 * * *` becomes `schedule: 0 20 * * *` and `scheduler: cron`.
+
+
+## Common elements to each rule
+
+* `name`: optional; a short name
+* `description`: optional; a description of what the rule does/applies to.
+* `dimension`: optional; valid values are case insensitive (based on the 7 dimensions from Data QoS & EDM Council):
+  * `Accuracy` (synonym `Ac`),
+  * `Completeness` (synonym `Cp`),
+  * `Conformity` (synonym `Cf`),
+  * `Consistency` (synonym `Cs`),
+  * `Coverage` (synonym `Cv`),
+  * `Timeliness` (synonym `Tm`),
+  * `Uniqueness` (synonym `Uq`).
+* `method`: optional; values are open and include `reconciliation`.
+* `severity`: optional; values are open and include and can be `error,` `warning,` or `info`.
+* `businessImpact`: optional; values are open and include: `operational` and `regulatory`.
+* `tags`: optional.
+* `customProperties`: optional.
+* `authoritativeDefinitions`: optional.
+
+
+## Decision
+
+### Working Group
+
+* Support for multiple engines or data quality providers: yes.
+* Default engine: yes.
+* No need to specify engine when one engine: yes.
+* No need to specify engine when default engine: yes.
+* Support for DQ rules at the field/attribute level: yes.
+* Support for DQ rules at the object/field level: yes.
+* Support for DQ rules for multiple tables/objects or cross table/object: No.
+* Support for a core set of rules at the standard level: Yes, could be inspired by [Soda's implementation](https://docs.soda.io/soda/data-contracts-checks.html).
+
+### TSC
+
+TBD
+
+## Consequences
+
+Breaking change over v2.x.
+
+## References
+
+N.A
+
+## Rejected options
+
+### Keep current specifications v2.2.1
 
 #### Table-level
 
@@ -265,33 +292,6 @@ dataset:
               - property: COMPARISON_TYPE
                 value: Greater than
 ```
-
-## Decision
-
-### Working Group
-
-* Support for multiple engines or data quality providers: yes.
-* Default engine: yes.
-* No need to specify engine when one engine: yes.
-* No need to specify engine when default engine: yes.
-* Support for DQ rules at the field/attribute level: yes.
-* Support for DQ rules at the object/field level: yes.
-* Support for DQ rules for multiple tables/objects or cross table/object: No.
-* Support for a core set of rules at the standard level: Yes, could be inspired by [Soda's implementation](https://docs.soda.io/soda/data-contracts-checks.html).
-
-### TSC
-
-TBD
-
-## Consequences
-
-Breaking change over v2.x.
-
-## References
-
-N.A
-
-## Rejected Option
 
 ### Example 1 - Implicit call to rule
 
