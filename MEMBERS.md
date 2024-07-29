@@ -14,3 +14,4 @@ In alphabetical order by first name.
 - Sandro Pugliese, sandro@sandro.org, TelevisaUnivision, Eastern Standard Time 
 - Simon Harrer, simon.harrer@innoq.com, INNOQ, Central European Time
 - Todd Nemanich, nemanich@abeadata.com, AbeaData, Eastern Standard Time
+- Christian Foyer, chrfoyer@gmail.com, Systematic, Central European Time
