@@ -40,7 +40,7 @@ support:
     url: https://bitol.io/teams/channel/my-data-contract-announcements
     invitationUrl: https://bitol.io/teams/channel/my-data-contract-announcements-invit
   - channel: channel-name-or-identifier # all announcement
-    name: All announcement for all data contracts
+    description: All announcement for all data contracts
     tool: teams
     scope: announcements
     url: https://bitol.io/teams/channel/all-announcements
@@ -61,7 +61,7 @@ Requires:
 * `url`
 
 Optional:
-* `name`
+* `description`
 * `tool`: email|slack|teams|discord|ticket|other
 * `scope`: interactive|announcements|issues
 * `invitationUrl`
