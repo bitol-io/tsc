@@ -161,7 +161,7 @@ This enables vendor-specific checks, such as Great Expectations, dbt-tests, or M
 ```yaml
 quality:
 - type: custom
-  engine: great-expectations
+  engine: soda
   implementation: |
         type: duplicate_percent  # Block
         columns:                 # passed as-is
