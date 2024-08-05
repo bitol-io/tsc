@@ -31,6 +31,7 @@ Build more genericity around the definition of the data quality rules.
 * Simon Harrer
 * Todd Nemanich 
 * Tom Baeyens 
+* Alpesh Pandya
 
 
 ## Design principles
@@ -214,6 +215,55 @@ quality:
 ## Decision
 
 ### Working Group
+
+#### Proposed options by working group
+
+##### Option 1
+
+Description: Using YAML multi-line string to specify "implementation" that can be executed by assigned engine (like Soda, Great Expectations etc)
+Example:
+```yaml
+quality:
+- type: custom
+  engine: soda
+  implementation: |
+        type: duplicate_percent  # Block
+        columns:                 # passed as-is
+          - carrier              # to the tool
+          - shipment_numer       # (Soda in this situation)
+        must_be_less_than: 1.0   #
+```
+###### Pros
+
+* Contract remains self contained with quality rules defined as part of implementation section
+* Quality rules remain an integral part of the contract
+
+###### Cons
+
+* Some of the engines require rule specifications that are non-YAML (JSON etc) mixing different formats in the contract may hamper readability of the contract
+* Some engines have very verbose specification that may increase length/size of the contract
+* Change in quality rules is interpreted as change in overall contract
+
+##### Option 2
+
+Description: Using URI to external quality rules specification that can be executed by assigned engine (like Soda, Great Expectations etc)
+Example:
+```yaml
+quality:
+- type: custom
+  engine: soda
+  implementationURI: s3://location-of-the-soda-quality-rules-spec.yml
+```
+###### Pros
+
+* Length/size of the contract remains in check and is predictable
+* Quality rules specification remains reusable as a part of contract and directly on execution engine (not sure if this would a pro really)
+
+###### Cons
+
+* Quality rules may be modified without the knowledge of contract maintainers and may impact usability of data
+
+---
 
 * Support for multiple engines or data quality providers: yes.
 * Default engine: yes.
