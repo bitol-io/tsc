@@ -19,6 +19,65 @@ Data consumers might not be too tech-savy. They might not understand what a `VAR
   - Common understanding of data types for producers and consumers of the data contract
   - Retain information about source system data types to allow for direct interactions with data sources to still occur
 
+## Updated Syntax
+
+[OpenAPI/Swagger data types](https://swagger.io/docs/specification/data-models/data-types/)
+
+### Logical Type
+
+| Type                           | Options                                                                           |
+|--------------------------------|-----------------------------------------------------------------------------------|
+| string                         | minLength<br>maxLength<br>pattern<br>format                                       |
+| number                         | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |
+| integer                        | multipleOf<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum          |
+| object                         | properties<br>required<br>minProperties<br>maxProperties<br>readOnly<br>writeOnly |
+| array                          | items<br>minItems<br>maxItems<br>uniqueItems                                      |
+| boolean                        |                                                                                   |
+| file (OpenAPI 2.0 only)        |                                                                                   |
+| date (new type not in OpenAPI) | format<br>minimum<br>maximum<br>exclusiveMinimum<br>exclusiveMaximum              |
+
+#### Example
+
+```yaml
+- column: name
+  logicalType: string
+  logicalTypeOptions:
+    minLength: 5
+    maxLength: 25
+    pattern: "[a-z]{5,25}"
+
+- column: date_of_birth
+  logicalType: date
+  logicalTypeOptions:
+    format: "yyyy-MM-dd"
+    example: 2024-01-25
+            
+- column: last_connection
+  logicalType: date
+  logicalTypeOptions:
+    format: "yyyy-MM-dd'T'HH:mm:ss'Z'"
+    example: 2024-01-25T15:23:45Z
+
+- column: opt_in_sms
+  logicalType: boolean
+
+- column: details
+  logicalType: object
+  logicalTypeOptions:
+    properties:
+      - column: sum_amount
+        logicalType: number
+      - column: sum_amount_today
+        logicalType: number
+        options:
+          minimum: 0
+
+- column: previous_transactions
+  logicalType: array
+  logicalTypeOptions:
+    items: number
+```
+
 ## Design and examples
 
 ### Option 1: Logical Type System
@@ -242,7 +301,7 @@ examples:
 
 ## Decision
 
-Approved.
+Approved option 5 (OpenAPI/Swagger data types with date).
 
 ## Consequences
 
