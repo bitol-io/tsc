@@ -46,7 +46,7 @@ Build more genericity around the definition of the data quality rules.
   - __Text__: A human-readable text that describes the quality of the data.
   - __Implicit__ rules: A maintained library of commonly-used predefined quality attributes such as `rowCount`, `unique`, `freshness`, and more.
   - __SQL__: An individual SQL query that returns a value that can be compared. Can be extended to `Python` or other.
-  - __Custom__: Quality attributes that are vendor-specific, such as Great Expectations, dbt tests, or Montecarlo monitors.
+  - __Custom__: Quality attributes that are vendor-specific, such as Soda, Great Expectations, dbt tests, or Montecarlo monitors.
 * The predefined types should be based on Soda's proposal of [Data contract check reference](https://docs.soda.io/soda/data-contracts-checks.html)
 
 ### Text
