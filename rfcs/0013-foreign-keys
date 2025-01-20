@@ -1,0 +1,46 @@
+# References (Foreign Keys)
+
+Champion: Simon Harrer
+
+## Summary
+
+## Motivation
+
+We want to express "foreign keys" (one column references another table.column, two columns reference two other columns in another table).
+The foreign keys might not be implemented as foreign keys in the storage. Think of CSV files in an S3 storage. There is no mechanism to define those foreign key constraint. But it still exists.
+
+TBD:
+- Other motivation: lineage, businessDefinition?
+
+## Design and examples
+
+```
+# how to model a "foreign" key so one can visualize it
+# reference: table.column
+# references:
+# - ref: table.column
+#   type: entity
+# - ref: table.column
+#   type: businessDefinition
+# - ref: table.column
+#   type: lineage
+
+# do we need additional info?
+# how to encode multiple-column-references?
+# constraint vs. quality attribute vs. references
+# table: primaryKey (columnx, columny); businessKey(columna, columnb, columnc) + temporality
+```
+
+## Alternatives
+
+## Decision
+
+TBD
+
+## Consequences
+
+TBD
+
+## References
+
+- How it is implemented in the Data Contract Specification: https://datacontract.com/#field-object
