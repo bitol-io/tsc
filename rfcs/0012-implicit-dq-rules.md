@@ -2,13 +2,13 @@
 
 > The champion is the person who is primarily supporting the RFC.
 
-Champion: 
+Champion: Jochen Christ.
+
+[Slack channel](https://data-mesh-learning.slack.com/archives/C08C9G9PDA7).
 
 ## Summary
 
 > One paragraph explanation of the RFC.
-
-[Slack channel](https://data-mesh-learning.slack.com/archives/C08C9G9PDA7).
 
 ## Motivation
 
