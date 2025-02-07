@@ -2,6 +2,8 @@
 
 Champion: Simon Harrer
 
+[Slack channel](https://data-mesh-learning.slack.com/archives/C08BUU150LF). Some early discussions were in the [WG channel](https://data-mesh-learning.slack.com/archives/C089S376YGM).
+
 ## Summary
 
 ## Motivation
