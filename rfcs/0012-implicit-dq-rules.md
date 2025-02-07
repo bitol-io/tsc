@@ -1,4 +1,4 @@
-# Title
+# Implicit Data Quality Rules
 
 > The champion is the person who is primarily supporting the RFC.
 
