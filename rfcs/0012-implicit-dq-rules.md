@@ -8,6 +8,8 @@ Champion:
 
 > One paragraph explanation of the RFC.
 
+[Slack channel](https://data-mesh-learning.slack.com/archives/C08C9G9PDA7).
+
 ## Motivation
 
 > Why are we doing this? What use cases does it support? What is the expected outcome?
