@@ -32,8 +32,11 @@ schema:
     # NEW
     relationships:
     - ref: account_number # property, refers to users.account_number
+      type: foreignKey
     - ref: accounts.account_number # object.property
+      type: foreignKey
     - ref: accounts.address.street # object.property.property
+      type: foreignKey
 ```
 
 Examples:
@@ -49,6 +52,7 @@ schema:
     type: integer
     relationships:
     - ref: id # same schema
+      type: foreignKey
 - name: posts
   properties:
   - name: id
@@ -58,7 +62,7 @@ schema:
     type: integer
     relationships:
     - ref: users.id # other schema
-    - ref: orders.user.id # nested properties
+      type: foreignKey
 ```
 
 ```yaml
@@ -80,10 +84,12 @@ schema:
     type: integer
     relationships:
     - ref: account.account_number
+      type: foreignKey
   - name: ref_type
     type: integer
     relationships:
     - ref: account.account_type
+      type: foreignKey
 ```
 
 Do we need additional info to mark a relationship as one-to-many or one-to-one?
@@ -103,8 +109,19 @@ Why do we skip composite keys?
 - Simpler
 - Not necessary as we can have multiple references
 
+What about lineage?
+- TBD
+
+What's the difference to authoritative definitions?
+- Authoritative definitions point to something outside of data contracts. 
+- Relationships point to properties within data contracts, and stays within the "metadata" model defined by all data contracts of an organization.
+
+What about business definitions/field?
+- We define the business definitions as part of the data contract. Therefore, relationships
+- authoritativeDefinitions vs. relationships?
+
 Out of scope
-- Relationships between data contracts
+- Relationships between data contracts (e.g., lineage)
 
 ## Alternatives
 
