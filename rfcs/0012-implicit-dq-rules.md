@@ -10,10 +10,20 @@ Champion: Jochen Christ.
 
 > One paragraph explanation of the RFC.
 
+This RFC proposes to add predefined data quality rules to the standard. These rules are commonly used in data quality 
+management. It was first proposed as part of [RFC-0007](0007-data-quality.md#implicit-or-predefined-data-quality-rules).
+
 ## Motivation
 
 > Why are we doing this? What use cases does it support? What is the expected outcome?
 > How does it align with our guiding values?
+
+- **We favor a small standard over a large one**
+  - Define a small set of rules that are commonly used in data quality management.
+  - Look to the community to gain inspiration for ways rules can be extended.
+- **We favor interoperability over readability**
+  - Common set of rules across all data contracts.
+  - Agnostic to the underlying data storage and data quality engine.
 
 ## Design and examples
 
@@ -36,3 +46,8 @@ Champion: Jochen Christ.
 ## References
 
 > Prior art, inspiration, and other references you used to create this based on what's worked well before.
+
+- [Great Expectations](https://greatexpectations.io/expectations/)
+- [Soda Metrics and Checks](https://docs.soda.io/soda-cl/metrics-and-checks.html#list-of-sodacl-metrics-and-checks)
+- [OpenMetadata Data Quality](https://docs.open-metadata.org/latest/how-to-guides/data-quality-observability/quality/tests-yaml)
+- [Deequ](https://github.com/awslabs/deequ)
