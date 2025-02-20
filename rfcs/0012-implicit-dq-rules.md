@@ -31,6 +31,94 @@ management. It was first proposed as part of [RFC-0007](0007-data-quality.md#imp
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
 
+### What set of rules will be included
+
+- Null
+- Unique
+- Equal
+- Min
+- Max
+- Less than
+- Greater than
+- Between
+- Pattern/regex
+- Min length
+- Max length
+- Field exists
+- Field data type
+- Referential integrity
+- Row count
+(16 rules)
+
+### Format of the rules
+
+Below are some ideas on the format of the rules. It could be a combination of the following:
+
+#### 1. Define rule along with the condition it should adhere to
+
+```yaml
+quality:
+  - rule: null
+    mustBeLessThan: 10
+    description: "There must be less than 10 null values in the column."
+  - rule: notNull
+    mustBe: 0
+    description: "There must be no null values in the column."
+  - rule: duplicateCount
+    mustBeGreaterThan: 0
+  - rule: validValues
+    validValues: ['pounds']
+```
+
+#### 2. Separate rules for each negation/alternative
+
+```yaml
+quality:
+  - rule: null
+  - rule: notNull
+  - rule: lessThan
+    value: 100
+  - rule: lessThanOrEqualTo
+    value: 100
+```
+
+#### 3. Rules with additional parameters for negation/alternatives
+
+```yaml
+quality:
+  - rule: null
+  - rule: null
+    description: "The value must be not null."
+    negate: true
+  - rule: lessThan
+    description: "The value must be less than 100."
+    value: 100
+  - rule: lessThan
+    description: "The value must be less than or equal to 100."
+    strictly: false
+    value: 100
+  - rule: between
+    description: "The value must be between 0 and 100."
+    min: 0
+    max: 100
+```
+
+#### 4. Include a threshold for the rule
+
+```yaml
+quality:
+  - rule: null
+    threshold: 10
+    description: "There must be less than 10 null values in the column."
+  - rule: notNull
+    threshold: 0
+    description: "There must be no null values in the column."
+  - rule: lessThan
+    value: 100
+    threshold: 20
+    description: "There must be less than 20 values less than 100."
+```
+
 ## Alternatives
 
 > Rejected alternative solutions and the reasons why.
@@ -51,3 +139,4 @@ management. It was first proposed as part of [RFC-0007](0007-data-quality.md#imp
 - [Soda Metrics and Checks](https://docs.soda.io/soda-cl/metrics-and-checks.html#list-of-sodacl-metrics-and-checks)
 - [OpenMetadata Data Quality](https://docs.open-metadata.org/latest/how-to-guides/data-quality-observability/quality/tests-yaml)
 - [Deequ](https://github.com/awslabs/deequ)
+- [Data Contract CLI](https://github.com/datacontract/datacontract-specification/blob/main/datacontract.schema.json#L1797)
