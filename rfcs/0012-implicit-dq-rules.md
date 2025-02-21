@@ -105,6 +105,9 @@ quality:
 
 #### 4. Include a threshold for the rule
 
+Threshold is similar to [format 1](#1-define-rule-along-with-the-condition-it-should-adhere-to) but always represents `mustBeLessThan`.
+If not specified, it is assumed to be 0.
+
 ```yaml
 quality:
   - rule: null
@@ -118,6 +121,15 @@ quality:
     threshold: 20
     description: "There must be less than 20 values less than 100."
 ```
+
+### Comparison table
+
+| Rule         | Description                               | Format 1                                               | Format 2                                           | Format 3                                           | Format 4                                                   |
+|--------------|-------------------------------------------|--------------------------------------------------------|----------------------------------------------------|----------------------------------------------------|------------------------------------------------------------|
+| Null         | Check if the value is null                | <pre>- rule: null<br>  mustBe: 0</pre>                 | <pre>- rule: null</pre>                            | <pre>- rule: null</pre>                            | <pre>- rule: null</pre>                                    |
+| Not Null     | Check if the value is not null            | <pre>- rule: notNull<br>  mustBe: 0</pre>              | <pre>- rule: notNull</pre>                         | <pre>- rule: null<br>  negate: true</pre>          | <pre>- rule: notNull</pre>                                 |
+| < 10 null    | Less than 10 values can be null           | <pre>- rule: null<br>  mustBeLessThan: 10</pre>        | <pre>- rule: null<br>  mustBeLessThan: 10</pre>    | <pre>- rule: null<br>  mustBeLessThan: 10</pre>    | <pre>- rule: null<br>  threshold: 10</pre>                 |
+| > 10 null    | More than 10 values can be null           | <pre>- rule: null<br>  mustBeGreaterThan: 10</pre>     | <pre>- rule: null<br>  mustBeGreaterThan: 10</pre> | <pre>- rule: null<br>  mustBeGreaterThan: 10</pre> | <pre>- rule: notNull<br>  threshold: total_rows - 10</pre> |
 
 ## Alternatives
 
