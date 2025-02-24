@@ -33,6 +33,15 @@ We have identified four main use-cases which need to be demonstrated for each of
 * External reference from a dataset element (i.e. data subset)
 * External reference from non-dataset element (i.e. SLA -> observability store)
 
+
+## Identified Hurdles
+-> There needs to be a standardized way to be able to identify a given object or property within a data contract so it can be referenced. 
+
+Proposed Options:
+ - implicit ID using `name` field on objects (or username etc.)
+ - add `id` field on objects to allow for referencing
+ - add `customProperty` on fields for which we want reference. 
+
 ### SOLUTION 1: Open API Standard 
 
 A proposed solution mimics the existing [OpenAPI standard](https://learn.openapis.org/referencing/overview.html), with the main difference being the addition of a `ref` field to the `schema` object.
@@ -65,7 +74,6 @@ This solution assumes the following:
 - Each element within a data contract has a globally unique identifier which can be used for reference
 - each element has a field which can be used as the specific identified (e.g. `name` or has a given id e.g. `quality.id` (RFC-0014))
 
-
 **Overview**
 
 The solution is composed of a high-lever section, `context` and schema-level sections `context` which define the internal references. 
@@ -83,11 +91,13 @@ E.G. A context defined at the schema level will be applicable for the entire sch
 
 | Key                              | UX label                 | Required | Description                                                                                                                                                             |
 |----------------------------------|--------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-context | object | No | Object. Reference related context information.|
+context | object | No | Object. Reference related context information. The level where context is defined creates an allowed scope for that context to apply.|
 context.name | string | No | The `term` used to reference this specific context |
 context.uri | string | No | the external path or location of the given reference. If None, the current contract is assumed as the location. |
 context.description| string | No | Description of the given context. |
 context.ref | string | No | The object or entity wishing to reference. |
+context.type | Literal | No | `embed`,`foreignKey`,`reference`. Default is `embed`. 
+* `embed`  assumes a user is looking to embed the specific reference within the current data contract. * `foreignKey`  assumes a user is looking to reference the specific reference using a foreign key. * `reference`  assumes a user is looking to reference the specific reference for additional context, but does not want it explicitly added as part of the data contract. |
 
 **Examples**
 
@@ -125,6 +135,33 @@ schema:
     - name: age
       context: # The actual reference itself
       - ref: location_of_file/that_is_unique/age/#birth_year # imports specific field  based on its URI
+```
+
+*Usage for foreign Keys*
+
+```YAML
+schema:
+- name: users
+  properties:
+  - name: id
+    type: integer
+    primaryKey: true
+  - name: supervisor_id
+    type: integer
+    context:
+    - ref: id # same schema
+      type: foreignKey
+      
+- name: posts
+  properties:
+  - name: id
+    type: integer
+    primaryKey: true
+  - name: user_id
+    type: integer
+    context:
+    - ref: users.id # other schema
+      type: foreignKey
 ```
 
 *Use Case Examples*
@@ -210,9 +247,28 @@ servers:
 
 * External reference from a dataset element (i.e. data subset)
 ```YAML
-# TODO: add example
+
+
+schema:
+- name: account
+  properties:
+  - name: account_number
+    type: integer
+    primaryKey: true
+  - name: account_type
+    type: integer
+    primaryKey: true
+ 
+- name: users
+  context:  # defining context here as a single scoped item
+  - name: common
+    uri: ./my_company/shared/common_data_contract/
+    description: 'This is the current contract'
+    ref: common.users
+
 ```
 * External reference from non-dataset element (i.e. SLA -> observability store)
+
 ```YAML
 # TODO: add example
 ```
@@ -232,3 +288,7 @@ servers:
 ## References
 
 > Prior art, inspiration, and other references you used to create this based on what's worked well before.
+
+
+QQ > How do we deal with external access references 
+QQ > should it be conteact.version.item
