@@ -24,6 +24,8 @@ We would like to check those relationships automatically via tooling, generate i
 
 A property can have a list of relationships. Each relationship is defined by a reference to another property. Properties are referenced through dot notation, keeping the context in mind.
 
+We propose to use a subset of JSON Pointer spec for the `ref`.
+
 ```yaml
 schema:
 - name: users
