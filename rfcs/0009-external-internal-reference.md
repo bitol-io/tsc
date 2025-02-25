@@ -8,10 +8,20 @@ Champion: Todd Nemanich.
 
 This RFC proposes to introduce internal and external relationships within the ODCS standard. 
 
+This feature will allow data contract authors to create references between elements within a single contract as well as across different contracts. By implementing a standardized referencing system, we can significantly reduce duplication, improve maintainability, and enable more sophisticated contract relationships. These references will support use cases ranging from simple reuse of quality rules to complex cross-contract data lineage tracking, ultimately making data contracts more powerful and manageable as their complexity and ecosystem grow.
+
 ## Motivation
 
 > Why are we doing this? What use cases does it support? What is the expected outcome?
 > How does it align with our guiding values?
+
+The ODCS standard currently lacks a formal mechanism for reusing elements within and across data contracts.
+Current users face the following key problems:
+
+- Maintenance burden
+- Excessive contract size (repeated elements)
+- Limited contract relationships
+- Fragmented governance
 
 Our goal is to allow for references between and within data contracts. We believe that this will allow for improved reusability within the data contract.
 
@@ -19,6 +29,8 @@ If we are successful, users should be able to:
 
 - reference a dataset element in another element within a data contract 
 - reference a dataset element outside a data contract
+- maintain single sources of truth for common elements like quality rules, stakeholders, and schemas
+- express complex data relationships that reflect their actual architecture
 
 ## Design and examples
 
@@ -33,36 +45,129 @@ We have identified four main use-cases which need to be demonstrated for each of
 * External reference from a dataset element (i.e. data subset)
 * External reference from non-dataset element (i.e. SLA -> observability store)
 
+Other possible use cases noted:
 
-## Identified Hurdles
+* foreign keys
+
+
+### Identified Hurdles
 -> There needs to be a standardized way to be able to identify a given object or property within a data contract so it can be referenced. 
 
 Proposed Options:
- - implicit ID using `name` field on objects (or username etc.)
+ - implicit ID using `name` field on objects (or username etc.), however may not be unique across all objects ina  data contract. 
  - add `id` field on objects to allow for referencing
  - add `customProperty` on fields for which we want reference. 
+
+
+### Reference Solution Process
+Both proposed solutions follow this general resolution process:
+
+1) Identify the reference syntax in the contract
+2) Determine if the reference is internal or external
+
+3) For external references:
+
+* Locate the external contract
+* Validate access permissions
+* Load the referenced contract
+
+4) Resolve the path to the specific element
+5) Apply the appropriate action based on the reference
+
+
 
 ### SOLUTION 1: Open API Standard 
 
 A proposed solution mimics the existing [OpenAPI standard](https://learn.openapis.org/referencing/overview.html), with the main difference being the addition of a `ref` field to the `schema` object.
 
 **Assumptions**
-> TODO: Add any known assumptions 
+* All objects that need to be referenced have unique paths within their contract
+* External contracts are accessible and compatible with the reference syntax
+* References are validated at contract validation time
+* Circular references are detected and prevented
 
 **Overview**
-> TODO: Add more detailed overview and usage
+The OpenAPI approach uses JSON Pointer syntax to specify references:
+
+Internal references: #/path/to/element
+External references: external-contract.yaml#/path/to/element
+
+Implementing this solution would mimic that syntax within the ODCS standard.
 
 **PRO**
 - being an open standard users are comfortable with it 
-- being an open standard it is easy to implement and maintain
+- widely implemented and supported
+
 
 **CON**
 - duplication of references, limited reusability 
+- using index e.g. `/schema/0/properties` could lead to inconsistent references
+- Potential for path brittleness if structure changes
+- less mantic information
 
 #### Examples 
 
-> TODO: Add OpenAPI Examples for use-cases above here. 
+1) Internal reference from dataset element to another contract element (i.e. to DQ rule)
 
+``` yaml
+schema:
+- name: users
+  properties:
+    - name: first_name
+      businessName: User's First Name
+      logicalType: string
+      physicalType: varchar(26)
+      quality:
+      - description: This column should not contain null values
+        dimension: completeness
+        severity: error
+        rule: nullCheck
+        businessImpact: operational
+        id: q160512f7
+    - name: last_name
+      businessName: User's last name
+      logicalType: string
+      physicalType: varchar(26)
+      quality:
+      - ref: "#/schema/0/properties/0/quality/0"
+        # This references the quality rule from first_name
+```
+2) Internal reference from a non-dataset element (i.e. servers->stakeholders for support)
+
+``` YAML
+stakeholders:
+  - name: data_team
+    email: data-team@company.com
+    id: support-team-1
+    
+servers:
+  - server: my-azure
+    type: azure
+    location: az://my-data-location
+    format: parquet
+    support:
+      ref: "#/stakeholders/0"
+      # This references the data team stakeholder for support
+```
+
+3) External reference from a dataset element (i.e. data subset)
+```yaml
+schema:
+- name: users
+  properties:
+  - name: user_profile
+    ref: "common-data-contract.yaml#/schema/0"
+    # This references a user profile schema from another contract
+```
+
+4) External reference from non-dataset element (i.e. SLA -> observability store)
+
+```yaml
+sla:
+  monitoring:
+    ref: "observability-contract.yaml#/monitoring/dataQuality"
+    # This references an external observability store for SLA monitoring
+```
 
 ### SOLUTION 2: JSON-LD 'CONTEXT' inspired
 
@@ -73,6 +178,7 @@ A proposed solution which takes inspiration from [JSON-LD / Linked Data](https:/
 This solution assumes the following:
 - Each element within a data contract has a globally unique identifier which can be used for reference
 - each element has a field which can be used as the specific identified (e.g. `name` or has a given id e.g. `quality.id` (RFC-0014))
+- Context definitions have contract-wide or element-specific scope
 
 **Overview**
 
@@ -96,8 +202,14 @@ context.name | string | No | The `term` used to reference this specific context 
 context.uri | string | No | the external path or location of the given reference. If None, the current contract is assumed as the location. |
 context.description| string | No | Description of the given context. |
 context.ref | string | No | The object or entity wishing to reference. |
-context.type | Literal | No | `embed`,`foreignKey`,`reference`. Default is `embed`. 
-* `embed`  assumes a user is looking to embed the specific reference within the current data contract. * `foreignKey`  assumes a user is looking to reference the specific reference using a foreign key. * `reference`  assumes a user is looking to reference the specific reference for additional context, but does not want it explicitly added as part of the data contract. |
+context.type | Literal | No | `embed`,`foreignKey`,`reference`. Default is `embed`.|
+
+
+The proposed will support the following types:
+| Type | Description | Action | embed | Include the referenced content directly | Copy the referenced element and validate it fits the schema | foreignKey | Create a foreign key relationship | Validate the relationship and add appropriate metadata | reference | Create a logical reference without embedding | Add metadata about the reference without copying content |
+
+(These types could be common across either solution)
+
 
 **Examples**
 
@@ -229,7 +341,7 @@ schema:
             # since we did not define a context (e.g. there is no `users` context) we default to the current contract as reference
 ```
 
-* Internal reference from a non-dataset element (i.e. servers->stakeholders for support)
+2) Internal reference from a non-dataset element (i.e. servers->stakeholders for support)
 
 ```YAML
 support:
@@ -245,7 +357,7 @@ servers:
         - ref: support.my_custom_channel
 ```
 
-* External reference from a dataset element (i.e. data subset)
+3) External reference from a dataset element (i.e. data subset)
 ```YAML
 
 
@@ -267,11 +379,60 @@ schema:
     ref: common.users
 
 ```
-* External reference from non-dataset element (i.e. SLA -> observability store)
+4) External reference from non-dataset element (i.e. SLA -> observability store)
 
 ```YAML
-# TODO: add example
+# External reference from non-dataset element (i.e. SLA -> observability store)
+
+sla:
+  context:
+  - name: observability
+    uri: ./my_company/shared/observability_contract/
+    description: 'Company-wide observability stack configuration'
+  
+  metrics:
+    - name: freshness
+      threshold: 24h
+      context:
+      - ref: observability.dataQuality.monitors.freshness
+        type: reference
+  
+  alerting:
+    channel: slack
+    context:
+    - ref: observability.alertChannels.dataQualityAlerts
+      type: embed
 ```
+
+**PRO**
+- easily readable 
+- context can be re-used across same data contract
+- provides more semantic meaning to references
+- flexible scoping, enabling localized reference patterns without affecting the entire document.
+
+**CON**
+- decoupling of paths (split location vs item in contract)
+- implementation logic could be more complex
+- less familiarity vs openAPI specification
+
+## Implementation Considerations
+*Validation Rules*
+Both solutions require validation of references:
+
+1) Reference Existence: Referenced elements must exist
+2) Type Compatibility: Referenced elements must be compatible with the referencing context
+3) Circular References: Detect and prevent circular references
+4) Access Control: Check that the user has access to referenced contracts
+
+*Error Handling* 
+
+Implementation should handle these error cases:
+
+1) Missing Reference: Provide clear error message with reference details
+2) Inaccessible External Contract: Indicate access issues with troubleshooting info
+3) Circular References: Detect and prevent with clear cycle information
+4) Incompatible Types: Explain the type mismatch
+5) Broken References: Detect when referenced elements have been removed or changed
 
 ## Alternatives
 
@@ -290,5 +451,6 @@ schema:
 > Prior art, inspiration, and other references you used to create this based on what's worked well before.
 
 
-QQ > How do we deal with external access references 
-QQ > should it be conteact.version.item
+## Outstanding Questions
+QQ > How do we deal with external access/auth considerations references? 
+QQ > How do we deal across different data contract versions?
