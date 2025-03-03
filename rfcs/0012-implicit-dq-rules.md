@@ -10,14 +10,19 @@ Champion: Jochen Christ.
 
 > One paragraph explanation of the RFC.
 
-This RFC proposes to add predefined data quality rules to the standard. These rules are commonly used in data quality 
-management. It was first proposed as part of [RFC-0007](0007-data-quality.md#implicit-or-predefined-data-quality-rules).
+This RFC proposes to add a list of predefined data quality rules to the standard. These rules are commonly used in data quality 
+management.
 
 ## Motivation
 
 > Why are we doing this? What use cases does it support? What is the expected outcome?
 > How does it align with our guiding values?
 
+- **We want it to make it simple for users to define commonly used data quality rules**
+  - No need to define the rule from scratch every time.
+  - No need to write SQL queries or custom code manually.
+- **We want to make the rules simple to implement by tools**
+  - Every tool that wants to support ODCS should be able to implement the rules.
 - **We favor a small standard over a large one**
   - Define a small set of rules that are commonly used in data quality management.
   - Look to the community to gain inspiration for ways rules can be extended.
@@ -31,113 +36,151 @@ management. It was first proposed as part of [RFC-0007](0007-data-quality.md#imp
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
 
-### What set of rules will be included
+### Design Principles
 
-- Null
-- Unique
-- Equal
-- Min
-- Max
-- Less than
-- Greater than
-- Between
-- Pattern/regex
-- Min length
-- Max length
-- Field exists
-- Field data type
-- Referential integrity
-- Row count
-(16 rules)
+- Simple: The rule should be simple and easy to understand.
+- Executable: The rules should be executable by data quality tools
+- Metrics-based: The rules should be defined in a way to result in a numeric value that can be compared to a threshold
+- Threshold-based: The rule should have a threshold that defines the acceptable value. Tools can report how many rows/objects are violating the rule. Thresholds can be skipped if it is implicit from the rule.
+- Percentage and absolute values: The rule should be able to express both percentage and absolute values.
 
-### Format of the rules
 
-Below are some ideas on the format of the rules. It could be a combination of the following:
+### Quality Type
 
-#### 1. Define rule along with the condition it should adhere to
+The quality type is `library`, which is also the default.
 
 ```yaml
 quality:
-  - rule: null
+  - type: library
+    rule: noNullValues
+```
+
+is the same as:
+
+```yaml
+quality:
+  - rule: noNullValues
+```
+
+### Predefined Rules
+
+- Property
+  - Null (`noNullValues`, `nullValues`)
+  - Missing values (empty strings, etc.) (`noMissingValues`, `missingValues`)
+  - Unique/duplicates (`noDuplicates`, `duplicateValues`)
+  - Valid values (enum, regex, etc.) (`validValues`, `invalidValues`)
+- Reference (TBD)
+  - Referential integrity to other properties
+- Statistical
+  - count (`count`)
+  - avg (`avg`)
+  - sum (`sum`)
+  - stddev (`stddev`)
+  - median (`median`)
+- Age
+  - `freshness` age of youngest object
+  - `maxAge` age of oldest object
+
+
+### Examples
+
+#### Null values
+
+```yaml
+quality:
+  - rule: noNullValues
+    description: "There must be no null values in the column."
+  - rule: nullValues
     mustBeLessThan: 10
     description: "There must be less than 10 null values in the column."
-  - rule: notNull
-    mustBe: 0
-    description: "There must be no null values in the column."
-  - rule: duplicateCount
-    mustBeGreaterThan: 0
-  - rule: validValues
-    validValues: ['pounds']
+  - rule: nullValues
+    mustBeLessThan: 1
+    unit: percent
+    description: "There must be less than 1% null values in the column."
+  # alternative?
+  - rule: nullValues
+    mustBeLessThan: 1%
+    description: "There must be less than 1% null values in the column."
 ```
 
-#### 2. Separate rules for each negation/alternative
+#### Missing values
 
 ```yaml
 quality:
-  - rule: null
-  - rule: notNull
-  - rule: lessThan
-    value: 100
-  - rule: lessThanOrEqualTo
-    value: 100
+  - rule: noMissingValues
+    missingValues: [null, '', 'N/A', 'n/a']
+    description: "There must be no missing values in the column."
 ```
 
-#### 3. Rules with additional parameters for negation/alternatives
+
+#### Duplicate values
 
 ```yaml
 quality:
-  - rule: null
-  - rule: null
-    description: "The value must be not null."
-    negate: true
-  - rule: lessThan
-    description: "The value must be less than 100."
-    value: 100
-  - rule: lessThan
-    description: "The value must be less than or equal to 100."
-    strictly: false
-    value: 100
-  - rule: between
-    description: "The value must be between 0 and 100."
-    min: 0
-    max: 100
+  - rule: noDuplicates
+    description: "There must be no duplicate values in the column."
+  - rule: duplicateValues
+    mustBeLessThan: 10
+    description: "There must be less than 10 duplicate values in the column."
+  - rule: duplicateValues
+    mustBeLessThan: 1%
+    description: "There must be less than 1% duplicate values in the column."
 ```
 
-#### 4. Include a threshold for the rule
-
-Threshold is similar to [format 1](#1-define-rule-along-with-the-condition-it-should-adhere-to) but always represents `mustBeLessThan`.
-If not specified, it is assumed to be 0.
+#### Valid values
 
 ```yaml
 quality:
-  - rule: null
-    threshold: 10
-    description: "There must be less than 10 null values in the column."
-  - rule: notNull
-    threshold: 0
-    description: "There must be no null values in the column."
-  - rule: lessThan
-    value: 100
-    threshold: 20
-    description: "There must be less than 20 values less than 100."
+  - rule: noInvalidValues
+    description: "The value must be either 'pounds' or 'kg'."
+    validValues: ['pounds', 'kg']
 ```
 
-### Comparison table
+Using a pattern:
 
-| Rule         | Description                               | Format 1                                               | Format 2                                           | Format 3                                           | Format 4                                                   |
-|--------------|-------------------------------------------|--------------------------------------------------------|----------------------------------------------------|----------------------------------------------------|------------------------------------------------------------|
-| Null         | Check if the value is null                | <pre>- rule: null<br>  mustBe: 0</pre>                 | <pre>- rule: null</pre>                            | <pre>- rule: null</pre>                            | <pre>- rule: null</pre>                                    |
-| Not Null     | Check if the value is not null            | <pre>- rule: notNull<br>  mustBe: 0</pre>              | <pre>- rule: notNull</pre>                         | <pre>- rule: null<br>  negate: true</pre>          | <pre>- rule: notNull</pre>                                 |
-| < 10 null    | Less than 10 values can be null           | <pre>- rule: null<br>  mustBeLessThan: 10</pre>        | <pre>- rule: null<br>  mustBeLessThan: 10</pre>    | <pre>- rule: null<br>  mustBeLessThan: 10</pre>    | <pre>- rule: null<br>  threshold: 10</pre>                 |
-| > 10 null    | More than 10 values can be null           | <pre>- rule: null<br>  mustBeGreaterThan: 10</pre>     | <pre>- rule: null<br>  mustBeGreaterThan: 10</pre> | <pre>- rule: null<br>  mustBeGreaterThan: 10</pre> | <pre>- rule: notNull<br>  threshold: total_rows - 10</pre> |
+```yaml
+quality:
+  - rule: noInvalidValues
+    description: "The value must be an IBAN."
+    pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$'
+```
 
-## Alternatives
+#### Count
 
-> Rejected alternative solutions and the reasons why.
+```yaml
+quality:
+  - rule: count
+    mustBeGreaterThan: 1000000
+    description: "There must be more than 1 million values in the table."
+```
 
-## Decision
+#### Avg
 
-> The decision made by the TSC.
+```yaml
+quality:
+  - rule: avg
+    mustBeBetween: [100, 200]
+    description: "The average value of this column must be between 100 and 200."
+```
+
+### Age
+
+```yaml
+quality:
+  - rule: freshness
+    mustBeLessThan: 24
+    unit: hours
+    description: "At least one entry must be less than 24 hours old."
+```
+
+```yaml
+quality:
+  - rule: maxAge
+    mustBeGreaterThan: 1
+    unit: year
+    description: "At least one entry must be at least 1 year old."
+```
+
 
 ## Consequences
 
