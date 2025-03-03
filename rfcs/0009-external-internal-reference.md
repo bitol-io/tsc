@@ -40,9 +40,9 @@ If we are successful, users should be able to:
 
 We have identified four main use-cases which need to be demonstrated for each of the proposed solutions, namely:
 
-* Internal reference from dataset element to another contract element (i.e. to DQ rule)
+* Internal reference from dataset element to another contract element (i.e. to DQ rule or to a business definition that is used multiple times within the same contract)
 * Internal reference from a non-dataset element (i.e. servers->stakeholders for support)
-* External reference from a dataset element (i.e. data subset)
+* External reference from a dataset element (i.e. data subset or the description of the technical heritage of a dataset element aka lineage or to a business definition within another contract)
 * External reference from non-dataset element (i.e. SLA -> observability store)
 
 Other possible use cases noted:
