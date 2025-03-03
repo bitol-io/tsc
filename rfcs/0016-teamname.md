@@ -17,7 +17,7 @@ This is a workaround created by a vendor and a end-user customer:
 
 ```yaml
 # identify owning team via organization-specific identifier "my-team"
-customProperties
+customProperties:
 - property: owner
   value: "my-team"
 # include team members based on that
