@@ -13,7 +13,7 @@ And one team can own multiple data contracts, and adding a team member to a team
 
 ## Status Quo / Workaround
 
-This is a workaround created by a vendor and a end-user customer:
+This is a workaround created by a vendor and an end-user customer:
 
 ```yaml
 # identify owning team via organization-specific identifier "my-team"
