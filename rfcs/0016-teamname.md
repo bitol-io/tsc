@@ -100,4 +100,4 @@ Recommend the workaround.
 
 ## References
 
-- The Data Contract Specification uses an owner field at the top level.
+- The Data Contract Specification uses an `owner` field at the top level.
