@@ -53,11 +53,20 @@ Other possible use cases noted:
 ### Identified Hurdles
 -> There needs to be a standardized way to be able to identify a given object or property within a data contract so it can be referenced. 
 
+- Identification of the data contract itself (use pattern matching for versioning?)
+  - by file (major version is part of the filename)
+  - by URI (includes ID and (major) version)
+- Identification of elements in a data contract (e.g., a property in a schema of a data contract)
+  - by YAML path (JSON Path: /schema[0]/properties[0] )
+  - by implicit URI (/schema/$objectName/properties/$propertyName)
+    - we need to define the URI scheme for all elements (a lot of work)
+    - to reduce amount of work, we can provide a mapping from JSON Path to URI, with each element in a list required to have an local name, or a combination of properties
+  - by explict IDs (unique within the contract), URIs (enterprise-wide unique) or even UUIDs (universally unique)
+
 Proposed Options:
  - implicit ID using `name` field on objects (or username etc.), however may not be unique across all objects ina  data contract. 
  - add `id` field on objects to allow for referencing
  - add `customProperty` on fields for which we want reference. 
-
 
 ### Reference Solution Process
 Both proposed solutions follow this general resolution process:
@@ -415,6 +424,85 @@ sla:
 - implementation logic could be more complex
 - less familiarity vs openAPI specification
 
+### Solution 3: Somewhere in the middle
+
+This proposed solution is somewhere in the middle between a classic semantic (context) approach and a openAPI based approach. 
+We leverage *implicit* uris when identifying elements in a data contract and limit external references to  include a specific filename. 
+By using implicit uris we can use linting rules to ensure that uris are valid and exist and unique within the specific scope. 
+
+This solution would require use to:
+- Define a clear method for creating uris 
+- Define a hierarchy as part of the above (e.g. name is a property we can use to identify an object etc. )
+- Arrays would require a `key` field in order to be correctly identified
+
+We are not tied to the format (e.g we could use '/', '::', '.' etc. ) However we need:
+- an anchor to denote internal references (# Proposed)
+- a path separator to demote different items within the scope (e.g. json-path or dot notation)
+
+```yaml
+id: my-id
+version: 1.2.3
+description: # /description
+  limitations: bla bla # /description/limitations
+schema: # schema
+- name: my-table # /schema/my-table  or  /schema/my-table/name
+  logicalType: object # /schema/my-table/logicalType
+  properties: # /schema/my-table/properties
+  - name: my-column # /schema/my-table/properties/my-column
+    logicalType: string # /schema/my-table/properties/my-column/logicalType
+    quality: # /schema/my-table/properties/my-column/quality
+    - type: sql # /schema/my-table/properties/my-column/quality/???
+      query: |
+        SELECT COUNT(*) FROM ${object} WHERE ${property} IS NOT NULL
+      mustBeLessThan: 3600
+  - name: my-array-column # /schema/my-table/properties/my-array-column
+    logicalType: array # /schema/my-table/properties/my-array-column/logicalType
+    items:  # /schema/my-table/properties/my-array-column/items
+      logicalType: object 
+      properties: #  /schema/my-table/properties/my-array-column/items/properties
+        - name: id  #  /schema/my-table/properties/my-array-column/items/id
+          logicalType: string  # /schema/my-table/properties/my-array-column/items/id/logicalType
+          physicalType: VARCHAR(40) # /schema/my-table/properties/my-array-column/items/id/physicalType
+        - name: zip #  /schema/my-table/properties/my-array-column/items/zip
+          logicalType: string
+          physicalType: VARCHAR(15)
+```
+
+For identifying the _data contract_ itself, we propose the use of a single file. This means that we are inherently referencing a single contract with a given version. 
+To reference a property we can combine the file path with a local uri: "/path/to/data-contract-v1.yaml#/schema/my-table/properties/my-column" using the proposed # as a separator.
+
+The actual format of how a reference is defined is still in process, but could be one of the following:
+
+- define a context (as proposed above)
+  - context may be too broad and is better served by more specific items e.g. `authoritativeDefinitions`
+- use OpenAPI `$ref` specification
+- use a `relationships` field, which contains a `type` and a `ref`
+- use a `businessDefinition` field 
+
+
+```yaml
+context: # relationships, authoritativeDefinitions, ...
+- type: foreignKey
+  ref: "pass in a URI"
+- type: businessDefinition
+  ref: "pass in a URI"
+
+schema:
+  - name: my-table
+    properties:
+      - context:
+        - type: embed
+          ref: "#/schema/my-table/properties/my-column"
+      - $ref: "#/schema/my-table/properties/my-column"
+      - name: my-column2
+        logicalType: string
+        businessDefinition: "#/schema/my-table/properties/my-column/businessDefinition" # using business defintion
+        relationships: # using a 'relationships' block
+        - type: foreignKey
+          ref: "#my-table.my-column"
+```
+
+
 ## Implementation Considerations
 *Validation Rules*
 Both solutions require validation of references:
@@ -437,6 +525,8 @@ Implementation should handle these error cases:
 ## Alternatives
 
 > Rejected alternative solutions and the reasons why.
+
+"Context" -> The context term is too broad and is conceptually difficult for people to understand. While the structure works a better term would be needed.
 
 ## Decision
 
