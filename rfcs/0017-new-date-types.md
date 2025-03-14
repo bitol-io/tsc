@@ -4,7 +4,7 @@ Champion: Peter Flook
 
 ## Summary
 
-Include new date data types (datetime and time) to `logicalDataType`.
+Include new date data types (datetime, timestamp and time) to `logicalDataType`.
 
 ## Motivation
 
@@ -20,17 +20,18 @@ Users expect to have a refined version of the date data type to specify whether 
 
 Current vs new logical data types:
 
-| Current | New          | Example             | Note                                                                           |
-|---------|--------------|---------------------|--------------------------------------------------------------------------------|
-| string  | string       | 'abc123'            |                                                                                |
-| number  | number       | 123.1               |                                                                                |
-| integer | integer      | 123                 |                                                                                |
-| boolean | boolean      | true                |                                                                                |
-| array   | array        | [1,2,3]             |                                                                                |
-| object  | object       | {name: 'hello'}     |                                                                                |
-| date    | date         | 2020-12-31          |                                                                                |
-| date    | **datetime** | 2020-12-31 01:01:01 | Date with time component(s) such as hours, minutes, seconds, millis, time zone |
-| date    | **time**     | 01:01:01            | Only time components(s) such as hours, minutes, seconds, millis, time zone     |
+| Current | New           | Example             | Note                                                                           |
+|---------|---------------|---------------------|--------------------------------------------------------------------------------|
+| string  | string        | 'abc123'            |                                                                                |
+| number  | number        | 123.1               |                                                                                |
+| integer | integer       | 123                 |                                                                                |
+| boolean | boolean       | true                |                                                                                |
+| array   | array         | [1,2,3]             |                                                                                |
+| object  | object        | {name: 'hello'}     |                                                                                |
+| date    | date          | 2020-12-31          |                                                                                |
+| date    | **datetime**  | 2020-12-31 01:01:01 | Date with time component(s) such as hours, minutes, seconds, millis, time zone |
+| date    | **timestamp** | 2020-12-31 01:01:01 | Same as datetime                                                               |
+| date    | **time**      | 01:01:01            | Only time components(s) such as hours, minutes, seconds, millis, time zone     |
 
 ## Alternatives
 
@@ -68,6 +69,14 @@ Current vs new logical data types:
   - date
   - time
   - timestamp
+- [Avro date types](https://avro.apache.org/docs/1.11.1/specification/#logical-types)
+  - date
+  - time-millis
+  - time-micros
+  - timestamp-millis
+  - timestamp-micros
+  - local-timestamp-millis
+  - local-timestamp-micros
 
 ### Data sources with no date data type
 
