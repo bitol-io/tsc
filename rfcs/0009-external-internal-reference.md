@@ -84,6 +84,216 @@ Both proposed solutions follow this general resolution process:
 5) Apply the appropriate action based on the reference
 
 
+**Assumptions**
+* All objects that need to be referenced have unique paths within their contract
+* External contracts are accessible and compatible with the reference syntax
+* References are validated at contract validation time
+* Circular references are detected and prevented
+
+### PROPOSED SOLUTION ###
+
+This proposed solution takes inspiration from the solutions below and addresses two key concerns around the solution.
+
+- Defining the references
+  - What is the structure for a reference?
+  - What is the unique identifier for a reference?
+  - What is the reference fallback?
+- Usage of a reference
+  - How is a reference used for inclusion?
+  - How is a reference used for 'linking'?
+
+
+*** Reference Structure ***
+
+A reference can reference an element within the same data contract or an element within a different data contract. The following are the proposed methods for identifying and element within a contract and for identifiying a contract. 
+
+* Structure*
+
+A reference follows the following structure:
+```yaml
+<file><anchor><item><separator><item><separator>...
+```
+
+
+The separator between items within a contract could be either:
+- '/'
+- '.'
+
+The proposed anchor is: 
+- '#'
+
+* Identify a Contract* 
+
+To identify an external contract, we will use a file-based syntax to identify the contract. One can provide a relative or a full path for the contract. 
+
+``` yaml
+-  data-contract-v1.yaml # file in the same folder as current contract
+- file:///path/to/data-contract-v1.yaml # full path
+- https://example.com/data-contract-v1.yaml # full URL
+- ../../path/to/data-contract-v1.yaml # relative path
+```
+
+If you are referencing an element within the same contract, you can omit the file name.
+
+*Identify a contract element * 
+
+To identify an element within a contract, we will use the inherent data structure within a data contract to allow for implicit references. 
+To identify an element, we can use either - abridged references or index references. Index references rely on the order of the elements in the contract and can be easily broken if a contract is updated. 
+The abridged references use naming conventions to define the contract. 
+
+By default, the following structure is proposed when resolving a reference. 
+
+1) Use the name field to determine an elements identity
+2) Use the mapping table as fallback if name is not present
+3) If not found in mapping table, fall back to index. 
+
+* NOTE * There is the option to introduce breaking changes by requiring a `name` field on all elements. This would remove the mapping table. A user can always use the index fallback. 
+
+``` yaml
+# Mapping Table / Construction Rule:
+- channels -> channel
+- servers -> server
+- roles -> role
+- schema -> name
+- properties -> name
+- quality -> id (RFC-0013)
+
+```
+
+``` yaml
+# example below using '/' || '.' as separators
+id: my-id
+version: 1.2.3
+description: # /description || .description
+  limitations: bla bla # /description/limitations || .description.limitations
+schema: # /schema || .schema
+- name: my-table # /schema/my-table  or  /schema/my-table/name || .schema.my-table or .schema.my-table.name
+  logicalType: object # /schema/my-table/logicalType || .schema.my-table.logicalType
+  properties: # /schema/my-table/properties || .schema.my-table.properties
+  - name: my-column # /schema/my-table/properties/my-column || .schema.my-table.properties.my-column
+    logicalType: string # /schema/my-table/properties/my-column/logicalType || .schema.my-table.properties.my-column.logicalType
+    quality: # /schema/my-table/properties/my-column/quality || .schema.my-table.properties.my-column.quality
+    - type: sql # /schema/my-table/properties/my-column/quality[0] || .schema.my-table.properties.my-column.quality[0]
+      query: |
+        SELECT COUNT(*) FROM ${object} WHERE ${property} IS NOT NULL
+      mustBeLessThan: 3600
+  - name: my-array-column # /schema/my-table/properties/my-array-column || .schema.my-table.properties.my-array-column
+    logicalType: array # /schema/my-table/properties/my-array-column/logicalType || .schema.my-table.properties.my-array-column.logicalType
+    items:  # /schema/my-table/properties/my-array-column/items || .schema.my-table.properties.my-array-column.items
+      logicalType: object 
+      properties: #  /schema/my-table/properties/my-array-column/items/properties || .schema.my-table.properties.my-array-column.items.properties
+        - name: id  #  /schema/my-table/properties/my-array-column/items/id || .schema.my-table.properties.my-array-column.items.id
+          logicalType: string  # /schema/my-table/properties/my-array-column/items/id/logicalType || .schema.my-table.properties.my-array-column.items.id.logicalType
+          physicalType: VARCHAR(40) # /schema/my-table/properties/my-array-column/items/id/physicalType || .schema.my-table.properties.my-array-column.items.id.physicalType
+        - name: zip #  /schema/my-table/properties/my-array-column/items/zip || .schema.my-table.properties.my-array-column.items.zip
+          logicalType: string
+          physicalType: VARCHAR(15)
+```
+*** Refrence Usage ***
+
+To use a reference there are a couple of proposed options. 
+
+OPTION 1
+
+``` yaml
+
+# Limited for schema objects and schema properties
+relationships:
+  - type: foreignKey # one of (foreignKey, businessDefinition, embed)
+    ref: "pass in a URI"
+
+```
+
+OPTION 2
+
+``` yaml
+
+$ref: "pass in a URI"
+
+```
+
+OPTION 3
+
+Context - This solution is below. However, the naming has confused users.
+
+#### Examples ####
+
+``` yaml 
+
+# internal reference within contract (using dot notation and $ as anchor)
+schema:
+- name: users
+  properties:
+    - name: first_name
+      businessName: User's First Name
+      logicalType: string
+      physicalType: varchar(26)
+      quality:
+      - description: This column should not contain null values
+        dimension: completeness
+        severity: error
+        rule: nullCheck
+        businessImpact: operational
+        id: q160512f7
+    - name: last_name
+      businessName: User's last name
+      logicalType: string
+      physicalType: varchar(26)
+      quality:
+      - description: Reference no-null values quality rule 
+        relationships:
+        - ref: $users.first_name.quality.q160512f7
+          type: embed
+
+# Usage of foreign keys 
+schema:
+- name: users
+  properties:
+  - name: id
+    type: integer
+    primaryKey: true
+  - name: supervisor_id
+    type: integer
+    relationships:
+    - ref: $users.id
+      type: foreignKey
+      
+- name: posts
+  properties:
+  - name: id
+    type: integer
+    primaryKey: true
+  - name: user_id
+    type: integer
+    relationships:
+    - ref: $users.id # other schema
+      type: foreignKey
+```
+
+
+
+## Implementation Considerations
+*Validation Rules*
+Both solutions require validation of references:
+
+1) Reference Existence: Referenced elements must exist
+2) Type Compatibility: Referenced elements must be compatible with the referencing context
+3) Circular References: Detect and prevent circular references
+4) Access Control: Check that the user has access to referenced contracts
+
+*Error Handling* 
+
+Implementation should handle these error cases:
+
+1) Missing Reference: Provide clear error message with reference details
+2) Inaccessible External Contract: Indicate access issues with troubleshooting info
+3) Circular References: Detect and prevent with clear cycle information
+4) Incompatible Types: Explain the type mismatch
+5) Broken References: Detect when referenced elements have been removed or changed
+
+## Alternatives
+
+> Rejected alternative solutions and the reasons why.
 
 ### SOLUTION 1: Open API Standard 
 
@@ -501,32 +711,6 @@ schema:
         - type: foreignKey
           ref: "#my-table.my-column"
 ```
-
-
-## Implementation Considerations
-*Validation Rules*
-Both solutions require validation of references:
-
-1) Reference Existence: Referenced elements must exist
-2) Type Compatibility: Referenced elements must be compatible with the referencing context
-3) Circular References: Detect and prevent circular references
-4) Access Control: Check that the user has access to referenced contracts
-
-*Error Handling* 
-
-Implementation should handle these error cases:
-
-1) Missing Reference: Provide clear error message with reference details
-2) Inaccessible External Contract: Indicate access issues with troubleshooting info
-3) Circular References: Detect and prevent with clear cycle information
-4) Incompatible Types: Explain the type mismatch
-5) Broken References: Detect when referenced elements have been removed or changed
-
-## Alternatives
-
-> Rejected alternative solutions and the reasons why.
-
-"Context" -> The context term is too broad and is conceptually difficult for people to understand. While the structure works a better term would be needed.
 
 ## Decision
 
