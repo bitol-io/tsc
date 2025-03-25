@@ -98,6 +98,29 @@ team:
 
 Recommend the workaround.
 
+### Option D: 
+
+```yaml
+team:
+  - name: my-team
+    scope: xyz
+    description: xxxx
+    members: ceastwood, mhopper
+  - username: ceastwood
+    role: Data Scientist
+    dateIn: 2022-08-02
+    dateOut: 2022-10-01
+    replacedByUsername: mhopper
+  - username: mhopper
+    role: Data Scientist
+    dateIn: 2022-10-01
+  - username: daustin
+    role: Owner
+    comment: Keeper of the grail
+    name: David Austin
+    dateIn: 2022-10-01
+```
+
 ## References
 
 - The Data Contract Specification uses an `owner` field at the top level.
