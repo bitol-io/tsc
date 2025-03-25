@@ -1,6 +1,6 @@
 # External & Internal References 
 
-Champion: Todd Nemanich.
+Champion: Diego C. (Simon Harrer).
 
 ## Summary
 
