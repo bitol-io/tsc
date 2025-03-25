@@ -100,13 +100,23 @@ Recommend the workaround.
 
 ### Option D: 
 
+* Default element is of type `member`.
+* Add type `team`.
+* Practical organizational recommendation: Do not mix type `team` and type `member`.
+* Add support for `customProperties` and `authoritativeDefinitions` blocks.
+* `description` is optional but universal.
+
 ```yaml
 team:
   - type: team
     name: my-team
-    scope: xyz
+    role: xyz
     description: xxxx
     customProperties: ...
+    authoritativeDefinitions: ...
+    members:
+    - username: ...
+    - username: ...
   - username: ceastwood # type: member
     role: Data Scientist
     dateIn: 2022-08-02
@@ -117,7 +127,7 @@ team:
     dateIn: 2022-10-01
   - username: daustin # type: member
     role: Owner
-    comment: Keeper of the grail
+    description: Keeper of the grail
     name: David Austin
     dateIn: 2022-10-01
 ```
