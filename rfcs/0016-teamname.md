@@ -102,23 +102,33 @@ Recommend the workaround.
 
 ```yaml
 team:
-  - name: my-team
+  - type: team
+    name: my-team
     scope: xyz
     description: xxxx
-    members: ceastwood, mhopper
-  - username: ceastwood
+    customProperties: ...
+  - username: ceastwood # type: member
     role: Data Scientist
     dateIn: 2022-08-02
     dateOut: 2022-10-01
     replacedByUsername: mhopper
-  - username: mhopper
+  - username: mhopper # type: member
     role: Data Scientist
     dateIn: 2022-10-01
-  - username: daustin
+  - username: daustin # type: member
     role: Owner
     comment: Keeper of the grail
     name: David Austin
     dateIn: 2022-10-01
+```
+
+### Option E:
+
+```yaml
+team:
+  - authoritativeDefinitions:
+     - type: teamDefinition
+       url: my-team
 ```
 
 ## References
