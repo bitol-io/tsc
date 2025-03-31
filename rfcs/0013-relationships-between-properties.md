@@ -22,9 +22,7 @@ We would like to check those relationships automatically via tooling, generate i
 
 ## Design and examples
 
-A property can have a list of relationships. Each relationship is defined by a reference to another property. Properties are referenced through dot notation, keeping the context in mind.
-
-We propose to use a subset of JSON Pointer spec for the `ref`.
+A property can have a list of relationships. Each relationship is defined by a reference to another property. We use the reference mechanism from RFC 9.
 
 ```yaml
 schema:
@@ -33,12 +31,23 @@ schema:
   - name: id
     # NEW
     relationships:
-    - ref: account_number # property, refers to users.account_number
-      type: foreignKey
-    - ref: accounts.account_number # object.property
-      type: foreignKey
-    - ref: accounts.address.street # object.property.property
-      type: foreignKey
+    - to: account_number # same schema object
+      type: foreignKey # default
+      # from is implied
+    - label: has / consists of / is part of / ... # optional
+      to: accounts.account_number
+      type: foreignKey # default
+    - to: accounts.address.street
+      type: foreignKey # default
+  relationships:
+  - from: id
+    to: account_number
+    type: foreignKey # default
+    cardinality: oneToOne # oneToMany, manyToMany; optional
+  - from: users.(id,name) # short syntax for multiple fields per table @Diego C: what do you think?git
+    to: accounts.(id,fullname)
+    type: foreignKey # association, defaults to foreignKey
+    description: bla # optional
 ```
 
 Examples:
@@ -53,7 +62,7 @@ schema:
   - name: supervisor_id
     type: integer
     relationships:
-    - ref: id # same schema
+    - to: id # same schema
       type: foreignKey
 - name: posts
   properties:
@@ -63,7 +72,7 @@ schema:
   - name: user_id
     type: integer
     relationships:
-    - ref: users.id # other schema
+    - to: users.id # other schema
       type: foreignKey
 ```
 
@@ -85,12 +94,12 @@ schema:
   - name: ref_number
     type: integer
     relationships:
-    - ref: account.account_number
+    - to: account.account_number
       type: foreignKey
   - name: ref_type
     type: integer
     relationships:
-    - ref: account.account_type
+    - to: account.account_type
       type: foreignKey
 ```
 
