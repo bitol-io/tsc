@@ -1,6 +1,6 @@
 # External & Internal References 
 
-Champion: Diego C. (Simon Harrer).
+Champion: Diego C. & Simon Harrer.
 
 ## Summary
 
@@ -12,10 +12,8 @@ This feature will allow data contract authors to create references between eleme
 
 ## Motivation
 
-> Why are we doing this? What use cases does it support? What is the expected outcome?
-> How does it align with our guiding values?
-
 The ODCS standard currently lacks a formal mechanism for reusing elements within and across data contracts.
+
 Current users face the following key problems:
 
 - Maintenance burden
@@ -23,7 +21,7 @@ Current users face the following key problems:
 - Limited contract relationships
 - Fragmented governance
 
-Our goal is to allow for references between and within data contracts. We believe that this will allow for improved reusability within the data contract.
+Our goal is to allow for references between and within data contracts. We believe that this will allow for improved reusability within the data contract. A [proposed solution](#main-proposed-solution) is located below. 
 
 If we are successful, users should be able to:
 
@@ -33,10 +31,6 @@ If we are successful, users should be able to:
 - express complex data relationships that reflect their actual architecture
 
 ## Design and examples
-
-> This is the bulk of the RFC.
-> Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
-> Offer at least two examples, one is minimalist, one is more structured.
 
 We have identified four main use-cases which need to be demonstrated for each of the proposed solutions, namely:
 
@@ -61,7 +55,7 @@ Other possible use cases noted:
   - by implicit URI (/schema/$objectName/properties/$propertyName)
     - we need to define the URI scheme for all elements (a lot of work)
     - to reduce amount of work, we can provide a mapping from JSON Path to URI, with each element in a list required to have an local name, or a combination of properties
-  - by explict IDs (unique within the contract), URIs (enterprise-wide unique) or even UUIDs (universally unique)
+  - by explicit IDs (unique within the contract), URIs (enterprise-wide unique) or even UUIDs (universally unique)
 
 Proposed Options:
  - implicit ID using `name` field on objects (or username etc.), however may not be unique across all objects ina  data contract. 
@@ -90,9 +84,9 @@ Both proposed solutions follow this general resolution process:
 * References are validated at contract validation time
 * Circular references are detected and prevented
 
-### PROPOSED SOLUTION ###
+### MAIN PROPOSED SOLUTION ###
 
-This proposed solution takes inspiration from the solutions below and addresses two key concerns around the solution.
+This proposed solution takes inspiration from the [rejected solutions](#alternatives) below and addresses two key concerns around the solution.
 
 - Defining the references
   - What is the structure for a reference?
@@ -103,178 +97,222 @@ This proposed solution takes inspiration from the solutions below and addresses 
   - How is a reference used for 'linking'?
 
 
-*** Reference Structure ***
+#### Key Concepts ####
 
-A reference can reference an element within the same data contract or an element within a different data contract. The following are the proposed methods for identifying and element within a contract and for identifiying a contract. 
+A reference allows one element in a data contract to connect/link to or include another element or data contract object. References can point to:
 
-* Structure*
+- Objects within the same contract
+- Objects in external contracts
+- Different types of elements (schemas, properties, quality definitions, etc.)
+
+#### Basic Format ####
 
 A reference follows the following structure:
 ```yaml
 <file><anchor><item><separator><item><separator>...
 ```
 
+Where:
 
-The separator between items within a contract could be either:
-- '/'
-- '.'
+- < file > : Path to the contract file (optional for same-contract references)
+- < anchor >: '#' symbol to mark entry into a contract (optional for same-contract)
+- < item >: Contract element identifier
+- < separator >: Dot '.' for navigating the hierarchy (following dot notation)
 
-The proposed anchor is: 
-- '#'
 
-* Identify a Contract* 
+#### Path Components ####
 
-To identify an external contract, we will use a file-based syntax to identify the contract. One can provide a relative or a full path for the contract. 
+To identify an external contract, use one of these formats:
 
 ``` yaml
--  data-contract-v1.yaml # file in the same folder as current contract
-- file:///path/to/data-contract-v1.yaml # full path
-- https://example.com/data-contract-v1.yaml # full URL
-- ../../path/to/data-contract-v1.yaml # relative path
+# Same folder as current contract
+data-contract-v1.yaml
+
+# Full path
+file:///path/to/data-contract-v1.yaml
+
+# URL
+https://example.com/data-contract-v1.yaml
+
+# Relative path
+../../path/to/data-contract-v1.yaml
 ```
 
-If you are referencing an element within the same contract, you can omit the file name.
+When referencing an element within the same contract, the file component can be omitted.
 
-*Identify a contract element * 
+*Anchor Component*
 
-To identify an element within a contract, we will use the inherent data structure within a data contract to allow for implicit references. 
-To identify an element, we can use either - abridged references or index references. Index references rely on the order of the elements in the contract and can be easily broken if a contract is updated. 
-The abridged references use naming conventions to define the contract. 
+The anchor ('#') marks the entry into the data contract structure:
 
-By default, the following structure is proposed when resolving a reference. 
+```yaml
+# Reference to an external contract
+'external-contract.yaml#schema.my-table'
 
-1) Use the name field to determine an elements identity
-2) Use the mapping table as fallback if name is not present
-3) If not found in mapping table, fall back to index. 
-
-* NOTE * There is the option to introduce breaking changes by requiring a `name` field on all elements. This would remove the mapping table. A user can always use the index fallback. 
-
-``` yaml
-# Mapping Table / Construction Rule:
-- channels -> channel
-- servers -> server
-- roles -> role
-- schema -> name
-- properties -> name
-- quality -> id (RFC-0013)
+# Reference within the same contract (anchor optional)
+'#schema.my-table'
+'schema.my-table'
 
 ```
 
+If referencing the same schema within the same data contract, the file component, anchor can be omitted. 
+
+```yaml
+
+# Full Reference 
+'this-contract.yaml#schema.my-table.my-column'
+
+# equivalent if referenced within the same schema
+'schema.my-table.my-column'
+
+```
+
+*Item Components*
+
+Items use dot notation to navigate the contract hierarchy:
+
+```yaml
+# Reference a table
+schema.my-table
+
+# Reference a column in a table
+schema.my-table.properties.my-column
+
+# Reference a nested property
+schema.my-table.properties.my-array-column.items.properties.id
+```
+
+Arrays can also be accessed with an index. A sample contract with locations is below:
+
 ``` yaml
-# example below using '/' || '.' as separators
+# Full example below with dot notation
 id: my-id
 version: 1.2.3
-description: # /description || .description
-  limitations: bla bla # /description/limitations || .description.limitations
-schema: # /schema || .schema
-- name: my-table # /schema/my-table  or  /schema/my-table/name || .schema.my-table or .schema.my-table.name
-  logicalType: object # /schema/my-table/logicalType || .schema.my-table.logicalType
-  properties: # /schema/my-table/properties || .schema.my-table.properties
-  - name: my-column # /schema/my-table/properties/my-column || .schema.my-table.properties.my-column
-    logicalType: string # /schema/my-table/properties/my-column/logicalType || .schema.my-table.properties.my-column.logicalType
-    quality: # /schema/my-table/properties/my-column/quality || .schema.my-table.properties.my-column.quality
-    - type: sql # /schema/my-table/properties/my-column/quality[0] || .schema.my-table.properties.my-column.quality[0]
+description: # .description
+  limitations: cannot be used alone #  .description.limitations
+schema: # .schema
+- name: my-table # .schema.my-table or .schema.my-table.name
+  logicalType: object # .schema.my-table.logicalType
+  properties: #  .schema.my-table.properties
+  - name: my-column #  .schema.my-table.properties.my-column
+    logicalType: string # .schema.my-table.properties.my-column.logicalType
+    quality: # .schema.my-table.properties.my-column.quality
+    - type: sql #  .schema.my-table.properties.my-column.quality[0]
       query: |
         SELECT COUNT(*) FROM ${object} WHERE ${property} IS NOT NULL
       mustBeLessThan: 3600
-  - name: my-array-column # /schema/my-table/properties/my-array-column || .schema.my-table.properties.my-array-column
-    logicalType: array # /schema/my-table/properties/my-array-column/logicalType || .schema.my-table.properties.my-array-column.logicalType
-    items:  # /schema/my-table/properties/my-array-column/items || .schema.my-table.properties.my-array-column.items
+  - name: my-array-column #  .schema.my-table.properties.my-array-column
+    logicalType: array # .schema.my-table.properties.my-array-column.logicalType
+    items:  # .schema.my-table.properties.my-array-column.items
       logicalType: object 
-      properties: #  /schema/my-table/properties/my-array-column/items/properties || .schema.my-table.properties.my-array-column.items.properties
-        - name: id  #  /schema/my-table/properties/my-array-column/items/id || .schema.my-table.properties.my-array-column.items.id
-          logicalType: string  # /schema/my-table/properties/my-array-column/items/id/logicalType || .schema.my-table.properties.my-array-column.items.id.logicalType
-          physicalType: VARCHAR(40) # /schema/my-table/properties/my-array-column/items/id/physicalType || .schema.my-table.properties.my-array-column.items.id.physicalType
-        - name: zip #  /schema/my-table/properties/my-array-column/items/zip || .schema.my-table.properties.my-array-column.items.zip
+      properties: #  .schema.my-table.properties.my-array-column.items.properties
+        - name: id  # .schema.my-table.properties.my-array-column.items.id
+          logicalType: string  # .schema.my-table.properties.my-array-column.items.id.logicalType
+          physicalType: VARCHAR(40) # .schema.my-table.properties.my-array-column.items.id.physicalType
+        - name: zip # .schema.my-table.properties.my-array-column.items.zip
           logicalType: string
           physicalType: VARCHAR(15)
 ```
-*** Refrence Usage ***
 
-To use a reference there are a couple of proposed options. 
+#### Resolving A Reference ####
 
-OPTION 1
+When resolving references, the system follows this hierarchy:
 
-``` yaml
+1) Use the name field to determine element identity
+2) Fall back to the mapping table if name is not present
+3) If not found in the mapping table, use index-based reference
 
-# Limited for schema objects and schema properties
+The default mapping rules are:
+
+|Collection|Identifier Field|
+|:-----|:-----|
+schema | name|
+properties | name |
+quality | id (RFC0012)
+roles | role|
+channels | channel |
+servers | server|
+
+*NOTE* There is the option to introduce breaking changes by requiring a `name` field on all elements. This would remove the mapping table. A user can always use the index fallback. 
+
+#### Reference Implementation ####
+
+*Standard Format*
+
+|Key | UX Label | Required | Description|
+|:----|:----|:----|:----|
+|relationships| relationships | optional| Array. A list of elements which to reference|
+|relationships.type | type | optional | One of `foreignKey`, `include`. Default is `include`|
+|relationships.to | to | optional | A reference to a contract object. Cannot be used in conjunction with ref. Must follow correct [reference structure](#basic-format) |
+| relationships.from| from | optional |A reference to a contract object.  Cannot be used in conjunction with ref. Must follow correct [reference structure](#basic-format)|
+|relationships.ref| ref | optional |A reference to a contract object. Cannot be used in conjunction with to & from. Must follow correct [reference structure](#basic-format)|
+
+*NOTE* Given the shorthand - we could remove the `ref` and require either a to/from for an include reference? 
+
+Example usage:
+
+```yaml
+# foreign keys 
 relationships:
-  - type: foreignKey # one of (foreignKey, businessDefinition, embed)
-    ref: "pass in a URI"
+  - type: foreignKey  # Optional, defaults to "include"
+    to: 'target-table.properties.target-column'
+    from: 'source-table.properties.source-column'
 
+# simple inclusion
+relationships:
+  - ref: 'my-table.properties.my-other-column'
 ```
 
-OPTION 2
+*Shorthand Format*
+
+For simpler usage, a $ref shorthand can be used to automatically include the referenced object:
 
 ``` yaml
 
-$ref: "pass in a URI"
+# Standard Relationship Object
+relationships:
+  - type: include # one of (foreignKey, include)
+    ref: "../somefolder/contract_v2.yaml#schema.my-table.properties.my-other-column"
+
+
+# Equivalent Shorthand
+$ref: "../somefolder/contract_v2.yaml#schema.my-table.properties.my-other-column"
 
 ```
 
-OPTION 3
+##### Reference Types #####
 
-Context - This solution is below. However, the naming has confused users.
+*Foreign Key* 
 
-#### Examples ####
+Foreign key references establish relationships between data elements, indicating that values in one element relate to values in another:
 
-``` yaml 
+``` yaml
 
-# internal reference within contract (using dot notation and $ as anchor)
-schema:
-- name: users
-  properties:
-    - name: first_name
-      businessName: User's First Name
-      logicalType: string
-      physicalType: varchar(26)
-      quality:
-      - description: This column should not contain null values
-        dimension: completeness
-        severity: error
-        rule: nullCheck
-        businessImpact: operational
-        id: q160512f7
-    - name: last_name
-      businessName: User's last name
-      logicalType: string
-      physicalType: varchar(26)
-      quality:
-      - description: Reference no-null values quality rule 
-        relationships:
-        - ref: $users.first_name.quality.q160512f7
-          type: embed
+# using to/from 
+relationships:
+  - type: foreignKey
+    to: 'my-table.properties.my-column'
 
-# Usage of foreign keys 
-schema:
-- name: users
-  properties:
-  - name: id
-    type: integer
-    primaryKey: true
-  - name: supervisor_id
-    type: integer
-    relationships:
-    - ref: $users.id
-      type: foreignKey
-      
-- name: posts
-  properties:
-  - name: id
-    type: integer
-    primaryKey: true
-  - name: user_id
-    type: integer
-    relationships:
-    - ref: $users.id # other schema
-      type: foreignKey
+# using standard ref object 
+relationships:
+  - type: foreignKey
+    ref: 'my-table.properties.my-column'
+```
+
+*Inclusions* 
+
+Inclusion references incorporate the referenced element's definition into the current context:
+
+```yaml
+relationships:
+  - type: include
+    ref: 'my-table.properties.my-other-column'
 ```
 
 
+#### Implementation Considerations ####
 
-## Implementation Considerations
 *Validation Rules*
-Both solutions require validation of references:
+Reference implementations must validate:
 
 1) Reference Existence: Referenced elements must exist
 2) Type Compatibility: Referenced elements must be compatible with the referencing context
@@ -290,6 +328,155 @@ Implementation should handle these error cases:
 3) Circular References: Detect and prevent with clear cycle information
 4) Incompatible Types: Explain the type mismatch
 5) Broken References: Detect when referenced elements have been removed or changed
+
+##### Examples #####
+
+
+###### Simple Same Contract Foreign Key ######
+```yaml
+
+# Table definition
+schema:
+  - name: customers
+    logicalType: object
+    properties:
+      - name: customer_id
+        logicalType: string
+      - name: customer_name
+        logicalType: string
+
+  - name: orders
+    logicalType: object
+    properties:
+      - name: order_id
+        logicalType: string
+      - name: customer_id
+        logicalType: string
+        # Reference to customers table as foreign key
+        relationships:
+          - type: foreignKey
+            to: 'schema.customers.properties.customer_id'
+```
+
+
+###### Simple Same Contract Inclusion######
+```yaml
+
+# Table definition
+schema:
+  - name: customers
+    logicalType: object
+    properties:
+      - name: customer_id
+        logicalType: string
+        quality:
+        - type: library
+          rule: mustBeUnique
+      - name: customer_name
+        logicalType: string
+
+
+  - name: orders
+    logicalType: object
+    properties:
+      - name: order_id
+        logicalType: string
+      - name: customer_id
+        logicalType: string
+        # Reference to include quality field
+        quality:
+        - relationships:
+          - type: include
+            to: 'schema.customers.properties.customer_id.quality[0]'
+
+# equivalent reference:
+  - name: orders
+    logicalType: object
+    properties:
+      - name: order_id
+        logicalType: string
+      - name: customer_id
+        logicalType: string
+        # Reference to include quality field
+        quality:
+        - $ref: 'schema.customers.properties.customer_id.quality[0]'
+
+```
+@SimonHarrer - thoughts on the above for including a quality definition?
+
+
+###### External Contract ######
+``` yaml
+# In contract: product-catalog.yaml
+schema:
+  - name: products
+    logicalType: object
+    properties:
+      - name: product_id
+        logicalType: string
+      - name: product_name
+        logicalType: string
+      - name: created_at
+        logicalType: date
+        physicalType: DATETIME
+      - name: updated_at
+        logicalType: date
+        physicalType: DATETIME
+
+# In contract: orders.yaml
+schema:
+  - name: order_items
+    logicalType: object
+    properties:
+      - name: order_id
+        logicalType: string
+      - name: product_id
+        logicalType: string
+        # Reference to external contract
+        relationships:
+          - type: foreignKey
+            to: 'product-catalog.yaml#schema.products.properties.product_id'
+          - type: include
+            ref: 'product-catalog.yaml#schema.products.properties.created_at'
+          - type: include
+            ref: 'product-catalog.yaml#schema.products.properties.updated_at'
+```
+
+###### External Contract - non schema fields  ######
+
+```yaml 
+# In contract: product-catalog.yaml
+
+servers:
+  - server: my-server-name
+    type: my-server
+    description: server-description
+    environment: production
+
+# In current contract: orders.yaml
+
+servers:
+  # reference to servers block including entire servers object
+  - relationships:
+    - type: include
+      ref: 'product-catalog.yaml#servers' 
+
+# equivalent to 
+servers:
+  $ref: 'product-catalog.yaml#servers' 
+
+schema:
+  - name: order_items
+    logicalType: object
+    properties:
+      - name: order_id
+        logicalType: string
+      - name: product_id
+        logicalType: string
+
+```
+@simonHarrer - how do we want to reference non-schema objects. Ie. should the reference live under the object? Overwrite the object?
+
 
 ## Alternatives
 
@@ -623,6 +810,64 @@ sla:
       type: embed
 ```
 
+OPTION 3
+
+Context - This solution is below. However, the naming has confused users.
+
+#### Examples ####
+
+``` yaml 
+
+# internal reference within contract (using dot notation and $ as anchor)
+schema:
+- name: users
+  properties:
+    - name: first_name
+      businessName: User's First Name
+      logicalType: string
+      physicalType: varchar(26)
+      quality:
+      - description: This column should not contain null values
+        dimension: completeness
+        severity: error
+        rule: nullCheck
+        businessImpact: operational
+        id: q160512f7
+    - name: last_name
+      businessName: User's last name
+      logicalType: string
+      physicalType: varchar(26)
+      quality:
+      - description: Reference no-null values quality rule 
+        relationships:
+        - ref: $users.first_name.quality.q160512f7
+          type: embed
+
+# Usage of foreign keys 
+schema:
+- name: users
+  properties:
+  - name: id
+    type: integer
+    primaryKey: true
+  - name: supervisor_id
+    type: integer
+    relationships:
+    - ref: $users.id
+      type: foreignKey
+      
+- name: posts
+  properties:
+  - name: id
+    type: integer
+    primaryKey: true
+  - name: user_id
+    type: integer
+    relationships:
+    - ref: '#users.id' # other schema
+      type: foreignKey
+```
+
 **PRO**
 - easily readable 
 - context can be re-used across same data contract
@@ -706,7 +951,7 @@ schema:
       - $ref: "#/schema/my-table/properties/my-column"
       - name: my-column2
         logicalType: string
-        businessDefinition: "#/schema/my-table/properties/my-column/businessDefinition" # using business defintion
+        businessDefinition: "#/schema/my-table/properties/my-column/businessDefinition" # using business definition
         relationships: # using a 'relationships' block
         - type: foreignKey
           ref: "#my-table.my-column"
@@ -727,4 +972,6 @@ schema:
 
 ## Outstanding Questions
 QQ > How do we deal with external access/auth considerations references? 
+  - this is an implementation issue, and is noted in implementation considerations
 QQ > How do we deal across different data contract versions?
+  -> by linking to a specific contract, the version is inhearent. To update contract versions, the references should be changed
