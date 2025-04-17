@@ -4,6 +4,10 @@
 
 Champion: 
 
+Slack channel: *replace this text with the link to the dedicated Slack channel*.
+
+Jira ticket: *replace this text with the link to the dedicated Jira ticket*.
+
 ## Summary
 
 > One paragraph explanation of the RFC.
