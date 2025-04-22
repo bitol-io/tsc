@@ -168,18 +168,32 @@ If referencing the same schema within the same data contract, the file component
 
 *Item Components*
 
-Items use dot notation to navigate the contract hierarchy:
+Items use json-pointer notation to navigate the contract hierarchy and requires an anchor to denote entry to a local contract.
+
+[JSON PATHS](https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html)
+[JSON PATH WIKI](https://en.wikipedia.org/wiki/JSONPath)
+[JSON PATH](https://datatracker.ietf.org/doc/html/rfc6901)
+[JSON POINTER](https://datatracker.ietf.org/doc/rfc9535/)
 
 ```yaml
 # Reference a table
-schema.my-table
+'#/schema/my-table'
 
 # Reference a column in a table
-schema.my-table.properties.my-column
+'#/schema/my-table/properties/my-column'
 
 # Reference a nested property
-schema.my-table.properties.my-array-column.items.properties.id
+'#/schema/my-table/properties/my-array-column/items/properties/id'
+
+# OP - json path
+
+../../localfolder/localfile/myfile.yaml#schema.my-table.properties.my-array-column.items.id
+
+# OP - json pointer
+../../localfolder/localfile/myfile.yaml#schema/my-table/properties/my-array-column/items/id
 ```
+
+==> bringing to TSC on json Pointer syntax for internal items
 
 Arrays can also be accessed with an index. A sample contract with locations is below:
 
@@ -187,14 +201,14 @@ Arrays can also be accessed with an index. A sample contract with locations is b
 # Full example below with dot notation
 id: my-id
 version: 1.2.3
-description: # .description
+description: # description
   limitations: cannot be used alone #  .description.limitations
-schema: # .schema
-- name: my-table # .schema.my-table or .schema.my-table.name
-  logicalType: object # .schema.my-table.logicalType
-  properties: #  .schema.my-table.properties
-  - name: my-column #  .schema.my-table.properties.my-column
-    logicalType: string # .schema.my-table.properties.my-column.logicalType
+schema: # schema
+- name: my-table # schema/my-table or schema/my-table/name
+  logicalType: object # schema/my-table/logicalType
+  properties: #  schema/my-table/properties
+  - name: my-column #  schema.my-table.properties.my-column
+    logicalType: string # schema.my-table.properties.my-column.logicalType
     quality: # .schema.my-table.properties.my-column.quality
     - type: sql #  .schema.my-table.properties.my-column.quality[0]
       query: |
@@ -204,8 +218,8 @@ schema: # .schema
     logicalType: array # .schema.my-table.properties.my-array-column.logicalType
     items:  # .schema.my-table.properties.my-array-column.items
       logicalType: object 
-      properties: #  .schema.my-table.properties.my-array-column.items.properties
-        - name: id  # .schema.my-table.properties.my-array-column.items.id
+      properties: #  schema.my-table.properties.my-array-column.items.properties
+        - name: id  # schema.my-table.properties.my-array-column.items.id
           logicalType: string  # .schema.my-table.properties.my-array-column.items.id.logicalType
           physicalType: VARCHAR(40) # .schema.my-table.properties.my-array-column.items.id.physicalType
         - name: zip # .schema.my-table.properties.my-array-column.items.zip
@@ -234,6 +248,30 @@ servers | server|
 
 *NOTE* There is the option to introduce breaking changes by requiring a `name` field on all elements. This would remove the mapping table. A user can always use the index fallback. 
 
+``` examples
+
+# my_table and my_column would be 0, 0 - this is not a valid json pointer
+ref: #/schema/0/properties/0 - valid json pointer
+ref: #/schema/my_table/properties/my_column  - invalid json pointer
+
+schema:
+  - name: job_post
+    physicalName: job_post_1_0_0
+    description: Contains the information related to a single job posting by a single organisation.
+    properties:
+      - name: id
+        required: true
+        logicalType: string
+
+#/schema/name="job_post"/properties/id
+#/schema/job_post/properties/id
+#/schema/0/properties/0
+#schema.[?(@.name="job_post")].properties.[?(@.name="id")]
+=> 
+
+=> If we know the element in the array - then we can use the `name` to identify to make it independent on re-ordering
+```
+
 #### Reference Implementation ####
 
 *Standard Format*
@@ -254,12 +292,25 @@ Example usage:
 # foreign keys 
 relationships:
   - type: foreignKey  # Optional, defaults to "include"
-    to: 'target-table.properties.target-column'
-    from: 'source-table.properties.source-column'
+    to: '#/target-table/properties/target-column'
+    from: '#/source-table/properties/source-column'
 
 # simple inclusion
 relationships:
-  - ref: 'my-table.properties.my-other-column'
+  - ref: '#/my-table/properties/my-other-column'
+
+# shorthand notation (proposed - only for properties)
+relationships:
+  - type: foreignKey  # Optional, defaults to "include"
+    to: 'target-table.target-column'
+    from: 'source-table.source-column' # if at property level - from is optional or maybe even forbidden at property level
+
+# shorthand notation (proposed - second option, composite keys)
+relationships:
+  - type: foreignKey  # Optional, defaults to "include"
+    to: 'target-table.(target-column-1, target-column-2)'
+    from: 'source-table.(source-column-1, source-column-2)'
+
 ```
 
 *Shorthand Format*
