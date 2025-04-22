@@ -25,7 +25,7 @@ As part of configuring references within the ODCS standard - we need to define h
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
 
-### Option 1: File-Based
+### Option A: File-Based ⭐ *Our Recommendation*
 
 A reference follows the following structure:
 ```yaml
@@ -95,6 +95,7 @@ Pros:
 - Orthogonality: Storage mechanism is separate from identifier mechanism
 - Human Readable: Easy to understand where the reference points to
 
+
 Cons:
 
 - File Dependency: Coupling to file system concepts may be problematic in non-file contexts
@@ -104,8 +105,9 @@ Cons:
 - Security Concerns: External URL references may pose security risks without proper validation
 
 
+- We beleive that using Option A allows for users to leverage outside tooling to implement. 
 
-### Option 2: Package-style Reference
+### Option B: Package-style Reference
 
 
 A reference follows the following structure:
@@ -144,7 +146,7 @@ Cons:
 - Registry Dependency: Often requires a central registry or resolution system
 - Implementation Overhead: Needs more sophisticated tooling to handle resolution
 
-### Option 3: Custom Contract Wide "context"
+### Option C: Custom Contract Wide "context" 💀 _moving_to_new_rfc_
 
 ```yaml
 context:  # top-level context the data contract 
@@ -156,11 +158,31 @@ context:  # top-level context the data contract
 
 Reference Implementations:
 
-XML Namespaces: Uses xmlns attributes to define context
-GraphQL: Schema definitions with types and namespaces
-Protobuf: Package declarations and import statements
-SQL: Schema qualifications for table references
-JSON-LD: Uses @context to define semantic mappings
+- XML Namespaces: Uses xmlns attributes to define context
+- GraphQL: Schema definitions with types and namespaces
+- Protobuf: Package declarations and import statements
+- SQL: Schema qualifications for table references
+- JSON-LD: Uses @context to define semantic mappings
+
+Example:
+
+```yaml
+context:  # top-level context the data contract 
+- name: this_contract # contract name to reference
+  alias: myc  # contract alias - used within the contract
+  description: 'This is the current contract'
+  version:  2.3 # contract version number
+
+# Usage
+
+ref: myc#this_schema.that_column.property
+
+
+## OPTION A&C
+ref: myc#this_schema.that_column.property
+ref: https://my_contract.yaml#this_schema.that_column.property
+```
+
 
 Pros:
 
@@ -182,11 +204,15 @@ Duplication Risk: Context information may be duplicated across systems
 
 ## Alternatives
 
-> Rejected alternative solutions and the reasons why.
+> Option C - is an alaternative point which can be added on later. However in terms of resolution, you would still resolve the context to a url - then expand.
+> Option C allows us to reuse items across the data contract - it could be extremely powerful (macros/globals) - it could its own RFC depending on how it is built
+
+> Option B - could be better lent to the ODPS where we are _grouping_ data contracts together into a given data product. 
 
 ## Decision
 
-> The decision made by the TSC.
+Requested Decisions:
+- Do we like Option A or Option B
 
 ## Consequences
 
