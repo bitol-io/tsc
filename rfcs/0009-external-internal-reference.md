@@ -172,8 +172,7 @@ Items use json-pointer notation to navigate the contract hierarchy and requires 
 
 [JSON PATHS](https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html)
 [JSON PATH WIKI](https://en.wikipedia.org/wiki/JSONPath)
-[JSON PATH](https://datatracker.ietf.org/doc/html/rfc6901)
-[JSON POINTER](https://datatracker.ietf.org/doc/rfc9535/)
+
 
 ```yaml
 # Reference a table

@@ -1,4 +1,4 @@
-# Title
+# Identify an external contract
 
 > The champion is the person who is primarily supporting the RFC.
 
