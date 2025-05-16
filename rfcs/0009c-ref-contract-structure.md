@@ -16,8 +16,25 @@ As part of configuring references within the ODCS standard - we need to define t
 
 ## Motivation
 
-> Why are we doing this? What use cases does it support? What is the expected outcome?
-> How does it align with our guiding values?
+The ODCS standard currently lacks a formal mechanism for reusing elements within and across data contracts.
+
+Current users face the following key problems:
+
+- Maintenance burden
+- Excessive contract size (repeated elements)
+- Limited contract relationships
+- Fragmented governance
+
+Our goal is to allow for references between and within data contracts. We believe that this will allow for improved reusability within the data contract. A [proposed solution](#main-proposed-solution) is located below. 
+
+If we are successful, users should be able to:
+
+- reference a dataset element in another element within a data contract 
+- reference a dataset element outside a data contract
+- maintain single sources of truth for common elements like quality rules, stakeholders, and schemas
+- express complex data relationships that reflect their actual architecture
+
+We need to be 
 
 ## Design and examples
 
