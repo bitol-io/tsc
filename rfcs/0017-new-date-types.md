@@ -81,6 +81,6 @@ Current vs new logical data types:
 ### Data sources with no date data type
 
 - [Protobuf data types](https://protobuf.dev/programming-guides/proto3/#scalar)
-- [Avro data types](https://avro.apache.org/docs/1.11.1/specification/#primitive-types)
+  - [It has Timestamp but not Date](https://protobuf.dev/reference/protobuf/google.protobuf/#timestamp)
 - [OpenAPI spec data types](https://swagger.io/docs/specification/v3_0/data-models/data-types/)
 
