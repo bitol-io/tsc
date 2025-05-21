@@ -107,6 +107,10 @@ Cons:
 
 - We beleive that using Option A allows for users to leverage outside tooling to implement. 
 
+
+
+## Alternatives
+
 ### Option B: Package-style Reference
 
 
@@ -202,21 +206,14 @@ Indirection: Adds a layer of indirection that needs to be understood
 Custom Parsing: May require custom parsing logic rather than using existing URI parsers
 Duplication Risk: Context information may be duplicated across systems
 
-## Alternatives
-
-> Option C - is an alaternative point which can be added on later. However in terms of resolution, you would still resolve the context to a url - then expand.
-> Option C allows us to reuse items across the data contract - it could be extremely powerful (macros/globals) - it could its own RFC depending on how it is built
-
-> Option B - could be better lent to the ODPS where we are _grouping_ data contracts together into a given data product. 
-
 ## Decision
 
-Requested Decisions:
-- Do we like Option A or Option B
+2025-05-20 - Option A - File Based - Approved
 
 ## Consequences
 
-> The consequences of this decision.
+- Documentation Needs Updating 
+- To be used by RFC-13 and others
 
 ## References
 

@@ -230,7 +230,8 @@ Terraform: HCL language uses similar named reference patterns
 
 ## Decision
 
-> The decision made by the TSC.
+2025-05-20 - Option D - table.column shortcut approved for schema properties only
+2025-05-20 - Option B | Option A - neither approved. Json Pointers were too brittle given the array structure. JSON paths were too complex in wirtting them effectively. TSC decision was to continue looking for options. 
 
 ## Consequences
 
