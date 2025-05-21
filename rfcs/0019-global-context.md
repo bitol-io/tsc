@@ -1,0 +1,41 @@
+# Title
+
+> The champion is the person who is primarily supporting the RFC.
+
+Champion: Diego C. 
+
+Slack: *replace this text with the link to the dedicated Slack channel*.
+
+Jira: *replace this text with the link to the dedicated Jira ticket*.
+
+## Summary
+
+> One paragraph explanation of the RFC.
+
+- Initally created on RFC-0009A
+
+## Motivation
+
+We may want to reference a single contract multiple times, a globabl context would allow for namespaces within a data contract (RDF -like).
+
+## Design and examples
+
+> This is the bulk of the RFC.
+> Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
+> Offer at least two examples, one is minimalist, one is more structured.
+
+## Alternatives
+
+> Rejected alternative solutions and the reasons why.
+
+## Decision
+
+> The decision made by the TSC.
+
+## Consequences
+
+> The consequences of this decision.
+
+## References
+
+> Prior art, inspiration, and other references you used to create this based on what's worked well before.
