@@ -8,22 +8,20 @@ Jira: NA
 
 ## Summary
 
-This RFC proposes standardizing the representation of collections of named sub-entities as objects, where each key corresponds to the sub-entity's name and the value is the sub-entity itself. 
+This RFC proposes standardizing the representation of collections of named sub-entities as objects, where each key corresponds to the sub-entity's name and the value is the sub-entity itself. This approach is favored over using arrays of sub-entities with internal name properties.
 
 ## Motivation
 
-> Why are we doing this? What use cases does it support? What is the expected outcome?
+Using named-object mappings instead of arrays improves clarity, enables more efficient lookups, simplifies validation, and avoids redundancy by leveraging the object structure to encode identity. 
 
-
-This approach is favored over using arrays of sub-entities with internal name properties. Using named-object mappings improves clarity, enables more efficient lookups, simplifies validation, and avoids redundancy by leveraging the object structure to encode identity. More in detail, the expected outcomes are: 
+The expected outcomes are: 
 
 1. **Improved Clarity:** Object keys immediately identify the entity
 1. **Faster Lookups:** Direct access via key instead of array iteration
 1. **Simplified Validation:** Object structure inherently validates uniqueness
 1. **Reduced Redundancy:** Eliminates need for internal name properties
-1. **Better Developer Experience:** More intuitive API for accessing specific entities
+1. **Better Developer Experience:** More intuitive API for accessing specific entities (see [RFC-0009](https://github.com/bitol-io/tsc/blob/main/rfcs/0009-external-internal-reference.md))
 
-> How does it align with our guiding values?
 This refactoring aligns the ODCS with modern JSON Schema best practices and significantly improves the developer experience when working with data contracts.
 
 ## Design and examples
@@ -52,7 +50,7 @@ roles:
     secondLevelApprovers: 'mickey'
 ```
 
-The following example shoes how the previous yaml block will look like after refactoring...
+The following example shows how the previous YAML block will look after refactoring...
 
 ```yaml
 roles:
@@ -74,46 +72,14 @@ roles:
     secondLevelApprovers: 'mickey'
 ```
 
-Each refactored collection should include:
-- `additionalProperties: false` to prevent arbitrary keys
-- Appropriate `patternProperties` to validate key naming conventions
-- Updated descriptions reflecting the named-object approach
-
 
 ### Recommended Refactorings
 
-From the analysis of the [JSON Schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.0.2.json) of version 3.0.2 the following are the sections impacted by this RFC
+From the analysis of the [JSON Schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.0.2.json) of ODCS-v3.0.2, the following are the sections impacted by this RFC
 
-#### 1. Servers Collection
+#### 1. Schema Object Collection
 
-**Current Implementation:**
-```json
-"servers": {
-  "type": "array",
-  "description": "List of servers where the datasets reside.",
-  "items": {
-    "$ref": "#/$defs/Server"
-  }
-}
-```
-
-**Recommended Refactor:**
-```json
-"servers": {
-  "type": "object",
-  "description": "Named collection of servers where the datasets reside.",
-  "patternProperties": {
-    "^[a-zA-Z0-9_-]+$": {
-      "$ref": "#/$defs/Server"
-    }
-  },
-  "additionalProperties": false
-}
-```
-
-**Impact:** Server configurations can be accessed directly by name (e.g., `servers.production`, `servers.staging`) instead of searching through an array.
-
-#### 2. Schema Collection
+This [section](https://bitol-io.github.io/open-data-contract-standard/latest/#schema) describes the schema of the data contract.
 
 **Current Implementation:**
 ```json
@@ -140,95 +106,9 @@ From the analysis of the [JSON Schema](https://github.com/bitol-io/open-data-con
 }
 ```
 
-**Impact:** Schema objects can be referenced directly by name, improving readability and reducing lookup complexity.
+**Impact:** Schema objects can be accessed directly by name instead of searching through an array. The name of the schema object is equal to the property `name` 
 
-#### 3. Team Collection
-
-**Current Implementation:**
-```json
-"team": {
-  "type": "array",
-  "items": {
-    "$ref": "#/$defs/Team"
-  }
-}
-```
-
-**Recommended Refactor:**
-```json
-"team": {
-  "type": "object",
-  "description": "Named collection of team members.",
-  "patternProperties": {
-    "^[a-zA-Z0-9_@.-]+$": {
-      "$ref": "#/$defs/Team"
-    }
-  },
-  "additionalProperties": false
-}
-```
-
-**Impact:** Team members can be accessed by username/identifier, eliminating the need to iterate through arrays to find specific team members.
-
-#### 4. Roles Collection
-
-**Current Implementation:**
-```json
-"roles": {
-  "type": "array",
-  "description": "A list of roles that will provide user access to the dataset.",
-  "items": {
-    "$ref": "#/$defs/Role"
-  }
-}
-```
-
-**Recommended Refactor:**
-```json
-"roles": {
-  "type": "object",
-  "description": "Named collection of roles that provide user access to the dataset.",
-  "patternProperties": {
-    "^[a-zA-Z0-9_-]+$": {
-      "$ref": "#/$defs/Role"
-    }
-  },
-  "additionalProperties": false
-}
-```
-
-**Impact:** Roles can be referenced directly by name, simplifying access control management and role lookups.
-
-#### 5. SLA Properties Collection
-
-**Current Implementation:**
-```json
-"slaProperties": {
-  "type": "array",
-  "description": "A list of key/value pairs for SLA specific properties.",
-  "items": {
-    "$ref": "#/$defs/ServiceLevelAgreementProperty"
-  }
-}
-```
-
-**Recommended Refactor:**
-```json
-"slaProperties": {
-  "type": "object",
-  "description": "Named collection of SLA specific properties.",
-  "patternProperties": {
-    "^[a-zA-Z0-9_-]+$": {
-      "$ref": "#/$defs/ServiceLevelAgreementProperty"
-    }
-  },
-  "additionalProperties": false
-}
-```
-
-**Impact:** SLA properties can be accessed by property name, making SLA management more intuitive and efficient.
-
-#### 6. Schema Properties within Objects
+#### 2. Elements within a Schema Object
 
 **Current Implementation:**
 ```json
@@ -255,9 +135,136 @@ From the analysis of the [JSON Schema](https://github.com/bitol-io/open-data-con
 }
 ```
 
-**Impact:** Object properties can be accessed directly by property name, aligning with standard JSON Schema patterns.
+**Impact:** Object properties can be accessed directly by property name, aligning with standard JSON Schema patterns. The name of the object schema element is equal to the property `name` 
+
+#### 3. Servers Collection
+
+This [section](https://bitol-io.github.io/open-data-contract-standard/latest/#infrastructure-and-servers) describes where the data protected by this data contract is physically located.
+
+**Current Implementation:**
+```json
+"servers": {
+  "type": "array",
+  "description": "List of servers where the datasets reside.",
+  "items": {
+    "$ref": "#/$defs/Server"
+  }
+}
+```
+
+**Recommended Refactor:**
+```json
+"servers": {
+  "type": "object",
+  "description": "Named collection of servers where the datasets reside.",
+  "patternProperties": {
+    "^[a-zA-Z0-9_-]+$": {
+      "$ref": "#/$defs/Server"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+**Impact:** Server configurations can be accessed directly by name instead of searching through an array. The name of the server is equal to the property `server` 
+
+
+
+#### 4. Team Collection
+
+This [section](https://bitol-io.github.io/open-data-contract-standard/latest/#team) lists team members and the history of their relationship with this data contract
+
+**Current Implementation:**
+```json
+"team": {
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/Team"
+  }
+}
+```
+
+**Recommended Refactor:**
+```json
+"team": {
+  "type": "object",
+  "description": "Named collection of team members.",
+  "patternProperties": {
+    "^[a-zA-Z0-9_@.-]+$": {
+      "$ref": "#/$defs/Team"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+**Impact:** Team members can be accessed directly by name instead of searching through an array. The name of the team member is equal to the property `username` 
+
+#### 5. Roles Collection
+
+This [section](https://bitol-io.github.io/open-data-contract-standard/latest/#roles) lists the roles that a consumer may need to access the dataset, depending on the type of access they require.
+
+**Current Implementation:**
+```json
+"roles": {
+  "type": "array",
+  "description": "A list of roles that will provide user access to the dataset.",
+  "items": {
+    "$ref": "#/$defs/Role"
+  }
+}
+```
+
+**Recommended Refactor:**
+```json
+"roles": {
+  "type": "object",
+  "description": "Named collection of roles that provide user access to the dataset.",
+  "patternProperties": {
+    "^[a-zA-Z0-9_-]+$": {
+      "$ref": "#/$defs/Role"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+**Impact:** Roles can be accessed directly by name instead of searching through an array. The name of the role is equal to the property `role` 
+
+#### 6. SLA Properties Collection
+
+This [section](https://bitol-io.github.io/open-data-contract-standard/latest/#service-level-agreement-sla) describes the service-level agreements (SLA).
+
+**Current Implementation:**
+```json
+"slaProperties": {
+  "type": "array",
+  "description": "A list of key/value pairs for SLA specific properties.",
+  "items": {
+    "$ref": "#/$defs/ServiceLevelAgreementProperty"
+  }
+}
+```
+
+**Recommended Refactor:**
+```json
+"slaProperties": {
+  "type": "object",
+  "description": "Named collection of SLA specific properties.",
+  "patternProperties": {
+    "^[a-zA-Z0-9_-]+$": {
+      "$ref": "#/$defs/ServiceLevelAgreementProperty"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+**Impact:** SLA properties can be accessed directly by name instead of searching through an array. The name of the SLA properties object is equal to the property `property` 
 
 #### 7. Data Quality Checks Collection
+
+This [section](https://bitol-io.github.io/open-data-contract-standard/latest/#data-quality) describes data quality rules & parameters.
 
 **Current Implementation:**
 ```json
@@ -284,9 +291,11 @@ From the analysis of the [JSON Schema](https://github.com/bitol-io/open-data-con
 }
 ```
 
-**Impact:** Quality checks can be referenced by name, improving maintainability and making it easier to manage specific quality rules.
+**Impact:** Data Quality Checks can be accessed directly by name instead of searching through an array. The name of the Data Quality Check is equal to the property `rule` 
 
 #### 8. Support Channels Collection
+
+This [section](https://bitol-io.github.io/open-data-contract-standard/latest/#support-and-communication-channels) describes support and communication channels that can be used by consumers to find help regarding their use of the data contract.
 
 **Current Implementation:**
 ```json
@@ -313,7 +322,7 @@ From the analysis of the [JSON Schema](https://github.com/bitol-io/open-data-con
 }
 ```
 
-**Impact:** Support channels can be accessed by channel name, making support configuration more organized and accessible.
+**Impact:** Channels can be accessed directly by name instead of searching through an array. The name of the Channel is equal to the property `channel` 
 
 
 ## Alternatives
@@ -334,4 +343,4 @@ These RFC represent breaking changes that will require:
 
 ## References
 
-> Prior art, inspiration, and other references you used to create this based on what's worked well before.
+OpenAPI and AsyncAPI follow the approach proposed in this RFC.
