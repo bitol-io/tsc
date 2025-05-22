@@ -3,6 +3,7 @@
 Champion: Andrea Gioia
 
 Slack: NA
+
 Jira: NA
 
 ## Summary
