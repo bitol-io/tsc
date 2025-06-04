@@ -6,7 +6,7 @@ Check out our [guiding values](guiding-values.md). You are welcome to [contribut
 
 ## Rules
 
-In addition to our [chart](./231130 Bitol Technical Charter 2023-11-30.pdf):
+In addition to our [chart](https://github.com/bitol-io/tsc/blob/main/240618%20Bitol%20roadmap%20(1.0.1).pdf):
 
 1. We meet once a month on the third Tuesday of the month at 7am / 7:00 EST.
 1. Two members of the same company are allowed in the TSC.
