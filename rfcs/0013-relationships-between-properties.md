@@ -31,77 +31,48 @@ schema:
   - name: id
     # NEW
     relationships:
-    - to: account_number # same schema object
-      type: foreignKey # default
-      # from is implied
-    - label: has / consists of / is part of / ... # optional
-      to: accounts.account_number
-      type: foreignKey # default
-    - to: accounts.address.street
-      type: foreignKey # default
+    - type: foreignKey
+      to: users.account_number
+      # from: users.id (implied)
+    - to: accounts.account_number
+      from: users.id
+      # type: foreignKey (default)
+    - type: foreignKey
+      to: accounts.address.street # (nested)
+      from: users.id
+      customProperties:
+        description: "This is a foreign key to the street address of the account."
+        cardinality: "one-to-many"
+        label: "is-part-of"
+  - name: account_number
   relationships:
-  - from: id
-    to: account_number
-    type: foreignKey # default
-    cardinality: oneToOne # oneToMany, manyToMany; optional
-  - from: users.(id,name) # short syntax for multiple fields per table @Diego C: what do you think?git
-    to: accounts.(id,fullname)
-    type: foreignKey # association, defaults to foreignKey
-    description: bla # optional
-```
-
-Examples:
-
-```yaml
-schema:
-- name: users
-  properties:
-  - name: id
-    type: integer
-    primaryKey: true
-  - name: supervisor_id
-    type: integer
-    relationships:
-    - to: id # same schema
-      type: foreignKey
-- name: posts
-  properties:
-  - name: id
-    type: integer
-    primaryKey: true
-  - name: user_id
-    type: integer
-    relationships:
-    - to: users.id # other schema
-      type: foreignKey
-```
-
-```yaml
-schema:
-- name: account
+  - from: users.id
+    to: users.account_number
+    type: foreignKey
+- name: accounts
   properties:
   - name: account_number
-    type: integer
-    primaryKey: true
-  - name: account_type
-    type: integer
-    primaryKey: true
-- name: sub_accounts
-  properties:
-  - name: sub_account_number
-    type: integer
-    primaryKey: true
-  - name: ref_number
-    type: integer
-    relationships:
-    - to: account.account_number
-      type: foreignKey
-  - name: ref_type
-    type: integer
-    relationships:
-    - to: account.account_type
-      type: foreignKey
+  - name: address
+    properties:
+      - name: street
 ```
+
+### Fields
+
+| Key          | UX Label   | Required                                           | Description                                                                                                                                                                                                                                    |
+|--------------|------------|----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| relationships | Relationships | optional                                           | Array. A list of relationships to other properties. Each relationship can have a `to` and `type` field.                                                                                                                                        |
+| relationships.to | To         | yes                                                | A reference to a property in the same or another schema. Use the shorthand notation `<schema_name>.<property_name>` Shorthand can be nested.                                                                                                   |
+| relationships.type | Type       | no (defaults to `foreignKey`)                      | The type of relationship. Defaults to `foreignKey`. Current options are: `foreignKey`                                                                                                                                                          |
+| relationships.from | From       | yes (not required on property-level relationships) | A reference to a property in the same or another schema. Use the shorthand notation `<schema_name>.<property_name>`. Shorthand can be nested. Shorthand could be only the `<property_name>`. Is optional when specified at the property level. |
+| relationships.customProperties | Custom Properties | optional                                           | Any additional properties that are not part of the standard schema. This can be used to add metadata or other information relevant to the relationship.                                                                                        |
+
+### Shorthand
+
+The shorthand notation allows for a more concise way to define relationships. It can be used in the `to` and `from` fields of a relationship.
+The shorthand notation is `<schema_name>.<property_name>`.
+
+## FAQ
 
 Do we need additional info to mark a relationship as one-to-many or one-to-one?
 - No, we can derive it from the data contract based on the required/unique properties.
