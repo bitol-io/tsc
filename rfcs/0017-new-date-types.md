@@ -37,8 +37,6 @@ New logical type options:
 - timezone
 - defaultTimezone (default: Etc/UTC)
 
-## Alternatives
-
 Add distinct logical types for different date/time variants as proposed in this RFC.
 
 ```yaml
@@ -73,6 +71,14 @@ Add distinct logical types for different date/time variants as proposed in this 
   logicalTypeOptions:
     timezone: false
 ```
+
+## Alternatives
+
+Alternatives have been rejected. Alternatives were:
+
+- Keep single 'date' type with format options
+- Timezone-aware types (i.e. timestamp, time, timestamptz, timetz)
+- Full ISO 8601 alignment
 
 ## Decision
 
