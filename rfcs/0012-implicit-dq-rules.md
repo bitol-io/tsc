@@ -214,10 +214,6 @@ properties:
         description: "At least one entry must be less than 24 hours old."
 ```
 
-## TBD
-- do we need a `criticality` (`error`, `warning`, `info`?)?
-
-
 ## Consequences
 
 > The consequences of this decision.
