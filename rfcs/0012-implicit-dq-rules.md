@@ -10,8 +10,7 @@ Champion: Jochen Christ.
 
 > One paragraph explanation of the RFC.
 
-This RFC proposes to add a list of predefined data quality rules to the standard. These rules are commonly used in data quality 
-management.
+This RFC proposes to add a list of predefined data quality rules to the standard.
 
 ## Motivation
 
@@ -64,18 +63,20 @@ quality:
 
 ### Predefined Rules
 
+- Schema
+  - Row Count
+  - Unique/duplicates (`noDuplicates`, `duplicateValues`)
 - Property
-  - Null (`noNullValues`, `nullValues`)
+  - Null values (`noNullValues`, `nullValues`)
   - Missing values (empty strings, etc.) (`noMissingValues`, `missingValues`)
   - Unique/duplicates (`noDuplicates`, `duplicateValues`)
   - Valid values (enum, regex, etc.) (`validValues`, `invalidValues`)
-- Row Count
-- Statistical
-  - avg (`avg`)
-  - sum (`sum`)
-  - stddev (`stddev`)
-  - median (`median`)
-- Freshness
+  - Statistical
+    - avg (`avg`)
+    - sum (`sum`)
+    - stddev (`stddev`)
+    - median (`median`)
+  - Freshness (`freshness`)
 
 
 ### Examples
@@ -83,29 +84,36 @@ quality:
 #### Null values
 
 ```yaml
-quality:
-  - rule: noNullValues
-    description: "There must be no null values in the column."
-  - rule: nullValues
-    mustBeLessThan: 10
-    description: "There must be less than 10 null values in the column."
-  - rule: nullValues
-    mustBeLessThan: 1
-    unit: percent
-    description: "There must be less than 1% null values in the column."
+  - name: order_id
+    quality:
+      - rule: noNullValues
+        description: "There must be no null values in the column."
+      - rule: nullValues 
+        mustBe: 0 # sames as noNullValues
+        unit: absolute
+        description: "There must be no null values in the column."
+      - rule: nullValues
+        mustBeLessThan: 10
+        description: "There must be less than 10 null values in the column."
+      - rule: nullValues
+        mustBeLessThan: 1
+        unit: percent
+        description: "There must be less than 1% null values in the column."
 ```
 
 #### Missing values
 
 ```yaml
-quality:
-  - rule: noMissingValues
-    missingValues: [null, '', 'N/A', 'n/a']
-    description: "There must be no missing values in the column."
-  - rule: missingValues
-    missingValues: [null, '', 'N/A', 'n/a']
-    mustBeLessThan: 100
-    unit: absolute # absolute (default) or percent
+properties:
+  - name: email_address
+    quality:
+    - rule: noMissingValues
+      missingValues: [null, '', 'N/A', 'n/a'] 
+      description: "There must be no missing values in the column."
+    - rule: missingValues
+      missingValues: [null, '', 'N/A', 'n/a']
+      mustBeLessThan: 100
+      unit: absolute # absolute (default) or percent
 ```
 
 
