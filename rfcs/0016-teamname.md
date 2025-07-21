@@ -47,26 +47,7 @@ Team name is unique within an organization (context).
 Proposed solution: a new field to identify the owning team as a first class citizen.
 
 ```yaml
-teamName: my-team
-# alternatives
-# teamId: my-team
-# owner: my-team
-
-# include team based on teamName
-team:
-- username: ceastwood
-  role: Data Scientist
-  dateIn: 2022-08-02
-  dateOut: 2022-10-01
-  replacedByUsername: mhopper
-- username: mhopper
-  role: Data Scientist
-  dateIn: 2022-10-01
-- username: daustin
-  role: Owner
-  comment: Keeper of the grail
-  name: David Austin
-  dateIn: 2022-10-01
+owner: my-team
 ```
 
 Recommendation to derive a teamId from the teamName using some form of uri.
@@ -140,6 +121,8 @@ team:
      - type: teamDefinition
        url: my-team
 ```
+
+
 
 ## References
 
