@@ -145,11 +145,11 @@ quality:
     pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$'
 ```
 
-#### Count
+#### Row Count
 
 ```yaml
 quality:
-  - rule: count
+  - rule: rowCount
     mustBeGreaterThan: 1000000
     description: "There must be more than 1 million values in the table."
 ```
