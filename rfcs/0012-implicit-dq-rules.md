@@ -215,7 +215,6 @@ properties:
 ```
 
 ## TBD
-- naming: `rule:` vs `check:`
 - do we need a `criticality` (`error`, `warning`, `info`?)?
 
 
