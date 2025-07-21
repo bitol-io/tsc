@@ -47,7 +47,7 @@ management.
 
 ### Quality Type
 
-The quality type is `library`, which is also the default.
+The quality type is `library`, which is also the default, if a `rule` is defined.
 
 ```yaml
 quality:
@@ -214,7 +214,9 @@ properties:
         description: "At least one entry must be less than 24 hours old."
 ```
 
-
+## TBD
+- naming: `rule:` vs `check:`
+- do we need a `criticality` (`error`, `warning`, `info`?)?
 
 
 ## Consequences
