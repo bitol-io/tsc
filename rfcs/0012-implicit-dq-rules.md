@@ -84,6 +84,7 @@ quality:
 #### Null values
 
 ```yaml
+properties:
   - name: order_id
     quality:
       - rule: noNullValues
