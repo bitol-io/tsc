@@ -229,5 +229,6 @@ properties:
 - [Soda Metrics and Checks](https://docs.soda.io/soda-cl/metrics-and-checks.html#list-of-sodacl-metrics-and-checks)
 - [OpenMetadata Data Quality](https://docs.open-metadata.org/latest/how-to-guides/data-quality-observability/quality/tests-yaml)
 - [Deequ](https://github.com/awslabs/deequ)
+- [dqx](https://databrickslabs.github.io/dqx/docs/reference/quality_rules/)
 - [Data Contract CLI](https://github.com/datacontract/datacontract-specification/blob/main/datacontract.schema.json#L1797)
 
