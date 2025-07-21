@@ -71,7 +71,6 @@ quality:
   - Valid values (enum, regex, etc.) (`validValues`, `invalidValues`)
 - Row Count
 - Statistical
-  - count (`count`)
   - avg (`avg`)
   - sum (`sum`)
   - stddev (`stddev`)
