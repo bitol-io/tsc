@@ -2,6 +2,8 @@
 
 Champion: Simon Harrer
 
+Slack: https://data-mesh-learning.slack.com/archives/C096UHZFC6A 
+
 ## Motivation
 
 Teams and any team memberships have a different lifecycle than a data contract, and are typically managed separately - but still need to be linked.
