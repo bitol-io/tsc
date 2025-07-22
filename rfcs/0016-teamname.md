@@ -124,7 +124,18 @@ team:
        url: my-team
 ```
 
+### Option F:
 
+```yaml
+team:
+- team: my-team
+  role: owner
+- username: ceastwood
+  role: Data Scientist
+  dateIn: 2022-08-02
+  dateOut: 2022-10-01
+  replacedByUsername: mhopper
+```
 
 ## References
 
