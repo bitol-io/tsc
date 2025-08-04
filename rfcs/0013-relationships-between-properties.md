@@ -41,14 +41,25 @@ schema:
       to: accounts.address.street # (nested)
       from: users.id
       customProperties:
-        description: "This is a foreign key to the street address of the account."
-        cardinality: "one-to-many"
-        label: "is-part-of"
+      - property: description
+        value: "This is a foreign key to the street address of the account."
+      - property: cardinality
+        value: "one-to-many"
+      - property: label
+        value: "is-part-of"
   - name: account_number
   relationships:
   - from: users.id
     to: users.account_number
     type: foreignKey
+  # composite keys on schema level as an alternative way to define relationships (thanks to Craig Petch!)
+  - type: foreignKey
+    from: 
+    - users.id
+    - users.account_number
+    to: 
+    - accounts.id
+    - accounts.account_number
 - name: accounts
   properties:
   - name: account_number
@@ -59,13 +70,13 @@ schema:
 
 ### Fields
 
-| Key          | UX Label   | Required                                           | Description                                                                                                                                                                                                                                    |
-|--------------|------------|----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| relationships | Relationships | optional                                           | Array. A list of relationships to other properties. Each relationship can have a `to` and `type` field.                                                                                                                                        |
-| relationships.to | To         | yes                                                | A reference to a property in the same or another schema. Use the shorthand notation `<schema_name>.<property_name>` Shorthand can be nested.                                                                                                   |
-| relationships.type | Type       | no (defaults to `foreignKey`)                      | The type of relationship. Defaults to `foreignKey`. Current options are: `foreignKey`                                                                                                                                                          |
-| relationships.from | From       | yes (not required on property-level relationships) | A reference to a property in the same or another schema. Use the shorthand notation `<schema_name>.<property_name>`. Shorthand can be nested. Shorthand could be only the `<property_name>`. Is optional when specified at the property level. |
-| relationships.customProperties | Custom Properties | optional                                           | Any additional properties that are not part of the standard schema. This can be used to add metadata or other information relevant to the relationship.                                                                                        |
+| Key          | UX Label   | Required                                           | Description                                                                                                                                                                                                                                     |
+|--------------|------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| relationships | Relationships | optional                                           | Array. A list of relationships to other properties. Each relationship can have a `to` and `type` field.                                                                                                                                         |
+| relationships.type | Type       | no (defaults to `foreignKey`)                      | The type of relationship. Defaults to `foreignKey`. Current options are: `foreignKey`                                                                                                                                                           |
+| relationships.to | To         | yes                                                | A reference to a property in the same or another schema. Use the shorthand notation `<schema_name>.<property_name>` Shorthand can be nested. For composite keys, use an array of the property names.                                            |
+| relationships.from | From       | yes (not required on property-level relationships) | A reference to a property in the same or another schema. Use the shorthand notation `<schema_name>.<property_name>`. Shorthand can be nested. Shorthand could be only the `<property_name>`. Is optional when specified at the property level. For composite keys, use an array of the property names. |
+| relationships.customProperties | Custom Properties | optional                                           | Any additional properties that are not part of the standard schema. This can be used to add metadata or other information relevant to the relationship.                                                                                         |
 
 ### Shorthand
 
