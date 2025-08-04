@@ -44,7 +44,7 @@ team:
 
 Team name is unique within an organization (context).
 
-### Option A: Simple solution (Non-breaking Change: v3.1)
+### Option A: Simple solution (Non-breaking Change: v3.1, recommended)
 
 Proposed solution: a new field to identify the owning team as a first class citizen.
 
