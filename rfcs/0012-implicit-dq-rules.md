@@ -10,8 +10,7 @@ Champion: Jochen Christ.
 
 > One paragraph explanation of the RFC.
 
-This RFC proposes to add a list of predefined data quality rules to the standard. These rules are commonly used in data quality 
-management.
+This RFC proposes to add a list of predefined data quality rules to the standard.
 
 ## Motivation
 
@@ -47,7 +46,7 @@ management.
 
 ### Quality Type
 
-The quality type is `library`, which is also the default.
+The quality type is `library`, which is also the default, if a `rule` is defined.
 
 ```yaml
 quality:
@@ -64,22 +63,20 @@ quality:
 
 ### Predefined Rules
 
+- Schema
+  - Row Count
+  - Unique/duplicates (`noDuplicates`, `duplicateValues`)
 - Property
-  - Null (`noNullValues`, `nullValues`)
+  - Null values (`noNullValues`, `nullValues`)
   - Missing values (empty strings, etc.) (`noMissingValues`, `missingValues`)
   - Unique/duplicates (`noDuplicates`, `duplicateValues`)
   - Valid values (enum, regex, etc.) (`validValues`, `invalidValues`)
-- Reference (TBD)
-  - Referential integrity to other properties
-- Statistical
-  - count (`count`)
-  - avg (`avg`)
-  - sum (`sum`)
-  - stddev (`stddev`)
-  - median (`median`)
-- Age
-  - `freshness` age of youngest object
-  - `maxAge` age of oldest object
+  - Statistical
+    - avg (`avg`)
+    - sum (`sum`)
+    - stddev (`stddev`)
+    - median (`median`)
+  - Freshness (`freshness`)
 
 
 ### Examples
@@ -87,100 +84,144 @@ quality:
 #### Null values
 
 ```yaml
-quality:
-  - rule: noNullValues
-    description: "There must be no null values in the column."
-  - rule: nullValues
-    mustBeLessThan: 10
-    description: "There must be less than 10 null values in the column."
-  - rule: nullValues
-    mustBeLessThan: 1
-    unit: percent
-    description: "There must be less than 1% null values in the column."
-  # alternative?
-  - rule: nullValues
-    mustBeLessThan: 1%
-    description: "There must be less than 1% null values in the column."
+properties:
+  - name: order_id
+    quality:
+      - rule: noNullValues
+        description: "There must be no null values in the column."
+      - rule: nullValues 
+        mustBe: 0 # sames as noNullValues
+        unit: absolute
+        description: "There must be no null values in the column."
+      - rule: nullValues
+        mustBeLessThan: 10
+        description: "There must be less than 10 null values in the column."
+      - rule: nullValues
+        mustBeLessThan: 1
+        unit: percent
+        description: "There must be less than 1% null values in the column."
 ```
 
 #### Missing values
 
 ```yaml
-quality:
-  - rule: noMissingValues
-    missingValues: [null, '', 'N/A', 'n/a']
-    description: "There must be no missing values in the column."
+properties:
+  - name: email_address
+    quality:
+    - rule: noMissingValues
+      missingValues: [null, '', 'N/A', 'n/a'] 
+      description: "There must be no missing values in the column."
+    - rule: missingValues
+      missingValues: [null, '', 'N/A', 'n/a']
+      mustBeLessThan: 100
+      unit: absolute # absolute (default) or percent
 ```
 
-
-#### Duplicate values
-
-```yaml
-quality:
-  - rule: noDuplicates
-    description: "There must be no duplicate values in the column."
-  - rule: duplicateValues
-    mustBeLessThan: 10
-    description: "There must be less than 10 duplicate values in the column."
-  - rule: duplicateValues
-    mustBeLessThan: 1%
-    description: "There must be less than 1% duplicate values in the column."
-```
 
 #### Valid values
 
+Level: String Property
+
 ```yaml
-quality:
-  - rule: noInvalidValues
-    description: "The value must be either 'pounds' or 'kg'."
-    validValues: ['pounds', 'kg']
+properties:
+  - name: line_item_unit
+    quality:
+     - rule: noInvalidValues
+       description: "The value must be either 'pounds' or 'kg'."
+       validValues: ['pounds', 'kg']
+     - rule: invalidValues
+       validValues: ['pounds', 'kg']
+       mustBeLessThan: 5
+       unit: absolute # absolute (default) or percent
 ```
 
 Using a pattern:
 
 ```yaml
-quality:
-  - rule: noInvalidValues
-    description: "The value must be an IBAN."
-    pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$'
+properties:
+  - name: iban
+    quality:
+     - rule: noInvalidValues
+       description: "The value must be an IBAN."
+       pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$'
 ```
 
-#### Count
+
+
+#### Duplicate values
+
+Level: Property
 
 ```yaml
 quality:
-  - rule: count
+  - rule: noDuplicateValues
+    description: "There must be no duplicate values in the column."
+  - rule: duplicateValues 
+    mustBe: 0 # same as noDuplicateValues
+    description: "There must be no duplicate values in the column."
+  - rule: duplicateValues
+    mustBeLessThan: 10
+    description: "There must be less than 10 duplicate values in the column."
+  - rule: duplicateValues
+    mustBeLessThan: 1
+    unit: percent
+    description: "There must be less than 1% duplicate values in the column."
+```
+
+
+Level: Schema
+
+```yaml
+quality:
+  - rule: noDuplicateValues
+    description: "There must be no duplicate values for a specific tenant."
+    properties:
+      - tenant_id
+      - order_id
+```
+
+
+#### Row Count
+
+Level: Schema
+
+```yaml
+quality:
+  - rule: rowCount
     mustBeGreaterThan: 1000000
     description: "There must be more than 1 million values in the table."
 ```
 
 #### Avg
 
-```yaml
-quality:
-  - rule: avg
-    mustBeBetween: [100, 200]
-    description: "The average value of this column must be between 100 and 200."
-```
-
-### Age
+Level: Numeric Property
 
 ```yaml
-quality:
-  - rule: freshness
-    mustBeLessThan: 24
-    unit: hours
-    description: "At least one entry must be less than 24 hours old."
+properties:
+  - name: order_total
+    logicalType: number
+    quality:
+      - rule: avg
+        mustBeBetween: [100, 200]
+        description: "The average value of this column must be between 100 and 200."
 ```
+
+Todo: same for median, max, min, sum?
+
+### Freshness
+
+Level: Timestamp Property
 
 ```yaml
-quality:
-  - rule: maxAge
-    mustBeGreaterThan: 1
-    unit: year
-    description: "At least one entry must be at least 1 year old."
+properties:
+  - name: created_at
+    logicalType: timestamp
+    quality:
+      - rule: freshness
+        mustBeLessThan: 24
+        unit: hours
+        description: "At least one entry must be less than 24 hours old."
 ```
-
 
 ## Consequences
 
@@ -194,4 +235,6 @@ quality:
 - [Soda Metrics and Checks](https://docs.soda.io/soda-cl/metrics-and-checks.html#list-of-sodacl-metrics-and-checks)
 - [OpenMetadata Data Quality](https://docs.open-metadata.org/latest/how-to-guides/data-quality-observability/quality/tests-yaml)
 - [Deequ](https://github.com/awslabs/deequ)
+- [dqx](https://databrickslabs.github.io/dqx/docs/reference/quality_rules/)
 - [Data Contract CLI](https://github.com/datacontract/datacontract-specification/blob/main/datacontract.schema.json#L1797)
+

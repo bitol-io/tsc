@@ -2,6 +2,8 @@
 
 Champion: Simon Harrer
 
+Slack: https://data-mesh-learning.slack.com/archives/C096UHZFC6A 
+
 ## Motivation
 
 Teams and any team memberships have a different lifecycle than a data contract, and are typically managed separately - but still need to be linked.
@@ -42,31 +44,12 @@ team:
 
 Team name is unique within an organization (context).
 
-### Option A: Simple solution (Non-breaking Change: v3.1)
+### Option A: Simple solution (Non-breaking Change: v3.1, recommended)
 
 Proposed solution: a new field to identify the owning team as a first class citizen.
 
 ```yaml
-teamName: my-team
-# alternatives
-# teamId: my-team
-# owner: my-team
-
-# include team based on teamName
-team:
-- username: ceastwood
-  role: Data Scientist
-  dateIn: 2022-08-02
-  dateOut: 2022-10-01
-  replacedByUsername: mhopper
-- username: mhopper
-  role: Data Scientist
-  dateIn: 2022-10-01
-- username: daustin
-  role: Owner
-  comment: Keeper of the grail
-  name: David Austin
-  dateIn: 2022-10-01
+owner: my-team
 ```
 
 Recommendation to derive a teamId from the teamName using some form of uri.
@@ -139,6 +122,19 @@ team:
   - authoritativeDefinitions:
      - type: teamDefinition
        url: my-team
+```
+
+### Option F:
+
+```yaml
+team:
+- team: my-team
+  role: owner
+- username: ceastwood
+  role: Data Scientist
+  dateIn: 2022-08-02
+  dateOut: 2022-10-01
+  replacedByUsername: mhopper
 ```
 
 ## References
