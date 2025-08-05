@@ -14,16 +14,8 @@ Champion: Diego C. & Simon Harrer.
 As part of configuring references within the ODCS standard - we need to define how one can identify an external data contract from within a given contract. 
 
 
-## Motivation
-
-> Why are we doing this? What use cases does it support? What is the expected outcome?
-> How does it align with our guiding values?
-
-## Design and examples
-
-> This is the bulk of the RFC.
-> Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
-> Offer at least two examples, one is minimalist, one is more structured.
+## Decision:
+Approved Option A 'file based' during TSC on 2025-05-20
 
 ### Option A: File-Based ⭐ *Our Recommendation*
 

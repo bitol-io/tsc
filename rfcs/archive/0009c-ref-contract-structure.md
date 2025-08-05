@@ -8,6 +8,9 @@ Champion: Diego C. & Simon Harrer.
 
 [Jira Ticket](https://bitol-io.atlassian.net/browse/ODCS-48?atlOrigin=eyJpIjoiNWNkM2M2MGYxZmM5NDYyMmI0NGEyYzY1ZjA2Yzg1MDEiLCJwIjoiaiJ9)
 
+# Decision 
+
+The initial use of relationships was moved to RFC-13 under foreign keys using the relationship block until a concrete decision can be made on RFC-0009b internal contract structure. 
 
 ## Summary
 

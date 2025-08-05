@@ -12,6 +12,11 @@ Champion: Diego C. & Simon Harrer.
 
 We have a need to be able to identify the specific items within a data contract. 
 
+# Decision 
+
+2025-05-20 - Option D - table.column shortcut approved for schema properties only
+2025-05-20 - Option B | Option A - neither approved. Json Pointers were too brittle given the array structure. JSON paths were too complex in writing them effectively. TSC decision was to continue looking for options. 
+
 
 ## Motivation
 

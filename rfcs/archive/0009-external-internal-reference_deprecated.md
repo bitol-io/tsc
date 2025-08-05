@@ -2,6 +2,9 @@
 
 Champion: Diego C. & Simon Harrer.
 
+
+## THIS RFC WAS split into RFC-0009a, RFC-009b, RFC-009c 
+
 ## Summary
 
 > One paragraph explanation of the RFC.
