@@ -9,11 +9,11 @@ In alphabetical order by first name.
 - Dirk Van de Poel, dirk.vandepoel@klarrio.com, Klarrio, Central European Time
 - Gene Stakhov, gstakhov@gmail.com, enChoice, Eastern Standard Time
 - Jean-Georges Perrin (Chair), Expedia Group, Eastern Standard Time
-- Jochen Christ, jochen.christ@innoq.com, INNOQ, Central European Time
+- Jochen Christ, jochen.christ@entropy-data.com, Entropy Data, Central European Time
 - Manuel Destouesse, mdsoftengr@gmail.com, itracHealth, Eastern Standard Time
 - Martin Meermeyer, m.meermeyer@gmail.com, Lidl e-commerce, Central European Time
 - Peter Flook, peter.flook@data.catering, Data Catering, Taipei Standard Time
-- Simon Harrer, simon.harrer@innoq.com, INNOQ, Central European Time
+- Simon Harrer, simon.harrer@entropy-data.com, Entropy Data, Central European Time
 - Todd Nemanich, nemanich@abeadata.com, AbeaData, Eastern Standard Time
 
 ## Contributors, Advisors, & Working Group
