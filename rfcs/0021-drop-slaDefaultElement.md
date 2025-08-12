@@ -6,7 +6,7 @@ Champion:  Jochen Christ
 
 Drop `slaDefaultElement` in ODCS 4.0, deprecate in 3.1.
 
-## Motivation
+## Motivation 
 
 This is a single top-level element, next to `slaProperties`.
 
