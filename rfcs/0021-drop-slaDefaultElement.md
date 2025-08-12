@@ -46,7 +46,7 @@ slaProperties:
     driver: analytics
 ```
 
-Recommendation: remove this field with ODCS 4.0, deprecate it with ODCS 3.1.
+Recommendation: remove this field with ODCS 4.0 (as it is a breaking change), deprecate it with ODCS 3.1.
 
 
 ## Decision
