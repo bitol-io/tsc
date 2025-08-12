@@ -4,7 +4,7 @@ Champion:  Jochen Christ
 
 ## Summary
 
-Drop `slaDefaultElement`
+Drop `slaDefaultElement` in ODCS 4.0, deprecate in 3.1.
 
 ## Motivation
 
@@ -46,7 +46,7 @@ slaProperties:
     driver: analytics
 ```
 
-Recommendation: remove this field
+Recommendation: remove this field with ODCS 4.0, deprecate it with ODCS 3.1.
 
 
 ## Decision
