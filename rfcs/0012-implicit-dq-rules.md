@@ -223,6 +223,55 @@ properties:
         description: "At least one entry must be less than 24 hours old."
 ```
 
+## Alternative
+
+```
+properties:
+- name: status
+  quality:
+  - rule: hasNoInvalidValues
+    arguments:
+      validValues: ['OPEN', 'SUCCESS', 'CANCELED']
+  - description: More than 99% of all entries should not be null.
+    rule: hasNullValuesNotLessThan
+
+```
+
+
+## Alternative Predefined Rules with verbs
+
+- Schema
+  - Row Count `hasRowCount`
+  - Unique/duplicates (`hasNoDuplicateValues`, `isUnique`)
+- Property
+  - Null values (`hasNoNullValues`)
+  - Missing values (empty strings, etc.) (`hasNoMissingValues`)
+  - Unique/duplicates (`hasNoDuplicates`)
+  - Valid values (enum, regex, etc.) (`hasValidValues`, `isInList`)
+  - Statistical
+    - avg (`hasAvg`)
+    - sum (`hasSum`)
+    - stddev (`hasStddev`)
+    - median (`hasMedian`)
+
+```
+schema:
+  - name: orders
+    quality:
+    - rule: hasRowCount
+      mustBeGreaterThan: 10000
+    - rule: hasNoDuplicateValues
+      arguments:
+         columns: ["tenant", "id"]
+    - properties:
+      - name: col1
+        quality:
+        - rule: hasNoDuplicateValues
+        - rule: hasSum
+          mustBe: 100
+        - mustBeGreaterThan: 5
+```
+
 ## Consequences
 
 > The consequences of this decision.
