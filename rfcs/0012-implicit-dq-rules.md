@@ -223,53 +223,179 @@ properties:
         description: "At least one entry must be less than 24 hours old."
 ```
 
-## Alternative
+## Alternative: Verb-Style
 
+### Design Principles
+
+- Simple: The rule should be simple and easy to understand.
+- Executable: The rules should be executable by data quality tools
+- Verbs: Rules shoud start with a verb, such as has..., is...
+- Rules have a boolean result: true or false
+- Rules can have `arguments` (an object of key value entries)
+
+
+### Quality Type
+
+The quality type is `library`, which is also the default, if a `rule` is defined.
+
+```yaml
+quality:
+  - type: library
+    rule: hasNoNullValues
 ```
-properties:
-- name: status
+
+is the same as:
+
+```yaml
+quality:
+  - rule: hasNoNullValues
+```
+
+### Predefined Rules
+
+| Level    | Rule                  | Arguments                        |
+|----------|------------------------|-----------------------------------|
+| Schema   | `hasRowCountGreaterThan` | `value` (numeric)                 |
+| Schema   | `hasRowCountLessThan`    | `value` (numeric)                 |
+| Schema   | `isCompoundUnique`       | `properties` (list of columns)    |
+| Property | `isUnique`               | –                                 |
+| Property | `hasNoNullValues`        | –                                 |
+| Property | `hasNoMissingValues`     | `missingValues`                   |
+| Property | `hasValidValue`               | `validValues`                     |
+| Property | `isOlderThan`            | `days`, `seconds`                 |
+| Property | `isNotOlderThan`         | `days`, `seconds`                 |
+| Property | `hasAvgGreaterThan`      | `value` (numeric)                 |
+| Property | `hasAvgLessThan`         | `value` (numeric)                 |
+| Property | `hasAvgEqualTo`          | `value` (numeric)                 |
+| Property | `hasAvgNotEqualTo`       | `value` (numeric)                 |
+| Property | `hasSumGreaterThan`      | `value` (numeric)                 |
+| Property | `hasSumLessThan`         | `value` (numeric)                 |
+| Property | `hasSumEqualTo`          | `value` (numeric)                 |
+| Property | `hasSumNotEqualTo`       | `value` (numeric)                 |
+| Property | `hasMedianGreaterThan`   | `value` (numeric)                 |
+| Property | `hasMedianLessThan`      | `value` (numeric)                 |
+| Property | `hasMedianEqualTo`       | `value` (numeric)                 |
+| Property | `hasMedianNotEqualTo`    | `value` (numeric)                 |
+
+
+We also allow simple value checks without an explicit rule. These operators already exists, but can now be used to compare the numeric values in a property.
+
+  - `mustBe`
+  - `mustNotBe`
+  - `mustBeGreaterThan`
+  - `mustBeGreaterOrEqualTo`
+  - `mustBeLessThan`
+  - `mustBeLessOrEqualTo`
+  - `mustBeBetween`
+  - `mustNotBeBetween`
+
+
+### Examples
+
+#### Row count
+
+```yaml
+schema:
   quality:
-  - rule: hasNoInvalidValues
+  - rule: hasRowCountGreaterThan
     arguments:
-      validValues: ['OPEN', 'SUCCESS', 'CANCELED']
-  - description: More than 99% of all entries should not be null.
-    rule: hasNullValuesNotLessThan
-
+      value: 1000
+    description: "The dataset must contain more than 1000 rows."
 ```
 
-
-## Alternative Predefined Rules with verbs
-
-- Schema
-  - Row Count `hasRowCount`
-  - Unique/duplicates (`hasNoDuplicateValues`, `isUnique`)
-- Property
-  - Null values (`hasNoNullValues`)
-  - Missing values (empty strings, etc.) (`hasNoMissingValues`)
-  - Unique/duplicates (`hasNoDuplicates`)
-  - Valid values (enum, regex, etc.) (`hasValidValues`, `isInList`)
-  - Statistical
-    - avg (`hasAvg`)
-    - sum (`hasSum`)
-    - stddev (`hasStddev`)
-    - median (`hasMedian`)
+#### Compound Uniqueness
 
 ```
 schema:
-  - name: orders
+  quality:
+  - rule: isCompoundUnique
+    arguments:
+      properties: [tenant_id, order_id]
+    description: "The combination of tenant_id and order_id must be unique across the dataset."
+```
+
+#### Null values
+
+```yaml
+properties:
+  - name: order_id
     quality:
-    - rule: hasRowCount
-      mustBeGreaterThan: 10000
-    - rule: hasNoDuplicateValues
-      arguments:
-         columns: ["tenant", "id"]
-    - properties:
-      - name: col1
-        quality:
-        - rule: hasNoDuplicateValues
-        - rule: hasSum
-          mustBe: 100
-        - mustBeGreaterThan: 5
+      - rule: hasNoNullValues
+        description: "There must be no null values in the column."
+```
+
+#### Allowed values
+
+```yaml
+properties:
+  - name: status
+    quality:
+      - rule: hasValidValue
+        arguments:
+          validValues: ["OPEN", "SUCCESS", "CANCELED"]
+        description: "Status must be one of the predefined values."
+```
+
+#### Uniqueness
+
+```yaml
+properties:
+  - name: customer_id
+    quality:
+      - rule: isUnique
+        description: "Customer IDs must be unique."
+```
+
+#### Age checks
+
+```yaml
+properties:
+  - name: created_at
+    quality:
+      - rule: isOlderThan
+        arguments:
+          days: 30
+        description: "Records must be older than 30 days."
+      - rule: isNotOlderThan
+        arguments:
+          days: 365
+        description: "Records must not be older than 1 year."
+```
+
+#### Aggregations
+
+```yaml
+properties:
+  - name: price
+    quality:
+      - rule: hasAvgGreaterThan
+        arguments:
+          value: 50.0
+        description: "The average price must be greater than 50."
+
+  - name: quantity
+    quality:
+      - rule: hasSumEqualTo
+        arguments:
+          value: 10000
+        description: "The total quantity must equal 10,000."
+
+  - name: salary
+    quality:
+      - rule: hasMedianNotEqualTo
+        arguments:
+          value: 0
+        description: "The median salary must not be 0."
+```
+
+#### Simple Values checks
+
+```yaml
+properties:
+  - name: price
+    quality:
+      - mustBeGreaterThan: 1.0
+        description: "The minimum price is $1"
 ```
 
 ## Consequences
