@@ -310,7 +310,7 @@ schema:
   quality:
   - rule: isCompoundUnique
     arguments:
-      properties: [tenant_id, order_id]
+      properties: ["tenant_id", "order_id"]
     description: "The combination of tenant_id and order_id must be unique across the dataset."
 ```
 
