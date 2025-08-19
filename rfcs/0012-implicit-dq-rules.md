@@ -264,18 +264,7 @@ quality:
 | Property | `hasValidValue`               | `validValues`                     |
 | Property | `isOlderThan`            | `days`, `seconds`                 |
 | Property | `isNotOlderThan`         | `days`, `seconds`                 |
-| Property | `hasAvgGreaterThan`      | `value` (numeric)                 |
-| Property | `hasAvgLessThan`         | `value` (numeric)                 |
-| Property | `hasAvgEqualTo`          | `value` (numeric)                 |
-| Property | `hasAvgNotEqualTo`       | `value` (numeric)                 |
-| Property | `hasSumGreaterThan`      | `value` (numeric)                 |
-| Property | `hasSumLessThan`         | `value` (numeric)                 |
-| Property | `hasSumEqualTo`          | `value` (numeric)                 |
-| Property | `hasSumNotEqualTo`       | `value` (numeric)                 |
-| Property | `hasMedianGreaterThan`   | `value` (numeric)                 |
-| Property | `hasMedianLessThan`      | `value` (numeric)                 |
-| Property | `hasMedianEqualTo`       | `value` (numeric)                 |
-| Property | `hasMedianNotEqualTo`    | `value` (numeric)                 |
+
 
 
 ### Examples
