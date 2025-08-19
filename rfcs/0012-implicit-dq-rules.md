@@ -296,6 +296,7 @@ We also allow simple value checks without an explicit rule. These operators alre
 
 ```yaml
 schema:
+- name: employees
   quality:
   - rule: hasRowCountGreaterThan
     arguments:
@@ -307,6 +308,7 @@ schema:
 
 ```
 schema:
+- name: orders
   quality:
   - rule: isCompoundUnique
     arguments:
