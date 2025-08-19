@@ -278,18 +278,6 @@ quality:
 | Property | `hasMedianNotEqualTo`    | `value` (numeric)                 |
 
 
-We also allow simple value checks without an explicit rule. These operators already exists, but can now be used to compare the numeric values in a property.
-
-  - `mustBe`
-  - `mustNotBe`
-  - `mustBeGreaterThan`
-  - `mustBeGreaterOrEqualTo`
-  - `mustBeLessThan`
-  - `mustBeLessOrEqualTo`
-  - `mustBeBetween`
-  - `mustNotBeBetween`
-
-
 ### Examples
 
 #### Row count
@@ -390,7 +378,20 @@ properties:
         description: "The median salary must not be 0."
 ```
 
-#### Simple Values checks
+### Values checks
+
+We also allow simple value checks without an explicit rule. These operators already exists, but can now be used to compare the numeric values in a numeric property.
+
+  - `mustBe`
+  - `mustNotBe`
+  - `mustBeGreaterThan`
+  - `mustBeGreaterOrEqualTo`
+  - `mustBeLessThan`
+  - `mustBeLessOrEqualTo`
+  - `mustBeBetween`
+  - `mustNotBeBetween`
+
+#### Example
 
 ```yaml
 properties:
