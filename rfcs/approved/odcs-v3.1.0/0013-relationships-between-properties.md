@@ -122,7 +122,7 @@ Out of scope
 
 ## Decision
 
-TBD
+Approved by the TSC on 2025-08-19.
 
 ## Consequences
 

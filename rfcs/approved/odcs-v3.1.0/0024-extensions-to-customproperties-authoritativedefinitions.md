@@ -42,6 +42,8 @@ None.
 ## Decision
 
 Expected in August for inclusion in ODCS v3.0.3.
+Approved by the TSC on 2025-08-19, will go in v3.1.0.
+
 
 ## Consequences
 

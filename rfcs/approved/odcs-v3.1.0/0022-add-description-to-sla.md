@@ -44,7 +44,8 @@ slaProperties:
 
 ## Decision
 
-> The decision made by the TSC.
+Approved by the TSC on 2025-08-19.
+
 
 ## Consequences
 

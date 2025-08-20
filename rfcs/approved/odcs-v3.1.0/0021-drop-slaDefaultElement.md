@@ -51,7 +51,8 @@ Recommendation: remove this field with ODCS 4.0 (as it is a breaking change), de
 
 ## Decision
 
-> The decision made by the TSC.
+Approved by the TSC on 2025-08-19.
+
 
 ## Consequences
 
