@@ -35,48 +35,52 @@ This RFC proposes to add a list of predefined data quality rules to the standard
 > Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
 > Offer at least two examples, one is minimalist, one is more structured.
 
+
+## Alternative 1: Metrics-Style
+
+
 ### Design Principles
 
-- Simple: The rule should be simple and easy to understand.
+- Simple: The rule/metric should be simple and easy to understand.
 - Executable: The rules should be executable by data quality tools
 - Metrics-based: The rules should be defined in a way to result in a numeric value that can be compared to a threshold
 - Threshold-based: The rule should have a threshold that defines the acceptable value. Tools can report how many rows/objects are violating the rule. Thresholds can be skipped if it is implicit from the rule.
 - Percentage and absolute values: The rule should be able to express both percentage and absolute values.
 
-
 ### Quality Type
 
-The quality type is `library`, which is also the default, if a `rule` is defined.
+The quality type is `library`, which is also the default, if a `rule` (TBD: or `metric`) is defined.
 
 ```yaml
 quality:
-  - type: library
-    rule: noNullValues
+  - type: library 
+    rule: nullValues # or metric: nullValues?
 ```
 
 is the same as:
 
 ```yaml
 quality:
-  - rule: noNullValues
+  - type: library 
+    rule: nullValues # or metric: nullValues?
 ```
 
-### Predefined Rules
+### Predefined Rules/Metrics
 
 - Schema
-  - Row Count
-  - Unique/duplicates (`noDuplicates`, `duplicateValues`)
+  - Row Count (`rowCount`)
+  - Unique/duplicates (`duplicateValues`)
 - Property
-  - Null values (`noNullValues`, `nullValues`)
-  - Missing values (empty strings, etc.) (`noMissingValues`, `missingValues`)
-  - Unique/duplicates (`noDuplicates`, `duplicateValues`)
-  - Valid values (enum, regex, etc.) (`validValues`, `invalidValues`)
+  - Null values (`nullValues`)
+  - Missing values (empty strings, etc.) (`missingValues`)
+  - Unique/duplicates (`duplicateValues`)
+  - Valid values (enum, regex, etc.) (`invalidValues`)
   - Statistical
+    - count (`count`)  
     - avg (`avg`)
     - sum (`sum`)
     - stddev (`stddev`)
     - median (`median`)
-  - Freshness (`freshness`)
 
 
 ### Examples
@@ -87,14 +91,13 @@ quality:
 properties:
   - name: order_id
     quality:
-      - rule: noNullValues
-        description: "There must be no null values in the column."
       - rule: nullValues 
-        mustBe: 0 # sames as noNullValues
-        unit: absolute
+        mustBe: 0
+        unit: rows
         description: "There must be no null values in the column."
       - rule: nullValues
         mustBeLessThan: 10
+        unit: rows
         description: "There must be less than 10 null values in the column."
       - rule: nullValues
         mustBeLessThan: 1
@@ -126,13 +129,10 @@ Level: String Property
 properties:
   - name: line_item_unit
     quality:
-     - rule: noInvalidValues
-       description: "The value must be either 'pounds' or 'kg'."
-       validValues: ['pounds', 'kg']
      - rule: invalidValues
        validValues: ['pounds', 'kg']
        mustBeLessThan: 5
-       unit: absolute # absolute (default) or percent
+       unit: rows
 ```
 
 Using a pattern:
@@ -142,6 +142,7 @@ properties:
   - name: iban
     quality:
      - rule: noInvalidValues
+       mustBe: 0
        description: "The value must be an IBAN."
        pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$'
 ```
@@ -154,10 +155,8 @@ Level: Property
 
 ```yaml
 quality:
-  - rule: noDuplicateValues
-    description: "There must be no duplicate values in the column."
   - rule: duplicateValues 
-    mustBe: 0 # same as noDuplicateValues
+    mustBe: 0 
     description: "There must be no duplicate values in the column."
   - rule: duplicateValues
     mustBeLessThan: 10
@@ -173,7 +172,8 @@ Level: Schema
 
 ```yaml
 quality:
-  - rule: noDuplicateValues
+  - rule: duplicateValues
+    mustBe: 0 
     description: "There must be no duplicate values for a specific tenant."
     properties:
       - tenant_id
@@ -189,7 +189,7 @@ Level: Schema
 quality:
   - rule: rowCount
     mustBeGreaterThan: 1000000
-    description: "There must be more than 1 million values in the table."
+    description: "There must be more than 1 million rows in the table."
 ```
 
 #### Avg
@@ -206,22 +206,8 @@ properties:
         description: "The average value of this column must be between 100 and 200."
 ```
 
-Todo: same for median, max, min, sum?
+same for median, max, min, sum?
 
-### Freshness
-
-Level: Timestamp Property
-
-```yaml
-properties:
-  - name: created_at
-    logicalType: timestamp
-    quality:
-      - rule: freshness
-        mustBeLessThan: 24
-        unit: hours
-        description: "At least one entry must be less than 24 hours old."
-```
 
 ## Alternative: Verb-Style
 
