@@ -209,7 +209,7 @@ properties:
 same for median, max, min, sum?
 
 
-## Alternative: Verb-Style
+## Alternative 2: Verb-Style
 
 ### Design Principles
 
@@ -353,9 +353,11 @@ properties:
         description: "The median salary must not be 0."
 ```
 
+## Optional A: Value Checks
+
 ### Values checks
 
-We also allow simple value checks without an explicit rule. These operators already exists, but can now be used to compare the numeric values in a numeric property.
+We could allow simple value checks without an explicit rule. These operators already exists, but can now be used to compare the numeric values in a numeric property.
 
   - `mustBe`
   - `mustNotBe`
