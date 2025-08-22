@@ -15,6 +15,7 @@ In alphabetical order by first name.
 - Peter Flook, peter.flook@data.catering, Data Catering, Taipei Standard Time
 - Simon Harrer, simon.harrer@entropy-data.com, Entropy Data, Central European Time
 - Todd Nemanich, nemanich@abeadata.com, AbeaData, Eastern Standard Time
+- Tom De Wolf, https://www.linkedin.com/in/tomdw/, ACA Group, Central European Time
 
 ## Contributors, Advisors, & Working Group
 - Enrique Catalá, enrique@enriquecatala.com, SCRM Lidl International Hub, Central European Time
