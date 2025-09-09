@@ -45,11 +45,11 @@ Jira: *replace this text with the link to the dedicated Jira ticket*.
 
 ## Design and examples
 
-### Defining Unstructured Data Quality Dimensions 
+**Defining Unstructured Data Quality Dimensions** 
 Core Quality Dimensions for Unstructured Data
 Based on research and industry practices, both ODCS and ODPS can leverage established unstructured data quality dimensions:
 
-Primary Dimensions:
+**Primary Dimensions:**
 - Accuracy: Correctness of the unstructured content compared to real-world entities
 - Completeness: Whether all necessary unstructured data elements are present
 - Consistency: Uniformity of format and content across unstructured data sources
@@ -116,6 +116,37 @@ quality:
 
 ```
 
+### Example ODCS Quality Implementation
+```yaml
+quality:
+- name: Text Readability Check
+  type: custom
+  engine: textstat
+  implementation: |
+    import textstat
+    def check_readability(text):
+        score = textstat.flesch_kincaid_grade(text)
+        return 6.0 <= score <= 12.0
+  mustBe: true
+
+- name: Content Completeness
+  type: library
+  rule: completeness
+  mustBeGreaterThan: 90
+  unit: percent
+
+- name: Language Consistency
+  type: custom
+  engine: langdetect
+  implementation: |
+    from langdetect import detect
+    def check_language(text):
+        return detect(text) == 'en'
+  mustBe: true
+
+```
+
+
 ### Using ODPS for Unstructured Data Quality
 
 #### 1. Data Quality Profiles for Unstructured Content
@@ -163,11 +194,115 @@ dataQuality:
 ```
 #### 2. Pricing Plans with Quality Tiers
 
+```yaml
+pricingPlans:
+  declarative:
+    en:
+    - name: Premium Text Analytics
+      priceCurrency: USD
+      price: 100
+      billingDuration: month
+      unit: recurring
+      dataQuality:
+        $ref: '#/product/dataQuality/declarative/premium'
+      offering:
+      - High-accuracy text processing
+      - Advanced NLP quality validation
+      - Real-time content scoring
+```
+
+### 3. Automated Quality Pipeline:
+
+```yaml
+# ODPS executable quality example
+executable:
+- dimension: accuracy
+  type: prometheus
+  spec: |
+    accuracy_score =
+      sum(text_quality_checks_passed) /
+      sum(text_quality_checks_total)
+  scheduler: cron
+  schedule: "0 2 * * *"
+
+```
+
+
+### Notes 
+
+
+#### Practical Implementation Strategies
+
+ Text-Specific Quality Metrics
+
+**Document-Level Metrics:**
+- Readability scores (Flesch-Kincaid, SMOG index)
+- Language detection confidence
+- Topic coherence measurements
+- Sentiment consistency analysis
+**Content-Level Metrics:**
+- Spelling and grammar accuracy
+- Entity recognition precision
+- Information extraction completeness
+- Duplicate content detection
+
+
+
+#### Integration with Quality Tools
+
+Both ODCS and ODPS will support integration with various quality tools:
+Text Analytics Platforms:
+- SodaCL for document-level quality checks
+- Custom NLP pipelines for content validation
+- Machine learning models for quality scoring
+Quality Monitoring Systems:
+- Lightup AI for unstructured data observability
+- Ataccama for document quality automation
+- Monte Carlo for unstructured data monitoring
+
+
+
+#### Best Practices and Recommendations
+ 1. Define Clear Quality Objectives
+- Establish baseline quality metrics for your unstructured data types
+- Set realistic targets based on data usage requirements
+- Align quality dimensions with business objectives and regulatory requirements
+
+ 2. Implement Layered Quality Checks
+- Structural validation: File format, encoding, basic completeness
+- Content validation: Language detection, readability, topic relevance  
+- Semantic validation: Entity extraction, relationship consistency, factual accuracy
+
+ 3. Leverage Referencing Capabilities
+- Create reusable quality profiles for different document types
+- Use ODPS referencing to maintain consistency across data products
+- Implement tiered quality levels for different service offerings
+
+ 4. Monitor and Iterate
+- Implement continuous monitoring of quality metrics
+- Use feedback loops to improve quality rules over time
+- Track quality trends to identify degradation patterns
+
+#### Challenges and Considerations
+Current Limitations
+
+Scale and Complexity: Unstructured data quality assessment is computationally intensive and requires specialized tools
+
+Subjectivity: Many quality dimensions for text are subjective and context-dependent
+
+Tool Integration: Limited standardization in unstructured data quality tools requires custom implementations
+
+
 
 
 ## Alternatives
 
 > Rejected alternative solutions and the reasons why.
+
+- Continue using custom NLP pipelines without standardization → rejected due to lack of interoperability.
+
+- Define a new unstructured-data-only framework → rejected to avoid duplication, since ODCS/ODPS already evolve to cover this domain
+
 
 ## Decision
 
@@ -177,6 +312,16 @@ dataQuality:
 
 > The consequences of this decision.
 
+- Positive: Standardized approach across teams, easier automation, stronger governance, and interoperability with industry tools.
+
+- Negative: Requires initial investment in defining reusable profiles, integrating tools, and adjusting existing pipelines.
+
+- Risk: Subjectivity in quality metrics for text data remains a challenge
+
+
 ## References
 
 > Prior art, inspiration, and other references you used to create this based on what's worked well before.
+
+
+
