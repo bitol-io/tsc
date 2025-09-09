@@ -12,11 +12,15 @@ Jira: **
 
 Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS) provide frameworks for defining and managing data quality. While both standards were originally designed for structured data, there is a need to accommodate the growing importance of unstructured data in modern data ecosystems.
 
+<br> 
+
 ### ODCS Enhancements for Unstructured Data
 
 - Enhanced schema structure that now supports not only relational databases but also hierarchical and complex data storage, streaming messages, and unstructured data
 - Expanded infrastructure definitions that better capture metadata around systems, applications, and platforms handling unstructured data
 - Improved data quality support compatible with virtually any data quality tool, making it easier to integrate unstructured data quality frameworks
+
+<br> 
 
 ### ODPS Ehnacements Unstructured Data Features
 
@@ -46,6 +50,8 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 
 ## Design and examples
 
+<br> 
+
 ### Defining Unstructured Data Quality Dimensions
 
 **Core Quality Dimensions for Unstructured Data** - Based on research and industry practices, both ODCS and ODPS can leverage established unstructured data quality dimensions:
@@ -63,6 +69,7 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 - Uniqueness: Absence of duplicate or redundant unstructured data
 - Conformity: Alignment with required standards, syntax, or domain values
 
+<br> 
 
 ### Using ODCS for Unstructured Data Quality
 #### 1. Schema Definition for Unstructured Data
@@ -144,6 +151,7 @@ quality:
 
 ```
 
+<br> 
 
 ### Using ODPS for Unstructured Data Quality
 
