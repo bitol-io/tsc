@@ -228,7 +228,8 @@ executable:
 
 ## Notes 
 
-\ 
+<br> 
+
 ### Text-Specific Quality Metrics
 **Document-Level Metrics:**
 - Readability scores (Flesch-Kincaid, SMOG index)
@@ -242,7 +243,8 @@ executable:
 - Duplicate content detection
 
 
-\ 
+<br> 
+
 ### Integration with Quality Tools
 
 Both ODCS and ODPS will support integration with various quality tools:
@@ -256,7 +258,8 @@ Both ODCS and ODPS will support integration with various quality tools:
     - Monte Carlo for unstructured data monitoring
 
 
-\ 
+<br> 
+
 ### Best Practices and Recommendations
 **1. Define Clear Quality Objectives**
 - Establish baseline quality metrics for your unstructured data types
@@ -278,7 +281,8 @@ Both ODCS and ODPS will support integration with various quality tools:
 - Use feedback loops to improve quality rules over time
 - Track quality trends to identify degradation patterns
 
-\ 
+<br> 
+
 ### Challenges and Considerations
 
 - **Scale and Complexity:** Unstructured data quality assessment is computationally intensive and requires specialized tools
