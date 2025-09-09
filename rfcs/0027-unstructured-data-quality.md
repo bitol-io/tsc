@@ -46,8 +46,9 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 
 ## Design and examples
 
-**Defining Unstructured Data Quality Dimensions** 
-Core Quality Dimensions for Unstructured Data
+### Defining Unstructured Data Quality Dimensions
+
+**Core Quality Dimensions for Unstructured Data**
 Based on research and industry practices, both ODCS and ODPS can leverage established unstructured data quality dimensions:
 
 **Primary Dimensions:**
@@ -231,7 +232,7 @@ executable:
 
 ### Practical Implementation Strategies
 
-#### Text-Specific Quality Metrics
+## Text-Specific Quality Metrics
 
 **Document-Level Metrics:**
 - Readability scores (Flesch-Kincaid, SMOG index)
@@ -260,7 +261,7 @@ Both ODCS and ODPS will support integration with various quality tools:
 
 
 
-#### Best Practices and Recommendations
+### Best Practices and Recommendations
 **1. Define Clear Quality Objectives**
 - Establish baseline quality metrics for your unstructured data types
 - Set realistic targets based on data usage requirements
@@ -281,7 +282,7 @@ Both ODCS and ODPS will support integration with various quality tools:
 - Use feedback loops to improve quality rules over time
 - Track quality trends to identify degradation patterns
 
-#### Challenges and Considerations
+### Challenges and Considerations
 
 **Scale and Complexity:** Unstructured data quality assessment is computationally intensive and requires specialized tools
 
