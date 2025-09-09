@@ -1,4 +1,4 @@
-# Title
+# Unstructured Data Quality for ODCS & ODPS
 
 > The champion is the person who is primarily supporting the RFC.
 
@@ -6,11 +6,11 @@ Champion: Vishwas Balakrishna, Gene Azad
 
 [Slack](https://data-mesh-learning.slack.com/team/U09APEKU21J)
 
-Jira: *replace this text with the link to the dedicated Jira ticket*.
+Jira: **
 
 ## Summary
 
-> Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS) provide frameworks for defining and managing data quality, including support for unstructured data. While both standards were originally designed for structured data, there is a need to accommodate the growing importance of unstructured data in modern data ecosystems.
+Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS) provide frameworks for defining and managing data quality, including support for unstructured data. While both standards were originally designed for structured data, there is a need to accommodate the growing importance of unstructured data in modern data ecosystems.
 
 ### ODCS Enhancements for Unstructured Data
 
@@ -41,7 +41,8 @@ Jira: *replace this text with the link to the dedicated Jira ticket*.
         - Improved governance and observability of unstructured data quality.
 
 > How does it align with our guiding values?
-    - This aligns with to guiding values of interoperability, automation ("everything-as-code"), and trust in data assets
+
+- This aligns with to guiding values of interoperability, automation ("everything-as-code"), and trust in data assets
 
 ## Design and examples
 
@@ -61,9 +62,6 @@ Based on research and industry practices, both ODCS and ODPS can leverage establ
 - Validity: Adherence to expected formats and standards for unstructured content
 - Uniqueness: Absence of duplicate or redundant unstructured data
 - Conformity: Alignment with required standards, syntax, or domain values
-
-
-### Implementation Approaches
 
 
 ### Using ODCS for Unstructured Data Quality
@@ -116,7 +114,7 @@ quality:
 
 ```
 
-### Example ODCS Quality Implementation
+#### Example ODCS Quality Implementation
 ```yaml
 quality:
 - name: Text Readability Check
@@ -211,7 +209,7 @@ pricingPlans:
       - Real-time content scoring
 ```
 
-### 3. Automated Quality Pipeline:
+#### 3. Automated Quality Pipeline:
 
 ```yaml
 # ODPS executable quality example
@@ -228,12 +226,12 @@ executable:
 ```
 
 
-### Notes 
+## Notes 
 
 
-#### Practical Implementation Strategies
+### Practical Implementation Strategies
 
- Text-Specific Quality Metrics
+#### Text-Specific Quality Metrics
 
 **Document-Level Metrics:**
 - Readability scores (Flesch-Kincaid, SMOG index)
@@ -251,11 +249,11 @@ executable:
 #### Integration with Quality Tools
 
 Both ODCS and ODPS will support integration with various quality tools:
-Text Analytics Platforms:
+**Text Analytics Platforms:**
 - SodaCL for document-level quality checks
 - Custom NLP pipelines for content validation
 - Machine learning models for quality scoring
-Quality Monitoring Systems:
+**Quality Monitoring Systems:**
 - Lightup AI for unstructured data observability
 - Ataccama for document quality automation
 - Monte Carlo for unstructured data monitoring
@@ -263,34 +261,33 @@ Quality Monitoring Systems:
 
 
 #### Best Practices and Recommendations
- 1. Define Clear Quality Objectives
+**1. Define Clear Quality Objectives**
 - Establish baseline quality metrics for your unstructured data types
 - Set realistic targets based on data usage requirements
 - Align quality dimensions with business objectives and regulatory requirements
 
- 2. Implement Layered Quality Checks
+**2. Implement Layered Quality Checks**
 - Structural validation: File format, encoding, basic completeness
 - Content validation: Language detection, readability, topic relevance  
 - Semantic validation: Entity extraction, relationship consistency, factual accuracy
 
- 3. Leverage Referencing Capabilities
+**3. Leverage Referencing Capabilities**
 - Create reusable quality profiles for different document types
 - Use ODPS referencing to maintain consistency across data products
 - Implement tiered quality levels for different service offerings
 
- 4. Monitor and Iterate
+**4. Monitor and Iterate**
 - Implement continuous monitoring of quality metrics
 - Use feedback loops to improve quality rules over time
 - Track quality trends to identify degradation patterns
 
 #### Challenges and Considerations
-Current Limitations
 
-Scale and Complexity: Unstructured data quality assessment is computationally intensive and requires specialized tools
+**Scale and Complexity:** Unstructured data quality assessment is computationally intensive and requires specialized tools
 
-Subjectivity: Many quality dimensions for text are subjective and context-dependent
+**Subjectivity:** Many quality dimensions for text are subjective and context-dependent
 
-Tool Integration: Limited standardization in unstructured data quality tools requires custom implementations
+**Tool Integration:** Limited standardization in unstructured data quality tools requires custom implementations
 
 
 
