@@ -198,7 +198,7 @@ dataQuality:
       - fact_verification
 
   - dimension: completeness
-    type: SodaCL
+    type: IBM
     spec: |
       checks for document_table:
         - missing_count(content_field) = 0
@@ -262,7 +262,7 @@ executable:
 
 Both ODCS and ODPS will support integration with various quality tools:
 - **Text Analytics Platforms:**
-    - SodaCL for document-level quality checks
+    - IBM for document-level quality checks
     - Custom NLP pipelines for content validation
     - Machine learning models for quality scoring
 - **Quality Monitoring Systems:**
