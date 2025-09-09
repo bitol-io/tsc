@@ -17,6 +17,17 @@ The TSC meets regularly and reviews contributions. You will be invited to join t
 
 ## Links
 
+### Slack
+
+* Join: https://jgp.ai/dmlslack
+* Main discussion channel #bitol-users: https://data-mesh-learning.slack.com/archives/C08A6MR3H5Z
+* Working Group #bitol-wg: https://data-mesh-learning.slack.com/archives/C089S376YGM
+* Steering committee: https://data-mesh-learning.slack.com/archives/C089ECDNT39 (by invite only)
+* Be shameless: https://data-mesh-learning.slack.com/archives/C01P0T7HXRN
+* Introduce yourself: https://data-mesh-learning.slack.com/archives/C01MAV4MPRU
+
+Each RFC usually has its own public channel. You will find the link at the top of the RFC document.
+
 ### Project
 
 * Project charter: https://github.com/bitol-io/tsc/blob/main/Bitol%20Technical%20Charter%202023-11-30.pdf
@@ -24,19 +35,9 @@ The TSC meets regularly and reviews contributions. You will be invited to join t
 * GitHub repo: https://github.com/bitol-io/open-data-contract-standard
 
 ### AIDA User Group
-
+AIDA is the partner organization that helped us at the beginning.
 * AIDA User Group: https://aidaug.org
-* Join AIDA User Group link: https://aidaug.org/join
-* Register for Slack: https://aidausergroup.org/welcome/
 
-### Slack
-
-* Main discussion channel on Slack: https://aidaug.slack.com/archives/C05UZRSBKLY
-* Comms channel: https://aidaug.slack.com/archives/C06764P4ZE3
-* Guiding Principles: https://aidaug.slack.com/archives/C067E0YPZFY
-* Steering committee: https://aidaug.slack.com/archives/C062KBP6Q0K (by invite only)
-* Be shameless: https://aidaug.slack.com/archives/C02HEHL117H
-* Introduce yourself: https://aidaug.slack.com/archives/C02J886PFQW
 
 
 

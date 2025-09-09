@@ -31,15 +31,9 @@ This RFC proposes to add a list of predefined data quality rules to the standard
 
 ## Design and examples
 
-> This is the bulk of the RFC.
-> Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used.
-> Offer at least two examples, one is minimalist, one is more structured.
+### Option A: Metrics-Style
 
-
-## Alternative 1: Metrics-Style
-
-
-### Design Principles
+#### Design Principles
 
 - Simple: The rule/metric should be simple and easy to understand.
 - Executable: The rules should be executable by data quality tools
@@ -47,7 +41,7 @@ This RFC proposes to add a list of predefined data quality rules to the standard
 - Threshold-based: The rule should have a threshold that defines the acceptable value. Tools can report how many rows/objects are violating the rule. Thresholds can be skipped if it is implicit from the rule.
 - Percentage and absolute values: The rule should be able to express both percentage and absolute values.
 
-### Quality Type
+#### Quality Type
 
 The quality type is `library`, which is also the default, if a `rule` (TBD: or `metric`) is defined.
 
@@ -65,7 +59,7 @@ quality:
     rule: nullValues # or metric: nullValues?
 ```
 
-### Predefined Rules/Metrics
+#### Predefined Rules/Metrics
 
 - Schema
   - Row Count (`rowCount`)
@@ -83,9 +77,9 @@ quality:
     - median (`median`)
 
 
-### Examples
+#### Examples
 
-#### Null values
+##### Null values
 
 ```yaml
 properties:
@@ -105,7 +99,7 @@ properties:
         description: "There must be less than 1% null values in the column."
 ```
 
-#### Missing values
+##### Missing values
 
 ```yaml
 properties:
@@ -120,8 +114,7 @@ properties:
       unit: absolute # absolute (default) or percent
 ```
 
-
-#### Valid values
+##### Valid values
 
 Level: String Property
 
@@ -147,9 +140,7 @@ properties:
        pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$'
 ```
 
-
-
-#### Duplicate values
+##### Duplicate values
 
 Level: Property
 
@@ -167,7 +158,6 @@ quality:
     description: "There must be less than 1% duplicate values in the column."
 ```
 
-
 Level: Schema
 
 ```yaml
@@ -180,8 +170,7 @@ quality:
       - order_id
 ```
 
-
-#### Row Count
+##### Row Count
 
 Level: Schema
 
@@ -192,7 +181,7 @@ quality:
     description: "There must be more than 1 million rows in the table."
 ```
 
-#### Avg
+##### Avg
 
 Level: Numeric Property
 
@@ -208,10 +197,9 @@ properties:
 
 same for median, max, min, sum?
 
+### Option B: Verb-Style
 
-## Alternative 2: Verb-Style
-
-### Design Principles
+#### Design Principles
 
 - Simple: The rule should be simple and easy to understand.
 - Executable: The rules should be executable by data quality tools
@@ -220,7 +208,7 @@ same for median, max, min, sum?
 - Rules can have `arguments` (an object of key value entries)
 
 
-### Quality Type
+#### Quality Type
 
 The quality type is `library`, which is also the default, if a `rule` is defined.
 
@@ -237,7 +225,7 @@ quality:
   - rule: hasNoNullValues
 ```
 
-### Predefined Rules
+#### Predefined Rules
 
 | Level    | Rule                  | Arguments                        |
 |----------|------------------------|-----------------------------------|
@@ -251,11 +239,9 @@ quality:
 | Property | `isOlderThan`            | `days`, `seconds`                 |
 | Property | `isNotOlderThan`         | `days`, `seconds`                 |
 
+#### Examples
 
-
-### Examples
-
-#### Row count
+##### Row count
 
 ```yaml
 schema:
@@ -267,7 +253,7 @@ schema:
     description: "The dataset must contain more than 1000 rows."
 ```
 
-#### Compound Uniqueness
+##### Compound Uniqueness
 
 ```
 schema:
@@ -279,7 +265,7 @@ schema:
     description: "The combination of tenant_id and order_id must be unique across the dataset."
 ```
 
-#### Null values
+##### Null values
 
 ```yaml
 properties:
@@ -289,7 +275,7 @@ properties:
         description: "There must be no null values in the column."
 ```
 
-#### Allowed values
+##### Allowed values
 
 ```yaml
 properties:
@@ -301,7 +287,7 @@ properties:
         description: "Status must be one of the predefined values."
 ```
 
-#### Uniqueness
+##### Uniqueness
 
 ```yaml
 properties:
@@ -311,7 +297,7 @@ properties:
         description: "Customer IDs must be unique."
 ```
 
-#### Age checks
+##### Age checks
 
 ```yaml
 properties:
@@ -327,7 +313,7 @@ properties:
         description: "Records must not be older than 1 year."
 ```
 
-#### Aggregations
+##### Aggregations
 
 ```yaml
 properties:
@@ -353,9 +339,9 @@ properties:
         description: "The median salary must not be 0."
 ```
 
-## Optional A: Value Checks
+### Option C: Value Checks
 
-### Values checks
+#### Values checks
 
 We could allow simple value checks without an explicit rule. These operators already exists, but can now be used to compare the numeric values in a numeric property.
 
@@ -368,7 +354,7 @@ We could allow simple value checks without an explicit rule. These operators alr
   - `mustBeBetween`
   - `mustNotBeBetween`
 
-#### Example
+##### Example
 
 ```yaml
 properties:
@@ -376,6 +362,167 @@ properties:
     quality:
       - mustBeGreaterThan: 1.0
         description: "The minimum price is $1"
+```
+
+### Option D: Consensus
+
+#### Design Principles
+
+- **Simple**: The rule/metric should be simple and easy to understand.
+- **Executable**: The rules should be executable by data quality tools
+- **Metrics-based**: The rules should be defined in a way to result in a numeric value that can be compared to a threshold
+- **Threshold-based**: The rule should have a threshold that defines the acceptable value. Tools can report how many rows/objects are violating the rule. Thresholds can be skipped if it is implicit from the rule.
+- **Percentage and absolute values**: The rule should be able to express both percentage and absolute values.
+
+#### Quality Type
+
+The quality type is `library`, which is also the default, if a `rule` (TBD: or `metric`) is defined.
+
+---
+**Vote: `rule` or `metric`.**
+
+We already have `rule`, if we decide to `metric`, we will have to deprecate `rule`.
+
+---
+
+```yaml
+quality:
+  - type: library #Optional
+    rule: nullValues # or metric: nullValues?
+```
+
+#### Predefined Rules/Metrics
+
+- Rules/Metrics at the **Schema** level
+  - Row Count (`rowCount`)
+  - Unique/duplicates (`duplicateValues`)
+
+- Rules/Metrics at the **Property** level
+  - Null values (`nullValues`)
+  - Missing values (empty strings, etc.) (`missingValues`)
+  - Unique/duplicates (`duplicateValues`)
+  - Valid values (enum, regex, etc.) (`invalidValues`)
+
+#### Examples
+
+##### Null values
+
+Check that the cound of `null` values are within range.
+
+```yaml
+properties:
+  - name: order_id
+    quality:
+      - rule: nullValues 
+        mustBe: 0
+        unit: rows
+        description: "There must be no null values in the column."
+      - rule: nullValues
+        mustBeLessThan: 10
+        unit: rows
+        description: "There must be less than 10 null values in the column."
+      - rule: nullValues
+        mustBeLessThan: 1
+        unit: percent
+        description: "There must be less than 1% null values in the column."
+```
+
+##### Missing values
+
+Check that the missing values are within range.
+
+```yaml
+properties:
+  - name: email_address
+    quality:
+    - rule: missingValues
+      arguments:
+        missingValues: [null, '', 'N/A', 'n/a']
+      mustBeLessThan: 100
+      unit: rows # rows (default) or percent
+```
+
+##### Valid values
+
+Check that the value is within a defined set or matching a pattern.
+
+Level: String Property
+
+```yaml
+properties:
+  - name: line_item_unit
+    quality:
+     - rule: invalidValues
+       arguments:
+         validValues: ['pounds', 'kg']
+       mustBeLessThan: 5
+       unit: rows
+```
+
+Using a pattern:
+
+```yaml
+properties:
+  - name: iban
+    quality:
+     - rule: noInvalidValues
+       mustBe: 0
+       description: "The value must be an IBAN."
+       arguments:
+         pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$'
+```
+
+##### Duplicate values
+
+Level: Property
+
+```yaml
+quality:
+  - rule: duplicateValues 
+    mustBe: 0 
+    description: "There must be no duplicate values in the column."
+  - rule: duplicateValues
+    mustBeLessThan: 10
+    description: "There must be less than 10 duplicate values in the column."
+  - rule: duplicateValues
+    mustBeLessThan: 1
+    unit: percent
+    description: "There must be less than 1% duplicate values in the column."
+```
+
+Level: Schema
+
+```yaml
+quality:
+  - rule: duplicateValues
+    mustBe: 0 
+    description: "There must be no duplicate values for a specific tenant."
+    arguments:
+      properties: # Properties refer to the property in the schema.
+        - tenant_id
+        - order_id
+```
+
+##### Row Count
+
+Level: Schema
+
+```yaml
+quality:
+  - rule: rowCount
+    mustBeGreaterThan: 1000000
+    description: "There must be more than 1 million rows in the table."
+```
+
+```yaml
+quality:
+  - rule: rowCount
+    mustBeGreaterThan: 5
+    unit: percent
+    description: "There must be at least 5% more rows than 24h ago."
+    arguments:
+      period: 24
+      unit: h
 ```
 
 ## Consequences
