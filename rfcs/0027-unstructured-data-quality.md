@@ -9,6 +9,7 @@ Champion: Vishwas Balakrishna, Gene Azad
 Jira: **
 
 ## Summary
+> One paragraph explanation of the RFC.
 
 Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS) provide frameworks for defining and managing data quality. While both standards were originally designed for structured data, there is a need to accommodate the growing importance of unstructured data in modern data ecosystems.
 
@@ -53,7 +54,9 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 
 ## Design and examples
 
-<br> 
+> This is the bulk of the RFC. Explain the design in enough detail for somebody familiar with data contracts and the standard to understand. This should get into specifics and corner-cases, and include examples of how this is to be used. Offer at least two examples, one is minimalist, one is more structured.
+
+
 
 ### Defining Unstructured Data Quality Dimensions
 
