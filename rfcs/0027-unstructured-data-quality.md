@@ -33,7 +33,8 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 
 ## Motivation
 
-> Why are we doing this? What use cases does it support? What is the expected outcome?
+> Why are we doing this? What use cases does it support? What is the expected outcome? How does it align with our guiding values?
+
 
 - Unstructured data (e.g., text, documents, multimedia) now constitutes the majority of enterprise data, but traditional data quality frameworks often fall short in addressing it.
     - We are doing this RFC to:
@@ -46,7 +47,6 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
         - Reusable quality profiles and schemas that align with ODCS/ODPS standards.
         - Improved governance and observability of unstructured data quality.
 
-> How does it align with our guiding values?
 
 - This aligns with to guiding values of interoperability, automation ("everything-as-code"), and trust in data assets
 
@@ -243,8 +243,6 @@ executable:
 
 ## Notes 
 
-<br> 
-
 ### Text-Specific Quality Metrics
 **Document-Level Metrics:**
 - Readability scores (Flesch-Kincaid, SMOG index)
@@ -305,8 +303,6 @@ Both ODCS and ODPS will support integration with various quality tools:
 - **Subjectivity:** Many quality dimensions for text are subjective and context-dependent
 
 - **Tool Integration:** Limited standardization in unstructured data quality tools requires custom implementations
-
-
 
 
 <br> 
