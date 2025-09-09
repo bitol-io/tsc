@@ -28,6 +28,7 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 - Flexible data quality profiles that can be applied to various data types including text, documents, and multimedia
 - Everything-as-Code philosophy enabling automated quality validation for unstructured content
 
+<br> 
 
 ## Motivation
 
@@ -47,6 +48,8 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 > How does it align with our guiding values?
 
 - This aligns with to guiding values of interoperability, automation ("everything-as-code"), and trust in data assets
+
+<br> 
 
 ## Design and examples
 
@@ -233,6 +236,7 @@ executable:
 
 ```
 
+<br> 
 
 ## Notes 
 
@@ -302,7 +306,7 @@ Both ODCS and ODPS will support integration with various quality tools:
 
 
 
-
+<br> 
 
 ## Alternatives
 
