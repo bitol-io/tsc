@@ -228,6 +228,7 @@ executable:
 
 ## Notes 
 
+\ 
 ### Text-Specific Quality Metrics
 **Document-Level Metrics:**
 - Readability scores (Flesch-Kincaid, SMOG index)
@@ -241,21 +242,21 @@ executable:
 - Duplicate content detection
 
 
-
+\ 
 ### Integration with Quality Tools
 
 Both ODCS and ODPS will support integration with various quality tools:
-**Text Analytics Platforms:**
-- SodaCL for document-level quality checks
-- Custom NLP pipelines for content validation
-- Machine learning models for quality scoring
-**Quality Monitoring Systems:**
-- Lightup AI for unstructured data observability
-- Ataccama for document quality automation
-- Monte Carlo for unstructured data monitoring
+- **Text Analytics Platforms:**
+    - SodaCL for document-level quality checks
+    - Custom NLP pipelines for content validation
+    - Machine learning models for quality scoring
+- **Quality Monitoring Systems:**
+    - Lightup AI for unstructured data observability
+    - Ataccama for document quality automation
+    - Monte Carlo for unstructured data monitoring
 
 
-
+\ 
 ### Best Practices and Recommendations
 **1. Define Clear Quality Objectives**
 - Establish baseline quality metrics for your unstructured data types
@@ -277,6 +278,7 @@ Both ODCS and ODPS will support integration with various quality tools:
 - Use feedback loops to improve quality rules over time
 - Track quality trends to identify degradation patterns
 
+\ 
 ### Challenges and Considerations
 
 - **Scale and Complexity:** Unstructured data quality assessment is computationally intensive and requires specialized tools
