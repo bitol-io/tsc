@@ -23,7 +23,7 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 
 <br> 
 
-### ODPS Ehnacements Unstructured Data Features
+### ODPS Ehnacements Unstructured Data 
 
 - Machine-readable metadata definitions that can describe unstructured data products
 - Flexible data quality profiles that can be applied to various data types including text, documents, and multimedia
