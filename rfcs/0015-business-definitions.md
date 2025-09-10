@@ -1,6 +1,6 @@
 # Business Definitions
 
-Champions: Martin, Simon
+Champions: Martin, Simon, jgp
 
 Status: VERY EARLY WIP
 
