@@ -2,7 +2,9 @@
 
 > The champion is the person who is primarily supporting the RFC.
 
-Champion: 
+Champion: *The champion is a member of the TSC*.
+
+Authors: *List of authors, if different than the champion*.
 
 Slack: *replace this text with the link to the dedicated Slack channel*.
 
