@@ -59,7 +59,7 @@ Recommendation to derive a teamId from the teamName using some form of uri.
 ```yaml
 team:
   name: my-team
-  description: The team owning the data product
+  description: The team owning the data contract
   members:
   - username: ceastwood
     role: Data Scientist
