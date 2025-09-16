@@ -80,6 +80,9 @@ Both the Open Data Contract Standard (ODCS) and Open Data Product Standard (ODPS
 <br> 
 
 ### Using ODCS for Unstructured Data Quality
+
+Note: please use Bitol ODPS: https://github.com/bitol-io/open-data-product-standard.
+
 #### 1. Schema Definition for Unstructured Data
 
 ```yaml
@@ -105,6 +108,7 @@ schema:
         min_score: 6.0
         max_score: 12.0
 ```
+
 #### 2. Data Quality Rules for Text Content
 ```yaml
 quality:
@@ -126,7 +130,6 @@ quality:
       - sentiment_coherence
       - language_detection
       - topic_relevance
-
 ```
 
 #### Example ODCS Quality Implementation
@@ -159,7 +162,6 @@ quality:
 
 ```
 
-<br> 
 
 ### Using ODPS for Unstructured Data Quality
 
