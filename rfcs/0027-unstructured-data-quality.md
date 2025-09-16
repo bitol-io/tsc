@@ -2,7 +2,9 @@
 
 > The champion is the person who is primarily supporting the RFC.
 
-Champion: Vishwas Balakrishna, Gene Azad
+Authors: Vishwas Balakrishna, Gene Azad
+
+Champion: Jean-Georges Perrin
 
 [Slack](https://data-mesh-learning.slack.com/team/U09APEKU21J)
 
