@@ -44,7 +44,7 @@ team:
 
 Team name is unique within an organization (context).
 
-### Option A: Simple solution (Non-breaking Change: v3.1, recommended)
+### Option A: Simple solution
 
 Proposed solution: a new field to identify the owning team as a first class citizen.
 
@@ -54,7 +54,7 @@ owner: my-team
 
 Recommendation to derive a teamId from the teamName using some form of uri.
 
-### Option B: Introduce a team object 
+### Option B: Introduce a team object with members
 
 ```yaml
 team:
