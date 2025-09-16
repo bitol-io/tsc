@@ -525,6 +525,10 @@ quality:
       unit: h
 ```
 
+## Decision
+
+Option D was approved by the TSC on 2025-09-16.
+
 ## Consequences
 
 > The consequences of this decision.
