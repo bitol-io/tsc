@@ -54,13 +54,12 @@ owner: my-team
 
 Recommendation to derive a teamId from the teamName using some form of uri.
 
-### Option B: Introduce a team object (Breaking Change: v4)
+### Option B: Introduce a team object 
 
 ```yaml
 team:
   name: my-team
-  # potential to add more properties to the team (name, description, ...)
-  # lookup members via a system
+  description: The team owning the data product
   members:
   - username: ceastwood
     role: Data Scientist
@@ -72,10 +71,11 @@ team:
     dateIn: 2022-10-01
   - username: daustin
     role: Owner
-    comment: Keeper of the grail
     name: David Austin
     dateIn: 2022-10-01
 ```
+
+While this structure would be a breaking change, we can keep conformity with v3.0, by adding this structure as an alternative to JSON Schema, using `oneOf`/`anyOf`.
 
 ### Option C: Do nothing
 
