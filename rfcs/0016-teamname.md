@@ -137,6 +137,48 @@ team:
   replacedByUsername: mhopper
 ```
 
+### Option G: Introduce a team object with members
+
+```yaml
+team:
+  name: my-team
+  description: The team owning the data contract
+  members:
+  - username: mhopper
+    role: Data Scientist
+    dateIn: 2022-10-01
+  - username: daustin
+    role: Owner
+    name: David Austin
+    dateIn: 2022-10-01
+  - username: ceastwood
+    role: Data Scientist
+    dateIn: 2022-08-02
+    dateOut: 2022-10-01
+    replacedByUsername: mhopper
+```
+
+Or -- deprecated in v3.1.0.
+
+```yaml
+team:
+- username: ceastwood
+  role: Data Scientist
+  dateIn: 2022-08-02
+  dateOut: 2022-10-01
+  replacedByUsername: mhopper
+- username: mhopper
+  role: Data Scientist
+  dateIn: 2022-10-01
+- username: daustin
+  role: Owner
+  name: David Austin
+  dateIn: 2022-10-01
+```
+
+While this structure would be a breaking change, we can keep conformity with v3.0, by adding this structure as an alternative to JSON Schema, using `oneOf`/`anyOf`.
+
+
 ## References
 
 - The Data Contract Specification uses an `owner` field at the top level.
