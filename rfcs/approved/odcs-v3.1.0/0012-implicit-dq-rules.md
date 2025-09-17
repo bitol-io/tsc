@@ -29,6 +29,11 @@ This RFC proposes to add a list of predefined data quality rules to the standard
   - Common set of rules across all data contracts.
   - Agnostic to the underlying data storage and data quality engine.
 
+## Decision
+
+Approved Option D 'Consensus' during TSC on 2025-09-16
+
+
 ## Design and examples
 
 ### Option A: Metrics-Style
