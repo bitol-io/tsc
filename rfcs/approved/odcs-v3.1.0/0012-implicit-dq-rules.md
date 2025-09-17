@@ -31,12 +31,12 @@ This RFC proposes to add a list of predefined data quality rules to the standard
 
 ## Decision
 
-Approved Option D 'Consensus' during TSC on 2025-09-16
+Option D was approved by the TSC on 2025-09-16.
 
 
 ## Design and examples
 
-### Option A: Metrics-Style
+### Option A: Metrics-Style (rejected)
 
 #### Design Principles
 
@@ -202,7 +202,7 @@ properties:
 
 same for median, max, min, sum?
 
-### Option B: Verb-Style
+### Option B: Verb-Style (rejected)
 
 #### Design Principles
 
@@ -344,7 +344,7 @@ properties:
         description: "The median salary must not be 0."
 ```
 
-### Option C: Value Checks
+### Option C: Value Checks (rejected)
 
 #### Values checks
 
@@ -381,52 +381,46 @@ properties:
 
 #### Quality Type
 
-The quality type is `library`, which is also the default, if a `rule` (TBD: or `metric`) is defined.
-
----
-**Vote: `rule` or `metric`.**
-
-We already have `rule`, if we decide to `metric`, we will have to deprecate `rule`.
-
----
+The quality type is `library`, which is also the default, if a `metric` is defined.
 
 ```yaml
 quality:
-  - type: library #Optional
-    rule: nullValues # or metric: nullValues?
+  - type: library # Optional
+    metric: nullValues
+    mustBe: 0
 ```
 
-#### Predefined Rules/Metrics
+#### Predefined Metrics
 
-- Rules/Metrics at the **Schema** level
+- Metrics at the **Schema** level
   - Row Count (`rowCount`)
-  - Unique/duplicates (`duplicateValues`)
+  - Duplicates (`duplicateValues`)
 
-- Rules/Metrics at the **Property** level
+- Metrics at the **Property** level
   - Null values (`nullValues`)
   - Missing values (empty strings, etc.) (`missingValues`)
-  - Unique/duplicates (`duplicateValues`)
-  - Valid values (enum, regex, etc.) (`invalidValues`)
+  - Duplicates (`duplicateValues`)
+  - Invalid values (enum, regex, etc.) (`invalidValues`)
 
 #### Examples
 
 ##### Null values
 
-Check that the cound of `null` values are within range.
+Check that the counr of `null` values are within range.
 
 ```yaml
 properties:
   - name: order_id
     quality:
-      - rule: nullValues 
+      - metric: nullValues 
         mustBe: 0
         unit: rows
         description: "There must be no null values in the column."
-      - rule: nullValues
+      - metric: nullValues
         mustBeLessThan: 10
         unit: rows
         description: "There must be less than 10 null values in the column."
-      - rule: nullValues
+      - metric: nullValues
         mustBeLessThan: 1
         unit: percent
         description: "There must be less than 1% null values in the column."
@@ -440,7 +434,7 @@ Check that the missing values are within range.
 properties:
   - name: email_address
     quality:
-    - rule: missingValues
+    - metric: missingValues
       arguments:
         missingValues: [null, '', 'N/A', 'n/a']
       mustBeLessThan: 100
@@ -457,7 +451,7 @@ Level: String Property
 properties:
   - name: line_item_unit
     quality:
-     - rule: invalidValues
+     - metric: invalidValues
        arguments:
          validValues: ['pounds', 'kg']
        mustBeLessThan: 5
@@ -470,7 +464,7 @@ Using a pattern:
 properties:
   - name: iban
     quality:
-     - rule: noInvalidValues
+     - metric: invalidValues
        mustBe: 0
        description: "The value must be an IBAN."
        arguments:
@@ -483,13 +477,13 @@ Level: Property
 
 ```yaml
 quality:
-  - rule: duplicateValues 
+  - metric: duplicateValues 
     mustBe: 0 
     description: "There must be no duplicate values in the column."
-  - rule: duplicateValues
+  - metric: duplicateValues
     mustBeLessThan: 10
     description: "There must be less than 10 duplicate values in the column."
-  - rule: duplicateValues
+  - metric: duplicateValues
     mustBeLessThan: 1
     unit: percent
     description: "There must be less than 1% duplicate values in the column."
@@ -499,7 +493,7 @@ Level: Schema
 
 ```yaml
 quality:
-  - rule: duplicateValues
+  - metric: duplicateValues
     mustBe: 0 
     description: "There must be no duplicate values for a specific tenant."
     arguments:
@@ -514,14 +508,14 @@ Level: Schema
 
 ```yaml
 quality:
-  - rule: rowCount
+  - metric: rowCount
     mustBeGreaterThan: 1000000
     description: "There must be more than 1 million rows in the table."
 ```
 
 ```yaml
 quality:
-  - rule: rowCount
+  - metric: rowCount
     mustBeGreaterThan: 5
     unit: percent
     description: "There must be at least 5% more rows than 24h ago."
@@ -530,9 +524,6 @@ quality:
       unit: h
 ```
 
-## Decision
-
-Option D was approved by the TSC on 2025-09-16.
 
 ## Consequences
 
