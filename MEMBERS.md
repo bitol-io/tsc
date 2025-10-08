@@ -4,7 +4,7 @@ In alphabetical order by first name.
 
 ## Technical Steering Committee (TSC)
 - Andrew Jones, GoCardless, GMT
-- Atanas Iliev, atanas@aidaug.org, Central European Time
+- Atanas Iliev, atanas.iliev.ai@gmail.com, Central European Time
 - Christian Foyer, chrfoyer@gmail.com, Systematic, Central European Time
 - Dirk Van de Poel, dirk.vandepoel@klarrio.com, Klarrio, Central European Time
 - Gene Stakhov, gstakhov@gmail.com, enChoice, Eastern Standard Time
