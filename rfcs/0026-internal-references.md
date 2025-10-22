@@ -53,6 +53,97 @@ Rationale:
 - Using optional IDs avoids forcing changes on all contracts while enabling robust internal links where needed
 - Array re-ordering does not break references
 
+#### Object Inventory
+
+This section documents all major objects and arrays within ODCS and ODPS, identifying their current primary/key fields and highlighting opportunities for `id`-based referencing.
+
+##### Open Data Contract Standard (ODCS) v3.1.0
+
+**Top-Level Arrays and Objects**
+
+| Object/Array | Current Primary Field | Field Type | Description |
+|--------------|----------------------|------------|-------------|
+| **servers** | `server` | string (required) | Identifier of the server |
+| **schema** | `name` | string (required) | Name of the schema object (table/object) |
+| **support** | `channel` | string (required) | Channel name or identifier |
+| **team** | `username` | string (required) | User's username or email (flat array of members) |
+| **roles** | `role` | string (required) | Name of the IAM role |
+| **slaProperties** | `property` | string (required) | Specific SLA property name |
+| **customProperties** | `property` | string (required) | Name of the custom property |
+
+**Nested Arrays within Schema**
+
+| Object/Array Path | Current Primary Field | Field Type | Description |
+|------------------|----------------------|------------|-------------|
+| **schema[].properties** | `name` | string (required) | Name of the property/column |
+| **schema[].properties[].properties** | `name` | string (required) | Nested properties (for object/array types) |
+| **schema[].quality** | `name` | string (optional) | Short name for the quality rule |
+| **schema[].properties[].quality** | `name` | string (optional) | Short name for the quality rule |
+| **schema[].relationships** | `from` + `to` | string/array (required) | Source and target references |
+| **schema[].properties[].relationships** | `to` | string/array (required) | Target reference (`from` is implicit) |
+
+**Objects with Optional Name Fields**
+
+| Object Type | Location | Name Field Status | Notes |
+|-------------|----------|------------------|-------|
+| **Quality rules** | `schema[].quality[]` or `schema[].properties[].quality[]` | `name` (optional) | Also has `metric` field; currently identified by position in array |
+| **AuthoritativeDefinition** | Multiple locations | No name field | Has `type` and `url` (both required) |
+| **TeamMember** | `team[]` | `name` (optional) | Primary key is `username` (required) |
+| **Relationship** | Schema or property level | No name field | Identified by `from`/`to` references |
+
+##### Open Data Product Standard (ODPS) v1.0.0
+
+**Top-Level Arrays and Objects**
+
+| Object/Array | Current Primary Field | Field Type | Description |
+|--------------|----------------------|------------|-------------|
+| **inputPorts** | `name` | string (required) | Name of the input port |
+| **outputPorts** | `name` | string (required) | Name of the output port |
+| **managementPorts** | `name` | string (required) | Endpoint identifier or unique name |
+| **support** | `channel` | string (required) | Channel name or identifier |
+| **team** | N/A (single object) | N/A | Container object, not an array |
+| **team.members** | `username` | string (required) | User's username or email |
+
+**Objects with Optional Name Fields**
+
+| Object Type | Location | Name Field Status | Notes |
+|-------------|----------|------------------|-------|
+| **Team** | `team` | `name` (optional) | Single object, not an array |
+| **TeamMember** | `team.members[]` | `name` (optional) | Primary key is `username` (required) |
+| **InputContract** | `outputPorts[].inputContracts[]` | No name field | Has `id` and `version` (both required) |
+| **SBOM** | `outputPorts[].sbom[]` | No name field | Has `type` and `url` |
+
+##### Candidates for `id` Field Support
+
+**High Priority** (Arrays with required primary fields that may need stable references):
+
+ODCS:
+- `servers[]` - current key: `server`
+- `schema[]` - current key: `name`
+- `schema[].properties[]` - current key: `name`
+- `schema[].quality[]` - current key: `name` (optional, problematic)
+- `schema[].properties[].quality[]` - current key: `name` (optional, problematic)
+- `support[]` - current key: `channel`
+- `roles[]` - current key: `role`
+- `slaProperties[]` - current key: `property`
+- `team[]` - current key: `username`
+
+ODPS:
+- `inputPorts[]` - current key: `name`
+- `outputPorts[]` - current key: `name`
+- `managementPorts[]` - current key: `name`
+- `support[]` - current key: `channel`
+- `team.members[]` - current key: `username`
+
+**Medium Priority** (Objects that appear in multiple locations):
+- `customProperties[]` - current key: `property`
+- `authoritativeDefinitions[]` - no current key (has `type` + `url`)
+
+**Low Priority** (Relationship objects):
+- `schema[].relationships[]` - identified by `from` + `to` combination
+- `schema[].properties[].relationships[]` - identified by `to` (`from` is implicit)
+
+
 #### Reference syntax
 
 References use a dot-notation anchored by section names and ids. General patterns:
@@ -76,6 +167,105 @@ Notes:
 - Prefer adding `id` to any array item that may be a reference target (e.g., a specific `quality` rule, a `schema` object, an SLA item)
 - Do not add `id` to simple leaf fields; add it only to the containing item
 - When both `id` and name-based shorthand exist, prefer `id` for long-term stability
+
+#### Naming consistency and migration path
+
+##### Current State
+
+ODCS currently has inconsistent primary key fields across different object types:
+- `schema[]` uses `name`
+- `servers[]` uses `server`
+- `support[]` uses `channel`
+- `roles[]` uses `role`
+- `slaProperties[]` uses `property`
+- `team[]` uses `username`
+
+Additionally, schema elements can have three different name-related fields (`name`, `businessName`, `physicalName`) with unclear semantic boundaries.
+
+##### v3.X.0 Approach (This RFC)
+
+To maintain backward compatibility while enabling stable references:
+
+1. **Add optional `id` field** to all referenceable objects
+2. **Keep all existing primary fields** (`name`, `server`, `channel`, `role`, `property`, `username`, etc.)
+3. **Keep `businessName` and `physicalName`** for backward compatibility
+4. **Clarify semantic roles**:
+
+```yaml
+# Recommended pattern for v3.2.0:
+schema:
+  - id: customer_data          # Optional: Stable technical identifier for references
+    name: customers             # Required: Logical name (current primary key)
+    businessName: Customers     # Optional: Business-facing display name
+    physicalName: cust_tbl_v2   # Optional: Physical implementation name
+```
+
+**Semantic guidance for v3.X.0:**
+- `id` - Stable technical identifier (optional, recommended for all references)
+- `name`/`server`/`channel`/etc. - Logical identifier (required, existing primary keys)
+- `businessName` - Business-facing display name (optional)
+- `physicalName` - Physical implementation name (optional)
+
+**Recommendation:** Authors should prefer `id`-based references for long-term stability, as primary key fields may change during refactoring.
+
+##### v4.0.0 Future Direction
+
+To achieve full consistency across ODCS, the following breaking changes are recommended for v4.0.0:
+
+1. **Make `id` required** on all referenceable objects
+2. **Standardize naming fields** across all object types:
+   - `id` (required) - Stable technical identifier for references
+   - `name` (required) - Canonical human-readable name
+   - `physicalName` (optional) - Physical implementation name when it differs from logical name
+
+3. **Remove inconsistent fields: (DEPRECATED)** 
+   - `businessName` (redundant with `name`)
+   - `server` (replaced by `name`)
+   - `channel` (replaced by `name`)
+   - `role` (replaced by `name`)
+   - `property` (replaced by `name`)
+
+```yaml
+# Future v4.0.0 pattern:
+schema:
+  - id: customer_data          # Required: Stable identifier for references
+    name: Customers             # Required: The canonical human-readable name
+    physicalName: cust_tbl_v2   # Optional: Physical implementation when different
+
+servers:
+  - id: prod_snowflake         # Required: Stable identifier
+    name: snowflake-prod        # Required: Human-readable name (was "server" field)
+    type: snowflake
+    physicalName: sf_prod_01    # Optional: Physical server identifier
+
+support:
+  - id: primary_slack          # Required: Stable identifier
+    name: "#data-contracts"     # Required: Human-readable name (was "channel" field)
+    url: https://...
+```
+
+**Benefits of v4.0.0 approach:**
+- Single stable identifier (`id`) for all references
+- One canonical human name (`name`) for all objects
+- Clear separation between logical and physical naming
+- Consistent structure across all object types
+- Simpler mental model: one ID, one name, one physical name
+
+##### Migration Strategy
+
+**v3.2.0 to v4.0.0 migration path:**
+
+1. Start adding `id` fields to objects in v3.2.0 contracts
+2. Migrate references to use `id`-based syntax
+3. In v4.0.0, transform existing primary keys:
+   - `server` → `name`
+   - `channel` → `name`
+   - `role` → `name`
+4. Set `businessName` values to `name` where they differ
+5. Make `id` required
+6. Remove `businessName`
+
+This provides immediate value from stable `id` references while establishing a clear path to full consistency in v4.0.0.
 
 ### Examples
 
