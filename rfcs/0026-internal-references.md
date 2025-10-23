@@ -19,7 +19,10 @@ Adding the formal capability to establish links between elements witin or betwee
 - Describe lineages between technical elements (e. g. on field or table level) within a system landscape if this could not be retrieved or maintained otherwise.
 - Describe lineages between the elements of a pure non-technical business data model on arbitrary aggregations levels. This could be very useful for complex organisations acting in highly regulated industries, like banking or pharma.
 - Keep business data definitions in separate and lean data contracts for business departments use only. These definitions are then linked to from within other data contracts of pure technical nature owned by IT departments in a potential 1:n manner. This is the ONLY way to avoid redundant business documentations in complex system landscapes where the data travel between different systems (e. g. from a SAP EWM through a DWH into a BI tool).
-- Maintain very abstract Data Governance models whose elements describe C-level responsibilities for data assest. Linking business data models and/or technical data models to the elements of DG models establish corresponding responsibilities.    
+- Human readable und primary-key-like links to Business Data definitions could be used within technical environments (e. g. within comments in a Snowflake environment) to be read out by meta data crawlers to easily join the definitons in a Data Catalog.
+- Maintain very abstract Data Governance models whose elements describe C-level responsibilities for data assest. Linking business data models and/or technical data models to the elements of DG models establish corresponding responsibilities.
+- If data quality rules are maintained within data contracts these can be easily referred to from arbitrary DQ engines.
+
 
 ## Design and examples
 
@@ -28,12 +31,12 @@ Original work and design was completed under RFC-0009b - however at the TSC
 
 This RFC continues the search for the correct internal reference structure. 
 
-### Option: ID-based internal references (proposed)
+### Option E: ID-based internal references (proposed)
 
 Add an optional `id` field to most top-level and repeated objects in an ODCS contract. Internal references will use these `id` values instead of JSON Pointers/Paths to uniquely identify target elements.
 
 Key goals:
-- Keep authoring simple and human-friendly
+- Keep authoring simple and human-readable to the greatest extent
 - Support addressing specific items within arrays
 - Avoid brittleness from re-ordering arrays
 
@@ -53,7 +56,7 @@ Rules:
 - `id` SHOULD be stable across versions to preserve referential integrity
 
 Rationale:
-- Using optional IDs avoids forcing changes on all contracts while enabling robust internal links where needed
+- Using optional IDs avoids forcing changes on all contracts while enabling robust internal and external links where needed
 - Array re-ordering does not break references
 
 #### Object Inventory
