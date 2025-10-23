@@ -10,13 +10,16 @@ Jira: *replace this text with the link to the dedicated Jira ticket*.
 
 ## Summary
 
-We have a need to be able to identify the specific items within a data contract. 
+We have a need to be able to identify the specific items within a data contract. At the same time this is the prerequisit to link between elements living in different data contracts.
 
 
 ## Motivation
 
-> Why are we doing this? What use cases does it support? What is the expected outcome?
-> How does it align with our guiding values?
+Adding the formal capability to establish links between elements witin or between contracts dramatically extends the versatility of the entire standard. Potential use cases include but are not limited to:
+- Describe lineages between technical elements (e. g. on field or table level) within a system landscape if this could not be retrieved or maintained otherwise.
+- Describe lineages between the elements of a pure non-technical business data model on arbitrary aggregations levels. This could be very useful for complex organisations acting in highly regulated industries, like banking or pharma.
+- Keep business data definitions in separate and lean data contracts for business departments use only. These definitions are then linked to from within other data contracts of pure technical nature owned by IT departments in a potential 1:n manner. This is the ONLY way to avoid redundant business documentations in complex system landscapes where the data travel between different systems (e. g. from a SAP EWM through a DWH into a BI tool).
+- Maintain very abstract Data Governance models whose elements describe C-level responsibilities for data assest. Linking business data models and/or technical data models to the elements of DG models establish corresponding responsibilities.    
 
 ## Design and examples
 
