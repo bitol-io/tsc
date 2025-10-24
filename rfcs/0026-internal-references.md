@@ -273,6 +273,268 @@ support:
 
 This provides immediate value from stable `id` references while establishing a clear path to full consistency in v4.0.0.
 
+#### Building the relationships block
+
+The `relationships` block enables three fundamental operations between data contract elements: enforcing structural constraints, documenting relationships, and importing reusable definitions.
+
+##### Relationship types
+
+ODCS | ODPS supports three base relationship types:
+
+| Type | Purpose | `to` field | `from` field | Effect |
+|------|---------|------------|--------------|--------|
+| `foreignKey` | Enforces referential integrity | Required | Context-dependent* | Structural constraint validation |
+| `relatesTo` | Documents semantic relationships | Required | Never used | Informational only (lineage, documentation) |
+| `imports` | Imports/transclude external content | Required (import source) | Never used | Content is merged as if locally defined |
+
+*At property level, `from` is implicit. At schema level, `from` is required.
+
+##### Structure
+
+```yaml
+relationships:
+  - type: foreignKey|relatesTo|imports
+    to: <target-reference>           # Always required
+    from: <source-reference>         # Only for schema-level foreignKey
+    description: <human-readable-text>
+    customProperties:
+      - property: <name>
+        value: <value>
+```
+
+##### Field definitions
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | enum | Yes | One of: `foreignKey`, `relatesTo`, `imports` |
+| `to` | string or array | Yes | Target element reference. For `foreignKey` and `relatesTo`, this is the related element. For `imports`, this is the source to import from. |
+| `from` | string or array | Context-dependent* | Source element reference. Only used for schema-level `foreignKey`. At property level, `from` is implicit. Never used for `relatesTo` or `imports`. |
+| `description` | string | No | Human-readable explanation of the relationship |
+| `customProperties` | array | No | Additional metadata following standard custom properties structure |
+
+*`from` is only used for schema-level `foreignKey` relationships. It is implicit at property level and never used for `relatesTo` or `imports`.
+
+##### Where relationships can be defined
+
+Relationships can be defined at two levels:
+
+**Property level** (within `schema[].properties[]`):
+```yaml
+properties:
+  - name: customer_id
+    id: cust_id
+    relationships:
+      - type: foreignKey
+        to: schema.customers.properties.id  # 'from' is implicit
+```
+
+**Schema level** (within `schema[]`):
+```yaml
+schema:
+  - id: orders
+    relationships:
+      - type: foreignKey
+        from: schema.orders.properties.customer_id  # 'from' required at this level
+        to: schema.customers.properties.id
+```
+
+Additionally, relationships can be used in other sections (e.g., `slaProperties`, `customProperties`) to reference schema elements or external definitions.
+
+##### Type 1: foreignKey (Structural Constraint)
+
+Enforces referential integrity between data elements. Values in the source field must exist in the target field.
+
+**When to use:**
+- Primary key to foreign key relationships
+- Lookup table validations
+- Parent-child hierarchies
+
+**Common patterns:**
+```yaml
+# Property level (most common)
+properties:
+  - name: customer_id
+    relationships:
+      - type: foreignKey
+        to: schema.customers.properties.id
+        description: "Must reference valid customer"
+
+# Composite keys
+properties:
+  - name: order_id
+    relationships:
+      - type: foreignKey
+        to: ['schema.orders.properties.tenant_id', 'schema.orders.properties.order_num']
+        description: "Composite foreign key"
+
+# Schema level (explicit from/to)
+schema:
+  - id: orders
+    relationships:
+      - type: foreignKey
+        from: schema.orders.properties.customer_id
+        to: schema.customers.properties.id
+```
+
+##### Type 2: relatesTo (Semantic Documentation)
+
+Documents relationships for lineage, governance, and business context. Does not enforce constraints or import content—purely informational.
+
+**When to use:**
+- Data lineage tracking (derived from, copied from, transformed by)
+- Business ↔ technical mapping (implements business definitions)
+- Documenting data flows
+- Governance ownership
+- Semantic relationships (synonyms, equivalents, dependencies)
+
+**Examples:**
+```yaml
+# Data lineage - derived field
+properties:
+  - name: monthly_total
+    relationships:
+      - type: relatesTo
+        to: schema.daily_sales.properties.amount
+        description: "Derived from: Aggregated SUM of daily transaction amounts"
+
+# Business definition mapping
+schema:
+  - id: customer_table
+    relationships:
+      - type: relatesTo
+        to: business-glossary.yaml#schema.customer_concept
+        description: "Implements the Customer business entity concept"
+
+# Multiple semantic relationships
+properties:
+  - name: email
+    relationships:
+      - type: relatesTo
+        to: crm-system.yaml#schema.contacts.properties.email
+        description: "Copied from CRM system via nightly ETL"
+
+      - type: relatesTo
+        to: etl-pipeline.yaml#jobs.data_sync_job
+        description: "Transformed by data sync pipeline"
+
+      - type: relatesTo
+        to: governance-model.yaml#roles.data_privacy_officer
+        description: "Governed by Data Privacy Officer"
+```
+
+##### Type 3: imports (Content Transclusion)
+
+Imports definitions from external sources and merges them into the contract as if they were defined locally. Enables DRY (Don't Repeat Yourself) patterns. Must be an allowed structure. 
+
+**When to use:**
+- Reusable quality rule libraries
+- Standard property definitions
+- Shared SLA templates
+- Common authoritative definitions
+
+**What can be imported:**
+- Single quality rules or arrays of quality rules
+- Property definitions (including nested properties)
+- SLA property configurations
+- Authoritative definition links
+- Custom property definitions
+
+**Examples:**
+```yaml
+# Import quality rule from shared library
+properties:
+  - name: email
+    relationships:
+      - type: imports
+        to: common-quality-rules.yaml#quality.email_validation
+        description: "Import standard email validation rule from common library"
+
+# Import multiple quality rules
+properties:
+  - name: customer_id
+    relationships:
+      - type: imports
+        to: common-rules.yaml#quality.standard_id_checks
+        description: "Import all standard ID validation rules"
+
+# Import standard audit properties
+schema:
+  - id: orders
+    relationships:
+      - type: imports
+        to: templates.yaml#properties.audit_fields
+        description: "Import standard audit fields (created_at, updated_at, created_by)"
+```
+
+##### Validation rules
+
+Implementations SHOULD validate:
+
+1. **Type-specific field requirements:**
+   - All relationship types MUST have `to` field
+   - Property-level relationships must NOT have `from` field (it's implicit)
+   - Schema-level `foreignKey` must have both `from` and `to`
+   - `relatesTo` and `imports` never use `from` field at any level
+
+2. **Reference resolution:**
+   - Target IDs referenced in `to` must exist
+   - Source IDs referenced in `from` (for schema-level foreignKey) must exist
+   - Referenced paths must resolve correctly
+   - External files must be accessible
+
+3. **Type consistency (for foreignKey):**
+   - Single reference: both `from` and `to` must be strings
+   - Composite keys: both `from` and `to` must be arrays of equal length
+
+4. **Import validation:**
+   - Content referenced in `to` field must exist and be importable
+   - Imported content type must be compatible with target location (e.g., quality rule imports into quality section)
+   - Circular imports must be detected and prevented
+
+##### Mixed relationship types
+
+A single property can have multiple relationships of different types:
+
+```yaml
+properties:
+  - name: customer_id
+    relationships:
+      # Structural constraint
+      - type: foreignKey
+        to: schema.customers.properties.id
+        description: "Must reference valid customer"
+
+      # Document where it came from
+      - type: relatesTo
+        to: source-system.yaml#schema.orders.properties.cust_no
+        description: "Copied from source system customer number field"
+
+      # Import validation rules
+      - type: imports
+        to: common-rules.yaml#quality.id_format_check
+        description: "Import standard ID format validation"
+```
+
+##### Backward compatibility with ODCS v3.1.0
+
+The existing `foreignKey` relationship type from ODCS v3.1.0 remains fully supported:
+
+```yaml
+# ODCS v3.1.0 syntax (still valid)
+relationships:
+  - from: users.user_id
+    to: accounts.id
+    type: foreignKey  # Can be omitted (defaults to foreignKey)
+
+# ODCS v3.2.0 equivalent with explicit type
+relationships:
+  - type: foreignKey
+    from: schema.users_obj.properties.user_id
+    to: schema.accounts_obj.properties.id
+```
+
+Both name-based shorthand (`users.user_id`) and ID-based fully qualified references (`schema.users_obj.properties.user_id`) are supported during the transition period.
+
 ### Examples
 
 Below examples illustrate adding `id` and referencing those IDs across sections.
@@ -353,12 +615,13 @@ schema:
 
 slaProperties:
   - id: slo_amount_quality
-    property: generalAvailability
+    property: dataQuality
     value: 99.9
     unit: percent
-    references:
-        - to: my_contract.yaml#schema.payments_obj.properties.payment_amount.quality.dq_amount_not_null'
-          type: import_reference
+    relationships:
+      - type: relatesTo
+        to: schema.payments_obj.properties.payment_amount.quality.dq_amount_not_null
+        description: "SLA monitors the null value quality check for payment amounts"
 ```
 
 #### 4) Referencing specific schema items (stable across reordering)
@@ -380,12 +643,14 @@ servers:
     project: my_project
     dataset: staging
 
-# Elsewhere: store a pointer to a specific property under a schema object
+# Elsewhere: reference a specific server from custom properties
 customProperties:
   - property: primary_storage_location
-    references:
-        - to: my_contract.yaml#servers.srv_snowflake_prod'
-          type: business_reference
+    value: snowflake-prod
+    relationships:
+      - type: relatesTo
+        to: servers.srv_snowflake_prod
+        description: "Data is physically stored on the production Snowflake server"
 ```
 
 #### 5) External contract by file + id
