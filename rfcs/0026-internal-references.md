@@ -29,7 +29,7 @@ Adding the formal capability to establish links between elements witin or betwee
 Original work and design was completed under RFC-0009b - however at the TSC 
 2025-05-20 - Option B | Option A - neither approved. Json Pointers were too brittle given the array structure. JSON paths were too complex in writing them effectively. TSC decision was to continue looking for options. 
 
-This RFC continues the search for the correct internal reference structure. 
+This RFC continues the search for a feasible internal reference structure. 
 
 ### Option E: ID-based internal references (proposed)
 
