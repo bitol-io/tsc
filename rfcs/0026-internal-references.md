@@ -52,7 +52,7 @@ Notes:
 Rules:
 - `id` is optional everywhere it is allowed
 - `id` MUST be unique within its containing array/object collection
-- `id` SHOULD be snake_case and technical in nature for readability and stability
+- ~`id` SHOULD be snake_case and technical in nature for readability and stability~ (UUIDs should be allowed)
 - `id` SHOULD be stable across versions to preserve referential integrity
 
 Rationale:
@@ -214,64 +214,6 @@ schema:
 
 **Recommendation:** Authors should prefer `id`-based references for long-term stability, as primary key fields may change during refactoring.
 
-##### v4.0.0 Future Direction
-
-To achieve full consistency across ODCS, the following breaking changes are recommended for v4.0.0:
-
-1. **Make `id` required** on all referenceable objects
-2. **Standardize naming fields** across all object types:
-   - `id` (required) - Stable technical identifier for references
-   - `name` (required) - Canonical human-readable name
-   - `physicalName` (optional) - Physical implementation name when it differs from logical name
-
-3. **Remove inconsistent fields: (DEPRECATED)** 
-   - `businessName` (redundant with `name`)
-   - `server` (replaced by `name`)
-   - `channel` (replaced by `name`)
-   - `role` (replaced by `name`)
-   - `property` (replaced by `name`)
-
-```yaml
-# Future v4.0.0 pattern:
-schema:
-  - id: customer_data          # Required: Stable identifier for references
-    name: Customers             # Required: The canonical human-readable name
-    physicalName: cust_tbl_v2   # Optional: Physical implementation when different
-
-servers:
-  - id: prod_snowflake         # Required: Stable identifier
-    name: snowflake-prod        # Required: Human-readable name (was "server" field)
-    type: snowflake
-    physicalName: sf_prod_01    # Optional: Physical server identifier
-
-support:
-  - id: primary_slack          # Required: Stable identifier
-    name: "#data-contracts"     # Required: Human-readable name (was "channel" field)
-    url: https://...
-```
-
-**Benefits of v4.0.0 approach:**
-- Single stable identifier (`id`) for all references
-- One canonical human name (`name`) for all objects
-- Clear separation between logical and physical naming
-- Consistent structure across all object types
-- Simpler mental model: one ID, one name, one physical name
-
-##### Migration Strategy
-
-**v3.2.0 to v4.0.0 migration path:**
-
-1. Start adding `id` fields to objects in v3.2.0 contracts
-2. Migrate references to use `id`-based syntax
-3. In v4.0.0, transform existing primary keys:
-   - `server` → `name`
-   - `channel` → `name`
-   - `role` → `name`
-4. Set `businessName` values to `name` where they differ
-5. Make `id` required
-6. Remove `businessName`
-
-This provides immediate value from stable `id` references while establishing a clear path to full consistency in v4.0.0.
 
 #### Building the relationships block
 
@@ -709,3 +651,65 @@ REJECTED:
 > Prior art, inspiration, and other references you used to create this based on what's worked well before.
 
 Formerly known as RFC 0009D.
+
+## APPENDIX:
+
+##### v4.0.0 Future Direction (Possible Migration Strategy - Out of Scope of RFC Decision)
+
+To achieve full consistency across ODCS, the following breaking changes are recommended for v4.0.0:
+
+1. **Make `id` required** on all referenceable objects
+2. **Standardize naming fields** across all object types:
+   - `id` (required) - Stable technical identifier for references
+   - `name` (required) - Canonical human-readable name
+   - `physicalName` (optional) - Physical implementation name when it differs from logical name
+
+3. **Remove inconsistent fields: (DEPRECATED)** 
+   - `businessName` (redundant with `name`)
+   - `server` (replaced by `name`)
+   - `channel` (replaced by `name`)
+   - `role` (replaced by `name`)
+   - `property` (replaced by `name`)
+
+```yaml
+# Future v4.0.0 pattern:
+schema:
+  - id: customer_data          # Required: Stable identifier for references
+    name: Customers             # Required: The canonical human-readable name
+    physicalName: cust_tbl_v2   # Optional: Physical implementation when different
+
+servers:
+  - id: prod_snowflake         # Required: Stable identifier
+    name: snowflake-prod        # Required: Human-readable name (was "server" field)
+    type: snowflake
+    physicalName: sf_prod_01    # Optional: Physical server identifier
+
+support:
+  - id: primary_slack          # Required: Stable identifier
+    name: "#data-contracts"     # Required: Human-readable name (was "channel" field)
+    url: https://...
+```
+
+**Benefits of v4.0.0 approach:**
+- Single stable identifier (`id`) for all references
+- One canonical human name (`name`) for all objects
+- Clear separation between logical and physical naming
+- Consistent structure across all object types
+- Simpler mental model: one ID, one name, one physical name
+
+##### Migration Strategy
+
+**v3.2.0 to v4.0.0 migration path:**
+
+1. Start adding `id` fields to objects in v3.2.0 contracts
+2. Migrate references to use `id`-based syntax
+3. In v4.0.0, transform existing primary keys:
+   - `server` → `name`
+   - `channel` → `name`
+   - `role` → `name`
+4. Set `businessName` values to `name` where they differ
+5. Make `id` required
+6. Remove `businessName`
+
+This provides immediate value from stable `id` references while establishing a clear path to full consistency in v4.0.0.
+
