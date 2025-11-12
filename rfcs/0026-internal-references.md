@@ -248,7 +248,7 @@ relationships:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | enum | Yes | One of: `foreignKey`, `relatesTo`, `imports` |
+| `type` | enum | Yes | One of: `foreignKey`, `relatesTo`, `imports`, `definition`[capture business definition] |
 | `to` | string or array | Yes | Target element reference. For `foreignKey` and `relatesTo`, this is the related element. For `imports`, this is the source to import from. |
 | `from` | string or array | Context-dependent* | Source element reference. Only used for schema-level `foreignKey`. At property level, `from` is implicit. Never used for `relatesTo` or `imports`. |
 | `description` | string | No | Human-readable explanation of the relationship |
@@ -479,9 +479,1130 @@ Both name-based shorthand (`users.user_id`) and ID-based fully qualified referen
 
 ### Examples
 
-Below examples illustrate adding `id` and referencing those IDs across sections.
+Below examples illustrate adding `id` and referencing those IDs across sections. These range from simple property-level references to complex cross-contract scenarios.
 
-#### 1) Schema object with `id` and property relationships by `id`
+#### Example 1: Single Contract with Multiple Tables and Internal References
+
+This example shows a complete retail database contract with multiple tables that reference each other using the new `id`-based reference system. This demonstrates the most common pattern for defining relationships within a single database.
+
+```yaml
+version: 1.0.0
+kind: DataContract
+id: retail-pos-system
+status: active
+apiVersion: v3.1.0
+domain: retail
+dataProduct: point-of-sale
+
+description:
+  purpose: Core retail database tables for point-of-sale operations
+  limitations: Does not include inventory or supply chain data
+  usage: Transaction processing and customer analytics
+
+servers:
+  - server: retail-postgres-prod
+    type: postgres
+    host: prod-db.retail.example.com
+    port: 5432
+    database: retail_db
+    schema: public
+
+schema:
+  # Table 1: Customers master data
+  - id: customers_tbl
+    name: customers
+    physicalName: customers
+    physicalType: table
+    businessName: Customer Master Data
+    description: Core customer information and contact details
+    tags: ['master-data', 'pii']
+    properties:
+      - id: cust_id_pk
+        name: customer_id
+        primaryKey: true
+        primaryKeyPosition: 1
+        businessName: Customer Identifier
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Unique customer identifier
+        classification: restricted
+        quality:
+          - id: cust_id_not_null
+            metric: nullValues
+            mustBe: 0
+            description: Customer ID must never be null
+            dimension: completeness
+            severity: error
+
+      - id: cust_email
+        name: email
+        businessName: Email Address
+        logicalType: string
+        physicalType: varchar(255)
+        required: true
+        description: Customer email address
+        classification: pii
+        quality:
+          - id: email_format
+            metric: pattern
+            arguments:
+              regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            description: Email must be valid format
+            dimension: validity
+            severity: error
+
+      - id: cust_created_at
+        name: created_at
+        businessName: Account Creation Date
+        logicalType: timestamp
+        physicalType: timestamp
+        required: true
+        description: When customer record was created
+        classification: public
+
+  # Table 2: Product categories (with self-referencing hierarchy)
+  - id: categories_tbl
+    name: categories
+    physicalName: product_categories
+    physicalType: table
+    businessName: Product Categories
+    description: Hierarchical product category structure
+    tags: ['master-data', 'taxonomy']
+    properties:
+      - id: cat_id_pk
+        name: category_id
+        primaryKey: true
+        primaryKeyPosition: 1
+        businessName: Category Identifier
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Unique category identifier
+
+      - id: cat_name
+        name: category_name
+        businessName: Category Name
+        logicalType: string
+        physicalType: varchar(100)
+        required: true
+        description: Display name for category
+
+      - id: cat_parent_fk
+        name: parent_category_id
+        businessName: Parent Category
+        logicalType: integer
+        physicalType: int
+        required: false
+        description: Parent category for hierarchical structure (NULL for top-level)
+        relationships:
+          # Self-referencing foreign key
+          - type: foreignKey
+            to: schema.categories_tbl.properties.cat_id_pk
+            description: References parent category in same table for hierarchy
+
+  # Table 3: Products
+  - id: products_tbl
+    name: products
+    physicalName: products
+    physicalType: table
+    businessName: Product Catalog
+    description: All products available for sale
+    tags: ['master-data', 'catalog']
+    properties:
+      - id: prod_id_pk
+        name: product_id
+        primaryKey: true
+        primaryKeyPosition: 1
+        businessName: Product Identifier
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Unique product identifier
+
+      - id: prod_sku
+        name: sku
+        businessName: Stock Keeping Unit
+        logicalType: string
+        physicalType: varchar(50)
+        required: true
+        unique: true
+        description: Unique SKU for inventory tracking
+
+      - id: prod_category_fk
+        name: category_id
+        businessName: Product Category
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Product category classification
+        relationships:
+          # Foreign key to categories table
+          - type: foreignKey
+            to: schema.categories_tbl.properties.cat_id_pk
+            description: Product must belong to valid category
+
+      - id: prod_name
+        name: product_name
+        businessName: Product Name
+        logicalType: string
+        physicalType: varchar(255)
+        required: true
+        description: Display name for product
+
+      - id: prod_price
+        name: unit_price
+        businessName: Unit Price
+        logicalType: number
+        physicalType: decimal(10,2)
+        required: true
+        description: Current selling price per unit
+        quality:
+          - id: price_positive
+            metric: invalidValues
+            arguments:
+              validValues: ['>0']
+            description: Price must be greater than zero
+            dimension: validity
+            severity: error
+
+  # Table 4: Orders
+  - id: orders_tbl
+    name: orders
+    physicalName: orders
+    physicalType: table
+    businessName: Customer Orders
+    description: Order header information
+    tags: ['transactional']
+    properties:
+      - id: ord_id_pk
+        name: order_id
+        primaryKey: true
+        primaryKeyPosition: 1
+        businessName: Order Identifier
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Unique order identifier
+
+      - id: ord_customer_fk
+        name: customer_id
+        businessName: Customer
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Customer who placed the order
+        relationships:
+          # Foreign key to customers table
+          - type: foreignKey
+            to: schema.customers_tbl.properties.cust_id_pk
+            description: Order must be placed by valid customer
+
+      - id: ord_date
+        name: order_date
+        businessName: Order Date
+        logicalType: date
+        physicalType: date
+        required: true
+        partitioned: true
+        partitionKeyPosition: 1
+        description: Date order was placed
+
+      - id: ord_total
+        name: order_total
+        businessName: Order Total Amount
+        logicalType: number
+        physicalType: decimal(12,2)
+        required: true
+        description: Total amount for entire order
+        relationships:
+          # Document lineage: calculated from order_items
+          - type: relatesTo
+            to: schema.order_items_tbl.properties.item_line_total
+            description: Calculated as SUM(line_total) from order_items table
+        customProperties:
+          - property: calculationLogic
+            value: SUM(order_items.line_total) WHERE order_items.order_id = orders.order_id
+
+  # Table 5: Order Items (join/junction table)
+  - id: order_items_tbl
+    name: order_items
+    physicalName: order_items
+    physicalType: table
+    businessName: Order Line Items
+    description: Individual line items for each order
+    tags: ['transactional', 'detail']
+    # Schema-level composite relationships
+    relationships:
+      - type: foreignKey
+        from: schema.order_items_tbl.properties.item_order_fk
+        to: schema.orders_tbl.properties.ord_id_pk
+        customProperties:
+          - property: description
+            value: Each line item must belong to valid order
+          - property: cardinality
+            value: many-to-one
+      - type: foreignKey
+        from: schema.order_items_tbl.properties.item_product_fk
+        to: schema.products_tbl.properties.prod_id_pk
+        customProperties:
+          - property: description
+            value: Each line item must reference valid product
+          - property: cardinality
+            value: many-to-one
+    properties:
+      - id: item_id_pk
+        name: order_item_id
+        primaryKey: true
+        primaryKeyPosition: 1
+        businessName: Order Item Identifier
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Unique line item identifier
+
+      - id: item_order_fk
+        name: order_id
+        businessName: Order Reference
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Reference to parent order
+
+      - id: item_product_fk
+        name: product_id
+        businessName: Product Reference
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Product being ordered
+
+      - id: item_quantity
+        name: quantity
+        businessName: Quantity
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Number of units ordered
+        quality:
+          - id: qty_positive
+            metric: invalidValues
+            arguments:
+              validValues: ['>0']
+            description: Quantity must be at least 1
+            dimension: validity
+            severity: error
+
+      - id: item_unit_price
+        name: unit_price
+        businessName: Unit Price at Time of Sale
+        logicalType: number
+        physicalType: decimal(10,2)
+        required: true
+        description: Price per unit at time of order (may differ from current product price)
+        relationships:
+          - type: relatesTo
+            to: schema.products_tbl.properties.prod_price
+            description: Snapshot of product price at order time
+
+      - id: item_line_total
+        name: line_total
+        businessName: Line Total
+        logicalType: number
+        physicalType: decimal(12,2)
+        required: true
+        description: Total for this line item
+        relationships:
+          # Document calculation within same table
+          - type: relatesTo
+            to: [schema.order_items_tbl.properties.item_quantity, schema.order_items_tbl.properties.item_unit_price]
+            description: Calculated as quantity * unit_price
+        customProperties:
+          - property: calculationLogic
+            value: quantity * unit_price
+
+  # Table 6: Product Reviews
+  - id: reviews_tbl
+    name: product_reviews
+    physicalName: product_reviews
+    physicalType: table
+    businessName: Product Reviews
+    description: Customer reviews and ratings for products
+    tags: ['user-generated-content']
+    properties:
+      - id: rev_id_pk
+        name: review_id
+        primaryKey: true
+        primaryKeyPosition: 1
+        businessName: Review Identifier
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Unique review identifier
+
+      - id: rev_customer_fk
+        name: customer_id
+        businessName: Reviewer
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Customer who wrote the review
+        relationships:
+          - type: foreignKey
+            to: schema.customers_tbl.properties.cust_id_pk
+            description: Review must be authored by valid customer
+
+      - id: rev_product_fk
+        name: product_id
+        businessName: Reviewed Product
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Product being reviewed
+        relationships:
+          - type: foreignKey
+            to: schema.products_tbl.properties.prod_id_pk
+            description: Review must be for valid product
+
+      - id: rev_rating
+        name: rating
+        businessName: Star Rating
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Rating from 1 to 5 stars
+        quality:
+          - id: rating_range
+            metric: enumValues
+            arguments:
+              validValues: [1, 2, 3, 4, 5]
+            description: Rating must be between 1 and 5
+            dimension: validity
+            severity: error
+
+      - id: rev_text
+        name: review_text
+        businessName: Review Content
+        logicalType: string
+        physicalType: text
+        required: false
+        description: Optional text review content
+        classification: public
+
+# SLA Properties
+slaProperties:
+  # SLO 1: Overall data quality across critical fields
+  - id: slo_overall_data_quality
+    property: dataQuality
+    value: 99.9
+    unit: percent
+    description: Overall data quality SLO across all critical validation rules
+    relationships:
+      - type: relatesTo
+        to: [
+          schema.customers_tbl.properties.cust_id_pk.quality.cust_id_not_null,
+          schema.customers_tbl.properties.cust_email.quality.email_format,
+          schema.products_tbl.properties.prod_price.quality.price_positive,
+          schema.order_items_tbl.properties.item_quantity.quality.qty_positive,
+          schema.reviews_tbl.properties.rev_rating.quality.rating_range
+        ]
+        description: Aggregated quality score must meet 99.9% across these specific quality rules
+    driver: operational
+    schedule: "0 */6 * * *"
+    scheduler: cron
+
+  # SLO 2: Customer data quality (specific to customer table)
+  - id: slo_customer_completeness
+    property: dataQuality
+    value: 100
+    unit: percent
+    description: Customer critical fields must be 100% complete
+    element: customers.customer_id
+    relationships:
+      - type: relatesTo
+        to: schema.customers_tbl.properties.cust_id_pk.quality.cust_id_not_null
+        description: Customer ID completeness must be 100% - no nulls allowed
+      - type: relatesTo
+        to: schema.customers_tbl.properties.cust_email.quality.email_format
+        description: All customer emails must pass format validation
+    driver: regulatory
+    businessImpact: critical
+    schedule: "0 * * * *"
+    scheduler: cron
+
+  # SLO 3: Product pricing validity
+  - id: slo_product_pricing_validity
+    property: dataQuality
+    value: 100
+    unit: percent
+    description: All product prices must be valid (positive values)
+    element: products.unit_price
+    relationships:
+      - type: relatesTo
+        to: schema.products_tbl.properties.prod_price.quality.price_positive
+        description: Tracks the positive price validation rule - zero tolerance for invalid prices
+    driver: operational
+    businessImpact: critical
+    schedule: "0 */4 * * *"
+    scheduler: cron
+
+  # SLO 4: Order data integrity
+  - id: slo_order_validity
+    property: dataQuality
+    value: 100
+    unit: percent
+    description: Order line items must pass all quantity validations
+    element: order_items.quantity
+    relationships:
+      - type: relatesTo
+        to: schema.order_items_tbl.properties.item_quantity.quality.qty_positive
+        description: All order quantities must be positive integers
+    driver: operational
+    schedule: "0 */2 * * *"
+    scheduler: cron
+
+  # SLO 5: Review ratings validity
+  - id: slo_review_ratings_validity
+    property: dataQuality
+    value: 99.5
+    unit: percent
+    description: Product reviews must have valid star ratings
+    element: product_reviews.rating
+    relationships:
+      - type: relatesTo
+        to: schema.reviews_tbl.properties.rev_rating.quality.rating_range
+        description: Monitors enumeration rule ensuring ratings are 1-5 stars only
+    driver: operational
+    schedule: "0 0 * * *"
+    scheduler: cron
+
+  # SLO 6: Referential integrity
+  - id: slo_referential_integrity
+    property: dataIntegrity
+    value: 100
+    unit: percent
+    description: All foreign key relationships must be valid with no orphaned records
+    driver: regulatory
+    businessImpact: critical
+    schedule: "0 */1 * * *"
+    scheduler: cron
+    customProperties:
+      - property: monitored_relationships
+        value: "orders->customers, order_items->orders, order_items->products, reviews->customers, reviews->products"
+
+  # SLO 7: Data freshness for orders
+  - id: slo_order_data_freshness
+    property: latency
+    value: 5
+    unit: minutes
+    element: orders.order_date
+    description: New orders must appear in system within 5 minutes of creation
+    driver: operational
+    businessImpact: high
+    schedule: "*/5 * * * *"
+    scheduler: cron
+
+  # SLO 8: Data availability
+  - id: slo_system_availability
+    property: availability
+    value: 99.95
+    unit: percent
+    description: Database must be available and queryable
+    driver: operational
+    businessImpact: critical
+
+  # SLO 9: Data retention compliance
+  - id: slo_data_retention
+    property: retention
+    value: 7
+    unit: years
+    element: orders.order_date
+    description: Order data must be retained for 7 years per regulatory requirements
+    driver: regulatory
+    businessImpact: critical
+
+# Team
+team:
+  name: retail-data-platform
+  description: Retail data platform engineering team
+  members:
+    - username: jsmith
+      role: Data Engineer
+      dateIn: "2023-01-15"
+    - username: alee
+      role: Database Administrator
+      dateIn: "2023-03-01"
+
+# Support
+support:
+  - channel: '#retail-data-support'
+    tool: slack
+  - channel: retail-data-team
+    tool: email
+    url: mailto:retail-data-team@example.com
+
+# Custom Properties
+customProperties:
+  - property: database_version
+    value: PostgreSQL 15.2
+  - property: backup_schedule
+    value: Daily at 02:00 UTC
+```
+
+**Key Patterns Demonstrated:**
+- **Multiple tables in one contract**: Six related tables (customers, categories, products, orders, order_items, reviews)
+- **Property-level foreign keys**: Most common pattern - implicit `from`, e.g., `ord_customer_fk` references `schema.customers_tbl.properties.cust_id_pk`
+- **Schema-level foreign keys**: Order_items table uses explicit `from` + `to` syntax at schema level to group related foreign keys
+- **Self-referencing relationships**: Categories table has parent-child hierarchy referencing itself
+- **Cross-table calculated fields**: Order total documents lineage from order_items line totals
+- **Same-table calculations**: Line total references quantity and unit_price from same table
+- **SLA monitoring across tables**: Single SLA can monitor quality rules from multiple tables using fully qualified paths
+- **Consistent with ODCS patterns**: Uses `physicalType: table`, proper primary key definitions, partitioning, classifications
+
+#### Example 2: Complete E-commerce Contract with Multiple Relationship Types
+
+This example demonstrates a realistic e-commerce data contract using all three relationship types:
+
+```yaml
+dataContractSpecification: 3.2.0
+id: ecommerce-orders
+version: 2.1.0
+title: E-commerce Orders Contract
+
+schema:
+  - id: customers_tbl
+    name: customers
+    logicalType: object
+    description: Customer master data
+    properties:
+      - id: cust_id
+        name: id
+        logicalType: integer
+        description: Primary key for customers
+
+      - id: cust_email
+        name: email
+        logicalType: string
+        relationships:
+          # Import standard email validation from shared library
+          - type: imports
+            to: common-quality-rules.yaml#quality.email_validation
+            description: Standard email format validation
+
+          # Document lineage from source system
+          - type: relatesTo
+            to: crm-system.yaml#schema.contacts.properties.email_address
+            description: Copied from CRM system via nightly ETL pipeline
+
+      - id: cust_segment
+        name: customer_segment
+        logicalType: string
+        relationships:
+          # Link to business definition
+          - type: relatesTo
+            to: business-glossary.yaml#schema.customer_segmentation.properties.segment_type
+            description: Implements Customer Segmentation business concept
+        quality:
+          - id: valid_segments
+            metric: enumValues
+            arguments:
+              validValues: ['PREMIUM', 'STANDARD', 'TRIAL']
+
+  - id: orders_tbl
+    name: orders
+    logicalType: object
+    description: Order transactions
+    properties:
+      - id: order_id
+        name: id
+        logicalType: integer
+        description: Primary key for orders
+        quality:
+          - id: order_id_not_null
+            metric: nullValues
+            mustBe: 0
+
+      - id: order_customer_id
+        name: customer_id
+        logicalType: integer
+        relationships:
+          # Foreign key constraint
+          - type: foreignKey
+            to: schema.customers_tbl.properties.cust_id
+            description: Must reference valid customer
+
+      - id: order_total
+        name: total_amount
+        logicalType: number
+        relationships:
+          # Document calculation lineage
+          - type: relatesTo
+            to: [schema.order_items_tbl.properties.item_price, schema.order_items_tbl.properties.quantity]
+            description: Calculated as SUM(item_price * quantity) from order items
+        quality:
+          - id: amount_positive
+            metric: invalidValues
+            arguments:
+              validValues: [">0"]
+
+      - id: order_created
+        name: created_at
+        logicalType: timestamp
+        relationships:
+          # Import standard audit field definition
+          - type: imports
+            to: standard-templates.yaml#properties.audit_created_timestamp
+            description: Standard audit timestamp field
+
+  - id: order_items_tbl
+    name: order_items
+    logicalType: object
+    description: Line items for orders
+    properties:
+      - id: item_order_id
+        name: order_id
+        logicalType: integer
+        relationships:
+          - type: foreignKey
+            to: schema.orders_tbl.properties.order_id
+            description: Must reference valid order
+
+      - id: item_product_id
+        name: product_id
+        logicalType: string
+        relationships:
+          # Foreign key to external contract
+          - type: foreignKey
+            to: product-catalog.yaml#schema.products.properties.product_id
+            description: Must reference valid product from catalog
+
+      - id: item_price
+        name: price
+        logicalType: number
+
+      - id: quantity
+        name: quantity
+        logicalType: integer
+
+# SLA monitoring specific quality rules
+slaProperties:
+  - id: sla_customer_data_quality
+    property: dataQuality
+    value: 99.5
+    unit: percent
+    relationships:
+      - type: relatesTo
+        to: [schema.customers_tbl.properties.cust_email.quality.email_validation,
+             schema.customers_tbl.properties.cust_segment.quality.valid_segments]
+        description: Monitors email validation and segment enumeration rules
+
+  - id: sla_order_integrity
+    property: dataQuality
+    value: 100
+    unit: percent
+    relationships:
+      - type: relatesTo
+        to: schema.orders_tbl.properties.order_id.quality.order_id_not_null
+        description: All orders must have valid IDs
+
+customProperties:
+  - property: data_governance_owner
+    value: customer-data-team
+    relationships:
+      - type: relatesTo
+        to: governance-model.yaml#roles.customer_data_steward
+        description: Governed by Customer Data Stewardship team
+```
+
+#### Example 2: Shared Quality Rules Library Pattern
+
+Demonstrates reusable quality rule definitions that can be imported across multiple contracts:
+
+**common-quality-rules.yaml** (Shared Library):
+```yaml
+dataContractSpecification: 3.2.0
+id: common-quality-rules
+version: 1.0.0
+title: Shared Quality Rules Library
+
+# Define reusable quality rules at top level
+quality:
+  - id: email_validation
+    name: email_format_check
+    metric: pattern
+    arguments:
+      regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    description: Standard email format validation
+
+  - id: phone_us_format
+    name: us_phone_validation
+    metric: pattern
+    arguments:
+      regex: '^\+?1?\d{10}$'
+    description: US phone number format (10 digits)
+
+  - id: non_negative_amount
+    name: amount_non_negative
+    metric: invalidValues
+    arguments:
+      validValues: ['>=0']
+    description: Ensures monetary amounts are non-negative
+
+  - id: standard_id_checks
+    name: id_validations
+    metric: nullValues
+    mustBe: 0
+    description: Standard ID field must not be null
+
+  - id: future_date_check
+    name: no_future_dates
+    metric: invalidValues
+    arguments:
+      validValues: ['<=NOW()']
+    description: Date must not be in the future
+```
+
+**customer-contract.yaml** (Consumer Contract):
+```yaml
+dataContractSpecification: 3.2.0
+id: customer-master-data
+version: 1.5.0
+
+schema:
+  - id: customers
+    name: customers
+    properties:
+      - id: email_field
+        name: email
+        logicalType: string
+        relationships:
+          # Import email validation from shared library
+          - type: imports
+            to: common-quality-rules.yaml#quality.email_validation
+            description: Import standard email validation
+
+      - id: phone_field
+        name: phone
+        logicalType: string
+        relationships:
+          # Import phone validation
+          - type: imports
+            to: common-quality-rules.yaml#quality.phone_us_format
+            description: Import US phone format validation
+
+      - id: account_balance
+        name: balance
+        logicalType: number
+        relationships:
+          # Import amount validation
+          - type: imports
+            to: common-quality-rules.yaml#quality.non_negative_amount
+            description: Balance cannot be negative
+```
+
+#### Example 3: Business Glossary to Technical Implementation Mapping
+
+Shows how business definitions can be maintained separately and linked to technical implementations:
+
+**business-glossary.yaml** (Business Team Owned):
+```yaml
+dataContractSpecification: 3.2.0
+id: business-data-glossary
+version: 3.0.0
+title: Enterprise Business Data Glossary
+
+schema:
+  - id: customer_concept
+    name: Customer
+    businessName: Customer Entity
+    description: |
+      A customer is any individual or organization that has
+      entered into a business relationship with our company.
+    properties:
+      - id: customer_identifier
+        name: customer_id
+        businessName: Customer Identifier
+        description: Unique identifier assigned to each customer
+
+      - id: customer_status
+        name: status
+        businessName: Customer Status
+        description: Current lifecycle status of the customer relationship
+        quality:
+          - id: valid_statuses
+            metric: enumValues
+            arguments:
+              validValues: ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'CLOSED']
+
+  - id: order_concept
+    name: Order
+    businessName: Sales Order
+    description: A request by a customer to purchase products or services
+    properties:
+      - id: order_value
+        name: order_amount
+        businessName: Order Value
+        description: Total monetary value of the order in base currency
+```
+
+**crm-technical-contract.yaml** (IT Team Owned):
+```yaml
+dataContractSpecification: 3.2.0
+id: crm-customer-table
+version: 2.3.0
+title: CRM Customer Table (Salesforce)
+
+schema:
+  - id: sf_customer
+    name: customer__c
+    physicalName: crm_prod.salesforce.customer__c
+    logicalType: object
+    relationships:
+      # Link entire table to business concept
+      - type: relatesTo
+        to: business-glossary.yaml#schema.customer_concept
+        description: Technical implementation of Customer business entity
+
+    properties:
+      - id: sf_cust_id
+        name: customer_id__c
+        physicalName: customer_id__c
+        logicalType: string
+        relationships:
+          # Link to specific business definition
+          - type: relatesTo
+            to: business-glossary.yaml#schema.customer_concept.properties.customer_identifier
+            description: Implements Customer Identifier business definition
+
+      - id: sf_cust_status
+        name: status__c
+        physicalName: status__c
+        logicalType: string
+        relationships:
+          # Import business validation rules
+          - type: imports
+            to: business-glossary.yaml#schema.customer_concept.properties.customer_status.quality.valid_statuses
+            description: Use business-defined valid status values
+
+          # Document relationship to business concept
+          - type: relatesTo
+            to: business-glossary.yaml#schema.customer_concept.properties.customer_status
+            description: Implements Customer Status business definition
+```
+
+**dwh-technical-contract.yaml** (IT Team Owned - Different System):
+```yaml
+dataContractSpecification: 3.2.0
+id: dwh-customer-dimension
+version: 4.1.0
+title: Data Warehouse Customer Dimension
+
+schema:
+  - id: dim_customer
+    name: dim_customer
+    physicalName: analytics.dimensions.dim_customer
+    logicalType: object
+    relationships:
+      # Same business concept, different technical implementation
+      - type: relatesTo
+        to: business-glossary.yaml#schema.customer_concept
+        description: DWH implementation of Customer business entity
+
+      # Document data lineage from source system
+      - type: relatesTo
+        to: crm-technical-contract.yaml#schema.sf_customer
+        description: Data sourced from Salesforce CRM via ETL pipeline
+
+    properties:
+      - id: dwh_cust_key
+        name: customer_key
+        physicalName: customer_sk
+        logicalType: integer
+        description: Surrogate key for data warehouse
+
+      - id: dwh_cust_id
+        name: customer_id
+        physicalName: customer_business_id
+        logicalType: string
+        relationships:
+          # Business definition link
+          - type: relatesTo
+            to: business-glossary.yaml#schema.customer_concept.properties.customer_identifier
+            description: Implements Customer Identifier business definition
+
+          # Technical lineage
+          - type: relatesTo
+            to: crm-technical-contract.yaml#schema.sf_customer.properties.sf_cust_id
+            description: Populated from Salesforce customer_id__c field
+
+      - id: dwh_status
+        name: customer_status
+        physicalName: current_status
+        logicalType: string
+        relationships:
+          # Import business validation from glossary
+          - type: imports
+            to: business-glossary.yaml#schema.customer_concept.properties.customer_status.quality.valid_statuses
+            description: Use business-defined status enumeration
+
+          # Technical lineage
+          - type: relatesTo
+            to: crm-technical-contract.yaml#schema.sf_customer.properties.sf_cust_status
+            description: Derived from Salesforce status__c with transformation logic
+```
+
+#### Example 4: Data Lineage Across Multi-Tier Architecture
+
+Demonstrates tracking data flow through bronze/silver/gold layers:
+
+**bronze-layer.yaml** (Raw Ingestion):
+```yaml
+dataContractSpecification: 3.2.0
+id: bronze-transactions
+version: 1.0.0
+
+schema:
+  - id: raw_transactions
+    name: transactions_raw
+    properties:
+      - id: raw_txn_id
+        name: transaction_id
+        logicalType: string
+
+      - id: raw_amount
+        name: amount
+        logicalType: string
+        description: Raw amount as ingested (string format)
+```
+
+**silver-layer.yaml** (Cleaned/Validated):
+```yaml
+dataContractSpecification: 3.2.0
+id: silver-transactions
+version: 1.0.0
+
+schema:
+  - id: cleaned_transactions
+    name: transactions_cleaned
+    properties:
+      - id: clean_txn_id
+        name: transaction_id
+        logicalType: integer
+        relationships:
+          - type: relatesTo
+            to: bronze-transactions.yaml#schema.raw_transactions.properties.raw_txn_id
+            description: Converted from string to integer during cleansing
+
+      - id: clean_amount
+        name: amount_usd
+        logicalType: number
+        relationships:
+          - type: relatesTo
+            to: bronze-transactions.yaml#schema.raw_transactions.properties.raw_amount
+            description: Parsed from string, validated, converted to numeric USD
+        quality:
+          - id: amount_valid
+            metric: invalidValues
+            arguments:
+              validValues: ['>0']
+```
+
+**gold-layer.yaml** (Business Aggregates):
+```yaml
+dataContractSpecification: 3.2.0
+id: gold-daily-revenue
+version: 1.0.0
+
+schema:
+  - id: daily_revenue
+    name: daily_revenue_summary
+    properties:
+      - id: revenue_date
+        name: business_date
+        logicalType: date
+
+      - id: total_revenue
+        name: total_revenue_usd
+        logicalType: number
+        relationships:
+          - type: relatesTo
+            to: silver-transactions.yaml#schema.cleaned_transactions.properties.clean_amount
+            description: Aggregated SUM of cleaned transaction amounts by date
+
+          - type: relatesTo
+            to: bronze-transactions.yaml#schema.raw_transactions.properties.raw_amount
+            description: Ultimate source is raw transaction amounts from bronze layer
+        customProperties:
+          - property: aggregation_logic
+            value: SUM(amount_usd) GROUP BY DATE(transaction_timestamp)
+```
+
+#### Example 5: Composite Foreign Keys
+
+Demonstrates multi-column foreign key relationships:
+
+```yaml
+dataContractSpecification: 3.2.0
+id: multi-tenant-orders
+version: 1.0.0
+
+schema:
+  - id: tenants_tbl
+    name: tenants
+    properties:
+      - id: tenant_id_pk
+        name: tenant_id
+        logicalType: string
+      - id: tenant_name
+        name: name
+        logicalType: string
+
+  - id: products_tbl
+    name: products
+    description: Products are scoped per tenant
+    properties:
+      - id: prod_tenant_id
+        name: tenant_id
+        logicalType: string
+
+      - id: prod_id
+        name: product_id
+        logicalType: string
+
+      - id: prod_name
+        name: name
+        logicalType: string
+    relationships:
+      # Composite key: (tenant_id) references (tenants.tenant_id)
+      - type: foreignKey
+        from: schema.products_tbl.properties.prod_tenant_id
+        to: schema.tenants_tbl.properties.tenant_id_pk
+
+  - id: orders_tbl
+    name: orders
+    properties:
+      - id: order_id_pk
+        name: order_id
+        logicalType: integer
+
+      - id: order_tenant_id
+        name: tenant_id
+        logicalType: string
+
+      - id: order_product_id
+        name: product_id
+        logicalType: string
+    relationships:
+      # Composite foreign key: (tenant_id, product_id) -> products(tenant_id, product_id)
+      - type: foreignKey
+        from: [schema.orders_tbl.properties.order_tenant_id, schema.orders_tbl.properties.order_product_id]
+        to: [schema.products_tbl.properties.prod_tenant_id, schema.products_tbl.properties.prod_id]
+        description: Order must reference valid product within same tenant
+```
+
+#### Simple Examples: Basic ID-Based References
+
+#### 6) Schema object with `id` and property relationships by `id`
 
 ```yaml
 schema:
