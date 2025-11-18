@@ -1,3 +1,56 @@
-Support Map Properties
-===
+# Support Map Property Type
 
+Champion: *Jochen Christ
+
+Authors: *List of authors, if different than the champion*.
+
+Slack: *replace this text with the link to the dedicated Slack channel*.
+
+## Summary
+
+TBD
+
+
+## Motivation
+
+In many data platforms there exists an map data type.
+
+> Example Databricks
+
+```
+CREATE TABLE product_properties_map_demo (
+  product_id INT,
+  product_properties MAP<STRING, STRING>,
+  meta_data MAP<STRING, INT>
+)
+USING DELTA;
+```
+
+> Example Snowflake
+
+```
+CREATE OR REPLACE TABLE my_table_with_map_column (
+  id VARCHAR,
+  my_map MAP(VARCHAR, VARCHAR)
+);
+```
+
+## Design and examples
+
+TBD
+
+## Alternatives
+
+TBD
+
+## Decision
+
+> The decision made by the TSC.
+
+## Consequences
+
+> The consequences of this decision.
+
+## References
+
+> Prior art, inspiration, and other references you used to create this based on what's worked well before.
