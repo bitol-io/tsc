@@ -1,6 +1,6 @@
 # Scheduling SLA Checks
 
-Champion: 
+Champion: jgp
 
 Slack: https://data-mesh-learning.slack.com/archives/C089S376YGM
 
