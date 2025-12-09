@@ -6,10 +6,9 @@ Thank you for being so interested in helping with the Bitol project. This docume
 ## Actions
 
 1. Read and agree to the project's charter.
-2. Read and agree to the repository's contributing file, as there might be specifics.
-3. Become a member of the AIDA User Group. It is free. It will give you access to the Slack channels we use for communicating between the committers.
-4. The repository is on GitHub. Please share your GitHub ID with us (on Slack) to invite you to participate in GitHub.
-5. Once you have joined, please introduce yourself in #introduce-yourself and share anything you want in #be-shameless.
+1. Read and agree to the repository's contributing file, as there might be specifics.
+1. The repository is on GitHub. Please share your GitHub ID with us (on Slack) to invite you to participate in GitHub.
+1. Once you have joined, please introduce yourself in #introduce-yourself and share anything you want in #be-shameless.
 
 ## Joining the Technical Steering Committee (TSC)
 
@@ -33,11 +32,5 @@ Each RFC usually has its own public channel. You will find the link at the top o
 * Project charter: https://github.com/bitol-io/tsc/blob/main/Bitol%20Technical%20Charter%202023-11-30.pdf
 * ODCS contributing file: https://github.com/bitol-io/open-data-contract-standard/blob/main/CONTRIBUTING.md
 * GitHub repo: https://github.com/bitol-io/open-data-contract-standard
-
-### AIDA User Group
-AIDA is the partner organization that helped us at the beginning.
-* AIDA User Group: https://aidaug.org
-
-
 
 
