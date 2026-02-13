@@ -2,13 +2,13 @@
 
 > The champion is the person who is primarily supporting the RFC.
 
-Champion: *The champion is a member of the TSC*.
+Champion: Jean-Georges Perrin.
 
-Authors: *List of authors, if different than the champion*.
+Authors: Massil Chabane, Denis Aranud, Gilles Guglielmoni, and Jean-Georges Perrin.
 
-Slack: *replace this text with the link to the dedicated Slack channel*.
+Slack: TBD.
 
-GitHub issue: *replace this text with the link to the dedicated Jira ticket*.
+GitHub issue: TBD.
 
 ## Summary
 
