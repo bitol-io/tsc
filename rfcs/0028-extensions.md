@@ -10,7 +10,8 @@ This RFC standardizes a **extension mechanism** for ODCS.
 
 Many vendors (e.g., Confluent, Atlan, Soda, etc.) define data contracts with vendor-specific attributes that are not part of the core ODCS specification. The proposed extension mechanism enables organizations to incorporate these attributes directly into ODCS contracts without losing fidelity.
 
-Currently customProperties is a flat string key/value that loses structure and semantics.
+**Why not customProperties** 
+Right now, customProperties are a flat string key/value that loses structure and semantics.
 
 ```yaml
 customProperties:
@@ -20,7 +21,7 @@ customProperties:
 
 ```
 
-Custom_extensions because it can carry vendor, nested, typed data (objects/arrays) that tools can reliably interpret and round-trip,
+With Custom_extensions, you can bring carry nested, typed data (objects/arrays) round-trip from different vendors,
 
 ```yaml
 custom_extensions:
@@ -28,15 +29,11 @@ custom_extensions:
     data:
       metadata:
         tags:
-          "properties.owner":
-            - "data-platform"
-            - "pii"
-          "properties.region":
-            - "us-east-1"
+          "xx":
+            - "xx"
       ruleSet:
         rules:
-          - name: "mask_ssn"
-            type: "TRANSFORM"
+          - name: "x"
 ```
 
 
