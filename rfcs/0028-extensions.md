@@ -8,7 +8,37 @@
 
 This RFC standardizes a **extension mechanism** for ODCS.  
 
-Many vendors (e.g., Confluent, Atlan, Soda, etc.) define data contracts with vendor-specific attributes that are not part of the core ODCS specification. The proposed extension mechanism enables organizations to incorporate these attributes directly into ODCS contracts without losing fidelity, without custom integrations.
+Many vendors (e.g., Confluent, Atlan, Soda, etc.) define data contracts with vendor-specific attributes that are not part of the core ODCS specification. The proposed extension mechanism enables organizations to incorporate these attributes directly into ODCS contracts without losing fidelity.
+
+Currently customProperties is a flat string key/value that loses structure and semantics.
+
+```yaml
+customProperties:
+  - id: rfc_ruleset_name
+    property: refRulesetName
+    value: gcsc.ruleset.name
+
+```
+
+Custom_extensions because it can carry vendor, nested, typed data (objects/arrays) that tools can reliably interpret and round-trip,
+
+```yaml
+custom_extensions:
+  - vendor: xxx
+    data:
+      metadata:
+        tags:
+          "properties.owner":
+            - "data-platform"
+            - "pii"
+          "properties.region":
+            - "us-east-1"
+      ruleSet:
+        rules:
+          - name: "mask_ssn"
+            type: "TRANSFORM"
+```
+
 
 As a first example, this document defines an optional Confluent Schema Registry (SR) binding built on the extension framework. This binding allows ODCS contracts to include Schema Registry–specific registration fields, including:
 
