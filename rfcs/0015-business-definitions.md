@@ -155,7 +155,7 @@ schema:
       logicalType: number
       description: "Primary key for Employee records."
       classification: 01_GDPR_indirect
-    - name: departmentid
+    - name: Department Id
       id: departmentid
       logicalType: number
       description: "Foreign key to the department that the employee belongs to."
@@ -180,5 +180,81 @@ schema:
       logicalType: string
       description: "IBAN for salary transfer"
       classification: 03_GDPR_critical
-    
+```    
+
+
+These business definitions can be used as look up source for a technical schema using the ODCS id referencing mechanism. 
+
+Employing the authorativeDefinitions element it looks like this.
+
+```yaml
+schema:
+  ## View combining employee and department data 
+  - name: tbl_employee_department
+    id: tbl_employee_department
+    description: "Subset of employee and department data within the Adventure Works Cycles company."
+    logicalType: table
+    properties:
+    - name: employee_id
+      id: employee_id
+      authoritativeDefinitions:
+         url: schema/employee/properties/id
+         type: businessDefinition
+    - name: employee_name
+      id: employee_name
+      authoritativeDefinitions:
+         url: schema/employee/properties/name
+         type: businessDefinition
+    - name: employee_jobtitle
+      id: employee_jobtitle
+      authoritativeDefinitions:
+         url: schema/employee/properties/jobtitle
+         type: businessDefinition
+    - name: department_id
+      id: department_id
+      authoritativeDefinitions:
+         url: schema/department/properties/id
+         type: businessDefinition
+    - name: department_name
+      id: department_name
+      authoritativeDefinitions:
+         url: schema/department/properties/name
+         type: businessDefinition
+```
+
+Employing the suggested new type "businessDefinition" in the relationship element from RFC-0031 it would look like this.
+
+```yaml
+schema:
+  ## View combining employee and department data 
+  - name: tbl_employee_department
+    id: tbl_employee_department
+    description: "Subset of employee and department data within the Adventure Works Cycles company."
+    logicalType: table
+    properties:
+    - name: employee_id
+      id: employee_id
+      relationships:
+         to: schema/employee/properties/id
+         type: businessDefinition
+    - name: employee_name
+      id: employee_name
+      relationships:
+         to: schema/employee/properties/name
+         type: businessDefinition
+    - name: employee_jobtitle
+      id: employee_jobtitle
+      relationships:
+         to: schema/employee/properties/jobtitle
+         type: businessDefinition
+    - name: department_id
+      id: department_id
+      relationships:
+         to: schema/department/properties/id
+         type: businessDefinition
+    - name: department_name
+      id: department_name
+      authoritativeDefinitions:
+         to: schema/department/properties/name
+         type: businessDefinition
 ```
