@@ -254,7 +254,7 @@ schema:
          type: businessDefinition
     - name: department_name
       id: department_name
-      authoritativeDefinitions:
+      relationships:
          to: schema/department/properties/name
          type: businessDefinition
 ```
