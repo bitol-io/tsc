@@ -258,3 +258,4 @@ schema:
          to: schema/department/properties/name
          type: businessDefinition
 ```
+This kind of abstraction allows for a quite parsimonious specification of the physical data types in the intended system. The interpreter reading the ODCS-YAML can fetch the logical data type from the corresponding business definition and translate it to the required physical data type of the target system. If this feels to shaky the physical type must be specified explicitly.
