@@ -96,7 +96,7 @@ schema:
 ```
 
 
-### Option C: Business Definitions as a data contract using id fields
+### Option C: Business Definitions as a stratified data contract using id fields
 No changes to the standard itself required . Basic idea is that the defintions are abstracted in the sense that these do not mimic the data structure. Instead these are structured using logical objects. The defintions are referenced using the id fields introduced in v3.1.0. Note that the names are unsuitable for technical implementations but are human readable and self explanatory to the greatest extent given their parent object. Hence, these could be directly employed as labels in reports or in data catalogs.
 
 ```yaml
