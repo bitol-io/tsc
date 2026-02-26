@@ -1,4 +1,4 @@
-# RFC-0031: Add relatesTo Relationship Type
+# RFC-0031: Informational Relationship Types
 
 > The champion is the person who is primarily supporting the RFC.
 
@@ -6,11 +6,11 @@ Champion: Diego C.
 
 [Slack](https://data-mesh-learning.slack.com/archives/C08EF0M2FFV)
 
-Jira: *replace this text with the link to the dedicated Jira ticket*.
-
 ## Summary
 
-Extend the relationships structure (introduced in RFC-0026b) with a `relatesTo` relationship type for documenting semantic relationships, data lineage, and business context without enforcing structural constraints.
+Extend the relationships structure (introduced in RFC-0026b) with one or more informational relationship types for documenting data lineage, business context, and governance ownership—without enforcing structural constraints.
+
+This RFC presents two options for the working group to evaluate.
 
 ## Motivation
 
@@ -19,9 +19,8 @@ Beyond structural constraints (foreign keys), data contracts need to document:
 - **Business ↔ technical mapping**: Links between business concepts and technical implementations
 - **Data flows**: Documentation of ETL/ELT processes and transformations
 - **Governance ownership**: Who is responsible for specific data elements
-- **Semantic relationships**: Synonyms, equivalents, dependencies between elements
 
-Unlike `foreignKey` which enforces validation rules, `relatesTo` is purely informational—enabling rich metadata without imposing runtime constraints.
+Unlike `foreignKey` which enforces validation rules, informational relationships are purely documentary—enabling rich metadata without imposing runtime constraints.
 
 ## Prerequisites
 
@@ -29,22 +28,13 @@ This RFC depends on:
 - RFC-0026a (reference-id) - introduces `id` field for stable references
 - RFC-0026b (internal-references) - establishes the `relationships` block structure
 
-## Design
+---
 
-### Type: relatesTo (Semantic Documentation)
+## Option A: Single Generic Type (`relatesTo`)
 
-Documents relationships for lineage, governance, and business context. Does not enforce constraints—purely informational.
+### Overview
 
-| Type | Purpose | `to` field | `from` field | Effect |
-|------|---------|------------|--------------|--------|
-| `relatesTo` | Documents semantic relationships | Required | Never used | Informational only (lineage, documentation) |
-
-**When to use:**
-- Data lineage tracking (derived from, copied from, transformed by)
-- Business ↔ technical mapping (implements business definitions)
-- Documenting data flows
-- Governance ownership
-- Semantic relationships (synonyms, equivalents, dependencies)
+One catch-all informational type. The nature of the relationship is expressed through `description` and optionally through a `customProperty` subtype discriminator.
 
 ### Structure
 
@@ -54,11 +44,16 @@ relationships:
     to: <target-reference>           # Always required
     description: <human-readable-text>
     customProperties:
-      - property: <name>
-        value: <value>
+      - property: subtype
+        value: lineage | businessDefinition | governedBy  # optional, community convention
 ```
 
-**Important:** The `from` field is NEVER used with `relatesTo`. The source is always implicit based on where the relationship is defined.
+### When to use
+
+- Data lineage (derived from, copied from, transformed by)
+- Business ↔ technical mapping (implements a business definition)
+- Governance ownership (governed by a role or party)
+- Any other informational relationship not covered by `foreignKey`
 
 ### Field definitions
 
@@ -66,27 +61,151 @@ relationships:
 |-------|------|----------|-------------|
 | `type` | enum | Yes | Must be: `relatesTo` |
 | `to` | string or array | Yes | Target element reference |
-| `from` | N/A | Never used | Not applicable for `relatesTo` - source is implicit |
-| `description` | string | No | Human-readable explanation of the relationship |
-| `customProperties` | array | No | Additional metadata following standard custom properties structure |
+| `from` | N/A | Never used | Source is implicit from where the relationship is defined |
+| `description` | string | Recommended | Human-readable explanation of the relationship |
+| `customProperties` | array | No | Additional metadata; can carry a `subtype` discriminator by convention |
 
 ### Validation rules
 
 Implementations SHOULD validate:
+1. MUST have `to` field
+2. Must NOT have `from` field
+3. Target IDs referenced in `to` must exist and paths must resolve correctly
 
-1. **Field requirements:**
-   - MUST have `to` field
-   - Must NOT have `from` field (it's never used for `relatesTo`)
+### Trade-offs
 
-2. **Reference resolution:**
-   - Target IDs referenced in `to` must exist
-   - Referenced paths must resolve correctly
-   - External files must be accessible
+| | |
+|---|---|
+| **Pros** | Simple — one new type, minimal additions to the spec. Flexible for unforeseen use cases. Easy to adopt incrementally. |
+| **Cons** | Semantically weak — tooling cannot distinguish lineage from governance without relying on an unofficial `subtype` convention. Less discoverable for authors. |
+
+---
+
+## Option B: Three Specific Informational Types
+
+### Overview
+
+Replace `relatesTo` with three named types, each with a defined purpose and scope. No generic fallback.
+
+| Type | Purpose | Typical `to` target |
+|------|---------|---------------------|
+| `lineage` | Documents data provenance — where data originated, how it was derived or transformed | Field or table in a source contract |
+| `businessDefinition` | Maps a technical element to a business concept, glossary term, or authoritative definition | Element in a business glossary contract |
+| `governedBy` | Associates a data element with a responsible role, party, or policy | Role, team, or policy reference |
+
+### Common structure (all three types)
+
+```yaml
+relationships:
+  - type: lineage | businessDefinition | governedBy
+    to: <target-reference>           # Always required
+    description: <human-readable-text>
+    customProperties:
+      - property: <name>
+        value: <value>
+```
+
+**Important:** The `from` field is NEVER used with any of these types. The source is always implicit from where the relationship is defined.
+
+---
+
+### Type: `lineage`
+
+**Scope:** Documents the provenance of a data element—its origin, transformations applied, or how it is calculated. Enables machine-readable lineage graphs across systems and pipeline layers.
+
+**Use when:**
+- A field is copied from a source system
+- A field is derived by transformation or aggregation
+- Tracking data flow through bronze/silver/gold layers
+- Documenting ETL/ELT pipeline dependencies
+
+**Field definitions**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | enum | Yes | Must be: `lineage` |
+| `to` | string or array | Yes | Source field, table, or pipeline reference |
+| `from` | N/A | Never used | Source is implicit from where the relationship is defined |
+| `description` | string | Recommended | Describes the transformation or derivation logic |
+| `customProperties` | array | No | e.g. `calculationLogic`, `aggregation_logic` |
+
+---
+
+### Type: `businessDefinition`
+
+**Scope:** Maps a technical data element to its authoritative business meaning—a concept in a business glossary, data dictionary, or canonical data model. Enables semantic governance and tooling that auto-populates descriptions or enforces glossary coverage.
+
+**Use when:**
+- A table implements a business entity concept
+- A field implements a specific business term or definition
+- Linking a technical contract to a business-owned glossary contract (see RFC-0015)
+
+**Field definitions**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | enum | Yes | Must be: `businessDefinition` |
+| `to` | string or array | Yes | Reference to the business concept or glossary element |
+| `from` | N/A | Never used | Source is implicit from where the relationship is defined |
+| `description` | string | No | Optional clarifying note |
+| `customProperties` | array | No | Additional metadata |
+
+---
+
+### Type: `governedBy`
+
+**Scope:** Associates a data element with the role, team, or policy responsible for its governance. Purely informational—does not enforce access control or ownership in the runtime system.
+
+**Use when:**
+- A field is subject to data privacy rules and a named officer/role is accountable
+- A domain or table has a designated data owner
+- Documenting compliance relationships (e.g. GDPR, CCPA accountability)
+
+**Field definitions**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | enum | Yes | Must be: `governedBy` |
+| `to` | string or array | Yes | Reference to a role, team, or policy element |
+| `from` | N/A | Never used | Source is implicit from where the relationship is defined |
+| `description` | string | No | Optional clarifying note |
+| `customProperties` | array | No | Additional metadata |
+
+---
+
+### Validation rules (all three types)
+
+Implementations SHOULD validate:
+1. MUST have `to` field
+2. Must NOT have `from` field
+3. Target IDs referenced in `to` must exist and paths must resolve correctly
+
+### Trade-offs
+
+| | |
+|---|---|
+| **Pros** | Semantically precise — tooling can act on type without parsing descriptions. Discoverable — authors know exactly which type to choose. Machine-readable lineage graphs. Consistent with how `foreignKey` names a specific semantic intent. |
+| **Cons** | Three new enum values instead of one. Edge cases may not fit neatly — authors may feel forced or may misuse types. A future fourth type would require another RFC amendment. |
+
+---
+
+## Comparison
+
+| Concern | Option A (`relatesTo`) | Option B (3 specific types) |
+|---------|----------------------|----------------------------|
+| Spec simplicity | One new type | Three new types |
+| Tooling support | Requires parsing descriptions or `subtype` convention | Native — type is machine-readable |
+| Author clarity | Ambiguous — what goes here? | Clear — each type has a defined scope |
+| Extensibility | Any relationship fits | New use cases may require spec amendment |
+| Alignment with `foreignKey` pattern | Diverges (broad vs. specific) | Consistent (each type = specific semantic intent) |
+
+---
 
 ## Examples
 
-### Example 1: Data lineage - derived field
+### Example 1: Data lineage — derived field
 
+**Option A:**
 ```yaml
 properties:
   - name: monthly_total
@@ -95,23 +214,45 @@ properties:
     relationships:
       - type: relatesTo
         to: schema/daily_sales/properties/amount
-        description: "Derived from: Aggregated SUM of daily transaction amounts"
-    customProperties:
-      - property: aggregation_logic
-        value: "SUM(amount) GROUP BY MONTH(transaction_date)"
+        description: "Aggregated SUM of daily transaction amounts"
+        customProperties:
+          - property: subtype
+            value: lineage
+          - property: aggregation_logic
+            value: "SUM(amount) GROUP BY MONTH(transaction_date)"
 ```
+
+**Option B:**
+```yaml
+properties:
+  - name: monthly_total
+    id: monthly_total_field
+    logicalType: number
+    relationships:
+      - type: lineage
+        to: schema/daily_sales/properties/amount
+        description: "Aggregated SUM of daily transaction amounts"
+        customProperties:
+          - property: aggregation_logic
+            value: "SUM(amount) GROUP BY MONTH(transaction_date)"
+```
+
+---
 
 ### Example 2: Business definition mapping
 
+**Option A:**
 ```yaml
 schema:
   - id: customer_table
     name: customers
-    physicalName: crm_prod.customers
     relationships:
       - type: relatesTo
         to: business-glossary.yaml#/schema/customer_concept
         description: "Implements the Customer business entity concept"
+        customProperties:
+          - property: subtype
+            value: businessDefinition
     properties:
       - id: status_field
         name: status
@@ -119,10 +260,33 @@ schema:
           - type: relatesTo
             to: business-glossary.yaml#/schema/customer_concept/properties/customer_status
             description: "Implements Customer Status business definition"
+            customProperties:
+              - property: subtype
+                value: businessDefinition
 ```
 
-### Example 3: Multiple semantic relationships
+**Option B:**
+```yaml
+schema:
+  - id: customer_table
+    name: customers
+    relationships:
+      - type: businessDefinition
+        to: business-glossary.yaml#/schema/customer_concept
+        description: "Implements the Customer business entity concept"
+    properties:
+      - id: status_field
+        name: status
+        relationships:
+          - type: businessDefinition
+            to: business-glossary.yaml#/schema/customer_concept/properties/customer_status
+```
 
+---
+
+### Example 3: Governance ownership
+
+**Option A:**
 ```yaml
 properties:
   - name: email
@@ -130,67 +294,84 @@ properties:
     logicalType: string
     relationships:
       - type: relatesTo
-        to: crm-system.yaml#/schema/contacts/properties/email
-        description: "Copied from CRM system via nightly ETL"
-
-      - type: relatesTo
-        to: etl-pipeline.yaml#jobs.data_sync_job
-        description: "Transformed by data sync pipeline"
-
-      - type: relatesTo
         to: governance-model.yaml#roles.data_privacy_officer
         description: "Governed by Data Privacy Officer"
-```
-
-### Example 4: Calculated field with lineage
-
-```yaml
-schema:
-  - id: orders_tbl
-    name: orders
-    properties:
-      - id: ord_total
-        name: order_total
-        businessName: Order Total Amount
-        logicalType: number
-        physicalType: decimal(12,2)
-        required: true
-        description: Total amount for entire order
-        relationships:
-          # Document lineage: calculated from order_items
-          - type: relatesTo
-            to: schema/order_items_tbl/properties/item_line_total
-            description: Calculated as SUM(line_total) from order_items table
         customProperties:
-          - property: calculationLogic
-            value: SUM(order_items.line_total) WHERE order_items.order_id = orders.order_id
+          - property: subtype
+            value: governedBy
 ```
 
-### Example 5: Data Lineage Across Multi-Tier Architecture
-
-Demonstrates tracking data flow through bronze/silver/gold layers:
-
-**bronze-layer.yaml** (Raw Ingestion):
+**Option B:**
 ```yaml
-dataContractSpecification: 3.2.0
-id: bronze-transactions
-version: 1.0.0
-
-schema:
-  - id: raw_transactions
-    name: transactions_raw
-    properties:
-      - id: raw_txn_id
-        name: transaction_id
-        logicalType: string
-
-      - id: raw_amount
-        name: amount
-        logicalType: string
-        description: Raw amount as ingested (string format)
+properties:
+  - name: email
+    id: email_field
+    logicalType: string
+    relationships:
+      - type: governedBy
+        to: governance-model.yaml#roles.data_privacy_officer
+        description: "Data Privacy Officer accountable for this field"
 ```
 
-**silver-layer.yaml** (Cleaned/Validated):
+---
+
+### Example 4: Mixed relationship types (all options)
+
+A single property can carry multiple relationships of different types:
+
+**Option A:**
+```yaml
+properties:
+  - name: customer_id
+    id: cust_id_field
+    logicalType: integer
+    relationships:
+      # Structural constraint
+      - type: foreignKey
+        to: schema/customers/properties/id
+
+      # Lineage
+      - type: relatesTo
+        to: source-system.yaml#/schema/orders/properties/cust_no
+        description: "Copied from source system customer number field"
+        customProperties:
+          - property: subtype
+            value: lineage
+
+      # Business definition
+      - type: relatesTo
+        to: business-glossary.yaml#/schema/customer_concept/properties/customer_identifier
+        customProperties:
+          - property: subtype
+            value: businessDefinition
+```
+
+**Option B:**
+```yaml
+properties:
+  - name: customer_id
+    id: cust_id_field
+    logicalType: integer
+    relationships:
+      # Structural constraint
+      - type: foreignKey
+        to: schema/customers/properties/id
+
+      # Lineage
+      - type: lineage
+        to: source-system.yaml#/schema/orders/properties/cust_no
+        description: "Copied from source system customer number field"
+
+      # Business definition
+      - type: businessDefinition
+        to: business-glossary.yaml#/schema/customer_concept/properties/customer_identifier
+```
+
+---
+
+### Example 5: Data lineage across multi-tier architecture (bronze/silver/gold)
+
+**silver-layer.yaml** (Option B shown; Option A substitutes `type: lineage` → `type: relatesTo` with `subtype: lineage`):
 ```yaml
 dataContractSpecification: 3.2.0
 id: silver-transactions
@@ -204,7 +385,7 @@ schema:
         name: transaction_id
         logicalType: integer
         relationships:
-          - type: relatesTo
+          - type: lineage
             to: bronze-transactions.yaml#/schema/raw_transactions/properties/raw_txn_id
             description: Converted from string to integer during cleansing
 
@@ -212,12 +393,12 @@ schema:
         name: amount_usd
         logicalType: number
         relationships:
-          - type: relatesTo
+          - type: lineage
             to: bronze-transactions.yaml#/schema/raw_transactions/properties/raw_amount
             description: Parsed from string, validated, converted to numeric USD
 ```
 
-**gold-layer.yaml** (Business Aggregates):
+**gold-layer.yaml:**
 ```yaml
 dataContractSpecification: 3.2.0
 id: gold-daily-revenue
@@ -227,19 +408,15 @@ schema:
   - id: daily_revenue
     name: daily_revenue_summary
     properties:
-      - id: revenue_date
-        name: business_date
-        logicalType: date
-
       - id: total_revenue
         name: total_revenue_usd
         logicalType: number
         relationships:
-          - type: relatesTo
+          - type: lineage
             to: silver-transactions.yaml#/schema/cleaned_transactions/properties/clean_amount
             description: Aggregated SUM of cleaned transaction amounts by date
 
-          - type: relatesTo
+          - type: lineage
             to: bronze-transactions.yaml#/schema/raw_transactions/properties/raw_amount
             description: Ultimate source is raw transaction amounts from bronze layer
         customProperties:
@@ -247,136 +424,46 @@ schema:
             value: SUM(amount_usd) GROUP BY DATE(transaction_timestamp)
 ```
 
-### Example 6: Business Glossary to Technical Implementation Mapping
+---
 
-**business-glossary.yaml** (Business Team Owned):
-```yaml
-dataContractSpecification: 3.2.0
-id: business-data-glossary
-version: 3.0.0
-title: Enterprise Business Data Glossary
+### Example 6: Business glossary to technical implementation (RFC-0015 Option C alignment)
 
-schema:
-  - id: customer_concept
-    name: Customer
-    businessName: Customer Entity
-    description: |
-      A customer is any individual or organization that has
-      entered into a business relationship with our company.
-    properties:
-      - id: customer_identifier
-        name: customer_id
-        businessName: Customer Identifier
-        description: Unique identifier assigned to each customer
+See RFC-0015 for the full business glossary contract definition. The technical contract links to it as follows:
 
-      - id: customer_status
-        name: status
-        businessName: Customer Status
-        description: Current lifecycle status of the customer relationship
-```
-
-**crm-technical-contract.yaml** (IT Team Owned):
+**Option B:**
 ```yaml
 dataContractSpecification: 3.2.0
 id: crm-customer-table
 version: 2.3.0
-title: CRM Customer Table (Salesforce)
 
 schema:
   - id: sf_customer
     name: customer__c
     physicalName: crm_prod.salesforce.customer__c
-    logicalType: object
     relationships:
-      # Link entire table to business concept
-      - type: relatesTo
+      - type: businessDefinition
         to: business-glossary.yaml#/schema/customer_concept
         description: Technical implementation of Customer business entity
 
     properties:
       - id: sf_cust_id
         name: customer_id__c
-        physicalName: customer_id__c
         logicalType: string
         relationships:
-          # Link to specific business definition
-          - type: relatesTo
+          - type: businessDefinition
             to: business-glossary.yaml#/schema/customer_concept/properties/customer_identifier
-            description: Implements Customer Identifier business definition
 
       - id: sf_cust_status
         name: status__c
-        physicalName: status__c
         logicalType: string
         relationships:
-          # Document relationship to business concept
-          - type: relatesTo
+          - type: businessDefinition
             to: business-glossary.yaml#/schema/customer_concept/properties/customer_status
-            description: Implements Customer Status business definition
 ```
 
-**dwh-technical-contract.yaml** (IT Team Owned - Different System):
-```yaml
-dataContractSpecification: 3.2.0
-id: dwh-customer-dimension
-version: 4.1.0
-title: Data Warehouse Customer Dimension
+---
 
-schema:
-  - id: dim_customer
-    name: dim_customer
-    physicalName: analytics.dimensions.dim_customer
-    logicalType: object
-    relationships:
-      # Same business concept, different technical implementation
-      - type: relatesTo
-        to: business-glossary.yaml#/schema/customer_concept
-        description: DWH implementation of Customer business entity
-
-      # Document data lineage from source system
-      - type: relatesTo
-        to: crm-technical-contract.yaml#/schema/sf_customer
-        description: Data sourced from Salesforce CRM via ETL pipeline
-
-    properties:
-      - id: dwh_cust_id
-        name: customer_id
-        physicalName: customer_business_id
-        logicalType: string
-        relationships:
-          # Business definition link
-          - type: relatesTo
-            to: business-glossary.yaml#/schema/customer_concept/properties/customer_identifier
-            description: Implements Customer Identifier business definition
-
-          # Technical lineage
-          - type: relatesTo
-            to: crm-technical-contract.yaml#/schema/sf_customer/properties/sf_cust_id
-            description: Populated from Salesforce customer_id__c field
-```
-
-### Example 7: Mixed relationship types (foreignKey + relatesTo)
-
-A single property can have multiple relationships of different types:
-
-```yaml
-properties:
-  - name: customer_id
-    id: cust_id_field
-    logicalType: integer
-    relationships:
-      # Structural constraint
-      - type: foreignKey
-        to: schema/customers/properties/id
-        description: "Must reference valid customer"
-
-      # Document where it came from
-      - type: relatesTo
-        to: source-system.yaml#/schema/orders/properties/cust_no
-        description: "Copied from source system customer number field"
-```
-
-### Example 8: SLA monitoring with relatesTo
+### Example 7: SLA monitoring
 
 ```yaml
 schema:
@@ -399,30 +486,40 @@ slaProperties:
     unit: percent
     description: Order amounts must pass all validations
     relationships:
+      # Option A
       - type: relatesTo
         to: schema/orders_tbl/properties/order_total/quality/amount_positive
         description: Monitors the positive amount validation rule
+
+      # Option B equivalent
+      # - type: lineage
+      #   to: schema/orders_tbl/properties/order_total/quality/amount_positive
+      #   description: Monitors the positive amount validation rule
 ```
 
-## Use Cases
+---
 
-Key scenarios enabled by `relatesTo`:
+## Open Questions for the Working Group
 
-1. **Data Lineage Tracking**: Document transformations across bronze/silver/gold layers
-2. **Business-Technical Alignment**: Link technical implementations to business glossary terms
-3. **Multi-System Integration**: Track data flow across CRM → DWH → BI systems
-4. **Governance Mapping**: Associate data elements with responsible parties/roles
-5. **Impact Analysis**: Understand dependencies when making changes
-6. **Calculation Documentation**: Explain how derived/calculated fields are produced
-7. **SLA Monitoring**: Link SLAs to specific quality rules they monitor
+1. **Option A vs. Option B**: Does the community prefer simplicity (one generic type) or precision (three named types)? How important is native tooling support for distinguishing lineage vs. governance without description parsing?
 
-## Alternatives
+2. **`relatesTo` as fallback in Option B**: Should Option B include `relatesTo` as a generic escape hatch for cases that don't fit the three named types, at the cost of reintroducing ambiguity?
 
-Considered embedding lineage and semantic information directly in fields like `description` or `customProperties`, but a structured relationship type provides:
+3. **`businessDefinition` vs. `authoritativeDefinitions`**: ODCS already has an `authoritativeDefinitions` field on properties. If Option B is adopted, should `businessDefinition` in relationships supersede or coexist with `authoritativeDefinitions`? (Related: RFC-0015)
+
+4. **Naming**: Is `lineage` the right name, or does `derivedFrom` / `sourceOf` better reflect directionality? Is `governedBy` clear, or does `ownedBy` / `managedBy` fit better?
+
+---
+
+## Alternatives Considered
+
+Embedding lineage and semantic information directly in `description` or `customProperties` was considered, but a structured relationship type provides:
 - Machine-readable lineage graphs
 - Consistent tooling support
 - Validation of referenced elements
 - Clear separation from structural constraints
+
+---
 
 ## Decision
 
@@ -434,10 +531,11 @@ Considered embedding lineage and semantic information directly in fields like `d
 
 ## References
 
-> Prior art, inspiration, and other references you used to create this based on what's worked well before.
-
 - Data lineage standards (Apache Atlas, OpenLineage)
 - Business glossary patterns (Collibra, Alation)
 - Semantic web relationships (RDF, SKOS)
+- RFC-0015 (Business Definitions) — Option C proposes `businessDefinition` as a relationship type
+- RFC-0026a (reference-id)
+- RFC-0026b (internal-references)
 
 Formerly part of RFC 0026.
