@@ -2,10 +2,21 @@
 
 Champions: Martin, Simon, jgp
 
-Status: VERY EARLY WIP
+## Summary
 
-## Example
+This RFC proposes adding support for the maintenance of Business Definitions of data which are abstracted from the technical fields where the data actually live.
 
+## Motivation
+
+The abstractions allows for a reduncance free and referencable set of business definition. At the same time non-technical and/or Data Governance related metadata could be logically consistent maintained within data contracts.
+
+## Prerequisites
+This RFC (partly) depends on:
+
+RFC-0026a (reference-id) - introduces id field for stable references
+RFC-0026b (internal-references) - establishes the relationships block structure
+
+## Options
 
 ### Option A: Business Definitions as separate entity
 
@@ -259,3 +270,7 @@ schema:
          type: businessDefinition
 ```
 This kind of abstraction allows for a quite parsimonious specification of the physical data types in the intended system. The interpreter reading the ODCS-YAML can fetch the logical data type from the corresponding business definition and translate it to the required physical data type of the target system. If this feels to shaky the physical type must be specified explicitly.
+
+## Decision
+
+tbd
