@@ -119,6 +119,10 @@ relationships:
 - Tracking data flow through bronze/silver/gold layers
 - Documenting ETL/ELT pipeline dependencies
 
+With enterprise data catalogs in mind the lineage on field level could be especially useful in the presence of system breaks. Most of the data catalogs struggle to extract technical lineages above and beyond system boundaries. The proposed relationship type `lineage` would offer an easy, lightweight, and machine readable remedy for this fundamental issue. The description of lineage on higher abstraction levels (tables, objects, etc.) would also be possible.
+
+An alternative would be the defintion of input port data contracts within the ODPS framework. But this option does not provide the same granularity.
+
 **Field definitions**
 
 | Field | Type | Required | Description |
