@@ -4,9 +4,9 @@ Champion: Jean-Georges Perrin
 
 Authors: Jean-Georges Perrin, Guillaume Bodet
 
-Slack: *TBD*
+Slack: [#bitol-wg](https://data-mesh-learning.slack.com/archives/C089S376YGM)
 
-GitHub issue: *TBD*
+GitHub issue: [TSC #50](https://github.com/bitol-io/tsc/issues/50)
 
 ## Summary
 
