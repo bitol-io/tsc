@@ -403,6 +403,7 @@ TBD by TSC
 
 ## References
 
+- ODCS supports custom properties having any data type of the value (as defined [in the JSON schema](https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-latest.json#L2717))
 - Confluent docs: “Data Contracts for Schema Registry” (tags, metadata, rules, payload shape, modes)  
 - Confluent docs: “Schema Registry API Reference” (schema registration request fields; compatibility types)  
 - Open Semantic Interchange supports a similar [extension pattern](https://github.com/open-semantic-interchange/OSI/blob/main/core-spec/spec.md#vendors)
