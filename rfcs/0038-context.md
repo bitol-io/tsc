@@ -12,10 +12,7 @@ GitHub issue: TBD.
 
 ## Summary
 
-This RFC proposes adding a standard `context` block to both ODCS and ODPS. The block provides
-structured, human- and machine-readable guidance that helps AI agents, LLMs, BI tools, and
-semantic layer platforms understand how to interpret and consume data governed by Bitol
-standards. It is optional at every level, additive, and non-breaking.
+This RFC proposes adding a standard `context` block to both ODCS and ODPS. The block provides structured, human- and machine-readable guidance that helps AI agents, LLMs, BI tools, and semantic layer platforms understand how to interpret and consume data governed by Bitol standards. It is optional at every level, additive, and non-breaking.
 
 The name `context` is proposed as the primary option. Alternatives are discussed below.
 
@@ -25,36 +22,22 @@ The name `context` is proposed as the primary option. Alternatives are discussed
 
 ### Why are we doing this?
 
-ODCS and ODPS already capture schema structure, quality rules, ownership, and SLAs. What they
-do not yet capture is the *interpretive guidance* that AI agents and semantic tools need to work
-accurately with data.
+ODCS and ODPS already capture schema structure, quality rules, ownership, and SLAs. What they do not yet capture is the *interpretive guidance* that AI agents and semantic tools need to work accurately with data.
 
-Research and production deployments show that structured context dramatically improves AI
-accuracy:
+Research and production deployments show that structured context dramatically improves AI accuracy:
 
-- Adding semantic metadata (descriptions, synonyms, sample values) to schema definitions
-  improves LLM SQL generation accuracy by 20–27% (Tiger Data, 2026).
-- Column type annotations alone improve accuracy by 8%; semantic descriptions by 12%
-  (Mishra, 2025).
-- Few-shot examples injected dynamically into prompts are the single most effective accuracy
-  booster for text-to-SQL tasks (multiple sources, 2024–2025).
-- Negative guidance ("do not use this column for X") prevents hallucinations and incorrect
-  joins that positive descriptions alone do not prevent (Microsoft Fabric, 2025).
+- Adding semantic metadata (descriptions, synonyms, sample values) to schema definitions   improves LLM SQL generation accuracy by 20–27% (Tiger Data, 2026).
+- Column type annotations alone improve accuracy by 8%; semantic descriptions by 12% (Mishra, 2025).
+- Few-shot examples injected dynamically into prompts are the single most effective accuracy booster for text-to-SQL tasks (multiple sources, 2024–2025).
+- Negative guidance ("do not use this column for X") prevents hallucinations and incorrect joins that positive descriptions alone do not prevent (Microsoft Fabric, 2025).
 
-Without a standardized way to express this guidance, every team reinvents it in proprietary
-formats, defeating the interoperability goals of both ODCS and ODPS.
+Without a standardized way to express this guidance, every team reinvents it in proprietary formats, defeating the interoperability goals of both ODCS and ODPS.
 
 ### Relationship to RFC-0034 (Measures and Dimensions)
 
 > See also Appendix B for the full vendor detail survey.
 
-RFC-0034 introduced a standalone `synonyms` field on measure and dimension properties, and
-references this RFC for the broader context framework. RFC-0034 and RFC-0038 are independent:
-RFC-0034 is not amended by this RFC. The `context.synonyms` field defined here covers all
-levels (contract, schema object, property, product, output port); RFC-0034's `synonyms` covers
-measure and dimension properties specifically. Tooling MAY treat them as equivalent at the
-property level. Authors are encouraged to use `context.synonyms` for consistency, but both
-forms remain valid.
+RFC-0034 introduced a standalone `synonyms` field on measure and dimension properties, and references this RFC for the broader context framework. RFC-0034 and RFC-0038 are independent: RFC-0034 is not amended by this RFC. The `context.synonyms` field defined here covers all levels (contract, schema object, property, product, output port); RFC-0034's `synonyms` covers measure and dimension properties specifically. Tooling MAY treat them as equivalent at the property level. Authors are encouraged to use `context.synonyms` for consistency, but both forms remain valid.
 
 ### Relationship to OSI
 
@@ -62,25 +45,16 @@ forms remain valid.
 
 ### Use cases
 
-1. **Text-to-SQL accuracy**: An LLM generating queries against an ODCS-governed dataset reads
-   `context.instructions` on the schema object to understand how to join it, and reads
-   `context.constraints` on a property to learn it must never be used as a filter alone.
-2. **Natural language querying**: A BI tool reads `context.synonyms` on a measure to resolve
-   "revenue", "sales", and "TO" to the same `total_turnover_euros` property.
-3. **AI agent onboarding**: A data product exposes `context.instructions` at the product level
-   so an AI agent knows which output port to use, what domain it covers, and what questions it
-   can answer.
-4. **Verified Q&A grounding**: A contract owner pre-anchors frequent business questions via
-   `context.verifiedAnswers`, preventing the LLM from fabricating answers to known questions.
-5. **Sensitive data protection**: `context.constraints` on a property instructs AI agents not
-   to expose raw values, only aggregated results.
+1. **Text-to-SQL accuracy**: An LLM generating queries against an ODCS-governed dataset reads  `context.instructions` on the schema object to understand how to join it, and reads   `context.constraints` on a property to learn it must never be used as a filter alone.
+2. **Natural language querying**: A BI tool reads `context.synonyms` on a measure to resolve    "revenue", "sales", and "TO" to the same `total_turnover_euros` property.
+3. **AI agent onboarding**: A data product exposes `context.instructions` at the product level    so an AI agent knows which output port to use, what domain it covers, and what questions it    can answer.
+4. **Verified Q&A grounding**: A contract owner pre-anchors frequent business questions via    `context.verifiedAnswers`, preventing the LLM from fabricating answers to known questions.
+5. **Sensitive data protection**: `context.constraints` on a property instructs AI agents not    to expose raw values, only aggregated results.
 
 ### Alignment with guiding values
 
-- **Small standard over large**: The `context` block is a single optional object. No new
-  top-level sections. All sub-fields are optional.
-- **Interoperability over readability**: The structure is a superset of OSI's `ai_context`,
-  ensuring import/export compatibility.
+- **Small standard over large**: The `context` block is a single optional object. No new  top-level sections. All sub-fields are optional.
+- **Interoperability over readability**: The structure is a superset of OSI's `ai_context`,  ensuring import/export compatibility.
 - **Non-breaking**: Absence of `context` leaves all existing contracts and products valid.
 
 ---
@@ -89,9 +63,7 @@ forms remain valid.
 
 ### Core concept
 
-`context` is an optional object applicable at multiple levels in ODCS and ODPS. All sub-fields
-are optional. The block may be provided as a plain string (equivalent to providing only
-`instructions`) or as a structured object.
+`context` is an optional object applicable at multiple levels in ODCS and ODPS. All sub-fields are optional. The block may be provided as a plain string (equivalent to providing only `instructions`) or as a structured object.
 
 ### Example
 
@@ -299,11 +271,9 @@ outputPorts:
 ## Discussion: field name
 
 The name `context` is preferred because:
-- It is not AI-specific: it is useful for human readers, documentation tools, and data catalogs
-  too, not only LLMs.
+- It is not AI-specific: it is useful for human readers, documentation tools, and data catalogs   too, not only LLMs.
 - It is shorter and more neutral than `aiContext` or `semanticContext`.
-- It aligns with the broader industry use of "context" in RAG, agent frameworks, and metadata
-  standards.
+- It aligns with the broader industry use of "context" in RAG, agent frameworks, and metadata   standards.
 
 Alternatives considered:
 
@@ -325,20 +295,13 @@ This section is open for TSC discussion. No decision has been made.
 
 ### The question
 
-When `context` is defined at multiple levels simultaneously — for example, at the contract
-level AND on a specific schema object AND on a specific property — which takes precedence?
-Do they merge, override, or concatenate? Tools need a clear rule to behave consistently.
+When `context` is defined at multiple levels simultaneously — for example, at the contract level AND on a specific schema object AND on a specific property — which takes precedence? Do they merge, override, or concatenate? Tools need a clear rule to behave consistently.
 
 ### Analogy: output port vs. contract
 
-This is analogous to an existing design tension in ODPS/ODCS: an output port describes
-how to consume a data product, while the linked data contract describes what the data
-promises. They operate at different levels of specificity. The port is the consumer-facing
-surface; the contract is the producer-facing commitment. Neither overrides the other —
-they compose.
+This is analogous to an existing design tension in ODPS/ODCS: an output port describes how to consume a data product, while the linked data contract describes what the data promises. They operate at different levels of specificity. The port is the consumer-facing surface; the contract is the producer-facing commitment. Neither overrides the other: they compose.
 
-The same principle should apply to `context`: each level adds specificity without
-invalidating the level above it.
+The same principle should apply to `context`: each level adds specificity without invalidating the level above it.
 
 ### Proposed hierarchy
 
@@ -346,14 +309,14 @@ The following diagram shows the cascading order from most general (top) to most 
 (bottom), across both ODCS and ODPS:
 
 ```
-ODPS
+ODPS (Product)
 └── Data Product
     └── context  ← broadest scope: domain, overall purpose, top-level constraints
         └── Output Port
             └── context  ← consumption-specific: how to query this port, format hints
                 └── (links to ODCS contract)
 
-ODCS
+ODCS (Contract)
 └── Data Contract
     └── context  ← contract-wide scope: dataset purpose, known limitations
         └── Schema Object  (table / API object)
@@ -379,27 +342,17 @@ Higher levels provide context that lower levels do not repeat unless overriding.
 
 Suggested normative language for tooling:
 
-- For `instructions`: tools SHOULD present context from all levels, ordered from most
-  general to most specific (product → port → contract → schema → property). Each level
-  adds, rather than replaces, the level above it. Tools MAY concatenate them into a
-  single prompt prefix.
-- For `synonyms`: tools SHOULD merge all synonym arrays across levels into a single
-  deduplicated set for NL disambiguation.
+- For `instructions`: tools SHOULD present context from all levels, ordered from most   general to most specific (product → port → contract → schema → property). Each level   adds, rather than replaces, the level above it. Tools MAY concatenate them into a   single prompt prefix.
+- For `synonyms`: tools SHOULD merge all synonym arrays across levels into a single   deduplicated set for NL disambiguation.
 - For `examples`: tools SHOULD merge all example arrays across levels.
-- For `verifiedAnswers`: tools SHOULD merge all verified answer arrays across levels.
-  If two levels define a verified answer for the same question, the more specific level
-  (lower in the hierarchy) takes precedence.
-- For `constraints`: tools SHOULD merge all constraint arrays across levels. No
-  constraint is ever overridden by a higher level — the most restrictive set applies.
+- For `verifiedAnswers`: tools SHOULD merge all verified answer arrays across levels.   If two levels define a verified answer for the same question, the more specific level   (lower in the hierarchy) takes precedence.
+- For `constraints`: tools SHOULD merge all constraint arrays across levels. No   constraint is ever overridden by a higher level — the most restrictive set applies.
 
 ### Open questions for TSC
 
 1. Should cascading be normative (MUST/SHOULD) or advisory (MAY)?
-2. Should a lower level be able to explicitly *suppress* a higher-level instruction
-   (e.g., a property-level `context` that says "ignore contract-level instructions for
-   this field")? If so, how is that expressed?
-3. Should the Data Product → Output Port → Contract chain be formally defined as a
-   cascading path in ODPS, or is it left to ODCS to define its own chain independently?
+2. Should a lower level be able to explicitly *suppress* a higher-level instruction    (e.g., a property-level `context` that says "ignore contract-level instructions for    this field")? If so, how is that expressed?
+3. Should the Data Product → Output Port → Contract chain be formally defined as a    cascading path in ODPS, or is it left to ODCS to define its own chain independently?
 
 ---
 
@@ -407,28 +360,21 @@ Suggested normative language for tooling:
 
 ### Alternative A: Add fields directly without a wrapper block (rejected)
 
-Add `instructions`, `synonyms`, `examples` etc. as top-level fields on schema objects and
-contracts rather than wrapping them in a `context` block.
+Add `instructions`, `synonyms`, `examples` etc. as top-level fields on schema objects and contracts rather than wrapping them in a `context` block.
 
-Rejected because: a wrapper block keeps the namespace clean, makes the concept discoverable
-as a unit, and allows the string shorthand. It also mirrors OSI's design, supporting
-interoperability.
+Rejected because: a wrapper block keeps the namespace clean, makes the concept discoverable as a unit, and allows the string shorthand. It also mirrors OSI's design, supporting interoperability.
 
 ### Alternative B: Reuse `description` for instructions (rejected)
 
 `description` already exists at all levels and is a free-text string.
 
-Rejected because: `description` is for human documentation. `context.instructions` is for AI
-agent consumption and may contain guidance that is not appropriate in documentation (e.g.,
-join constraints, negative guidance, cardinality warnings). Conflating them degrades both.
+Rejected because: `description` is for human documentation. `context.instructions` is for AI agent consumption and may contain guidance that is not appropriate in documentation (e.g., join constraints, negative guidance, cardinality warnings). Conflating them degrades both.
 
 ### Alternative C: Separate RFCs for ODCS and ODPS (rejected)
 
 Define `context` in one RFC for ODCS and a separate RFC for ODPS.
 
-Rejected because: the block is identical in structure across both standards. A single shared
-RFC avoids duplication, ensures consistency, and signals that Bitol standards are designed
-as an integrated suite.
+Rejected because: the block is identical in structure across both standards. A single shared RFC avoids duplication, ensures consistency, and signals that Bitol standards are designed as an integrated suite.
 
 ---
 
@@ -444,9 +390,7 @@ The Bitol `context` block is a strict superset of OSI's `ai_context`:
 | (not present)          | `context.verifiedAnswers`  |
 | (not present)          | `context.constraints`      |
 
-An OSI-to-ODCS converter can map `ai_context` to `context` losslessly. An ODCS-to-OSI
-exporter can project `context.instructions`, `context.synonyms`, and `context.examples`
-into `ai_context` without loss.
+An OSI-to-ODCS converter can map `ai_context` to `context` losslessly. An ODCS-to-OSI exporter can project `context.instructions`, `context.synonyms`, and `context.examples` into `ai_context` without loss.
 
 ---
 
@@ -460,45 +404,25 @@ TBD.
 
 ## Consequences
 
-- **Non-breaking**: `context` is optional at every level. All existing contracts and products
-  remain valid.
-- **Shared structure**: The same `context` block definition is reused across ODCS and ODPS,
-  reducing maintenance overhead and ensuring consistent tooling.
-- **OSI superset**: Bitol `context` covers all OSI `ai_context` fields plus `verifiedAnswers`
-  and `constraints`, positioning Bitol as the governed alternative to OSI for organizations
-  needing both semantics and governance.
-- **RFC-0034 relationship**: RFC-0034 defines a standalone `synonyms` field on measure
-  and dimension properties and references this RFC for the broader context framework.
-  The two RFCs are independent. Tooling MAY treat RFC-0034 `synonyms` and `context.synonyms`
-  as equivalent at the property level.
-- **ODPS alignment**: A follow-up RFC may bring `context` to the linked contract reference
-  level within ODPS if use cases emerge.
+- **Non-breaking**: `context` is optional at every level. All existing contracts and products  remain valid.
+- **Shared structure**: The same `context` block definition is reused across ODCS and ODPS,   reducing maintenance overhead and ensuring consistent tooling.
+- **OSI superset**: Bitol `context` covers all OSI `ai_context` fields plus `verifiedAnswers`   and `constraints`, positioning Bitol as the governed alternative to OSI for organizations  needing both semantics and governance.
+- **RFC-0034 relationship**: RFC-0034 defines a standalone `synonyms` field on measure   and dimension properties and references this RFC for the broader context framework.   The two RFCs are independent. If both passes TSC validation, only one `synonyms` will survive or tooling MAY treat RFC-0034 `synonyms` and `context.synonyms`   as equivalent at the property level.
+- **ODPS alignment**: A follow-up RFC may bring `context` to the linked contract reference   level within ODPS if use cases emerge.
 
 ---
 
 ## References
 
-- [Gartner Magic Quadrant for Analytics and Business Intelligence Platforms](https://www.gartner.com/en/documents/5726363) —
-  June 2025 (ID G00822218). Used to identify the vendor landscape in Appendix B and
-  to source specific vendor capability assessments (metrics layer gaps, NLQ limitations,
-  synonym management burdens).
-- [OSI Core Metadata Specification](https://github.com/open-semantic-interchange/OSI) —
-  defines `ai_context` as a string or object with `instructions`, `synonyms`, `examples`.
-- [Microsoft Fabric Semantic Model Best Practices](https://learn.microsoft.com/en-us/fabric/data-science/semantic-model-best-practices) —
-  "Prep for AI": instructions, verified answers, AI data schema scoping.
-- [Tiger Data: Self-describing Postgres for LLMs](https://www.tigerdata.com/blog/the-database-new-user-llms-need-a-different-database) —
-  27% SQL accuracy improvement from semantic catalog enrichment.
-- [Sigma Computing: Curating Context for AI Agents](https://www.sigmacomputing.com/blog/curate-context-ai-agents) —
-  three-pillar context model: warehouse metadata, semantic definitions, user behavior.
-- [Wren AI: Semantic Engine for LLMs](https://www.getwren.ai/post/how-we-design-our-semantic-engine-for-llms-the-backbone-of-the-semantic-layer-for-llm-architecture) —
-  MDL-based context: instructions, calculations, constraints, relationships.
-- [LLMs and Data Querying: Serialization Survey](https://medium.com/@vijayshankar.mishra/when-tables-finally-started-making-sense-my-deep-dive-into-llms-and-data-querying-3e8cf439b623) —
-  column type annotations +8%, semantic descriptions +12%, hybrid metadata +20–25%.
-- [RFC-0034: Measures and Dimensions](rfcs/0034-measures-and-dimensions.md) —
-  introduces measures and dimensions on properties; defines a standalone `synonyms` field
-  on measures and dimensions; references RFC-0038 for the broader context framework.
-- [RFC-0013: Relationships](rfcs/approved/odcs-v3.1.0/0013-relationships-between-properties.md) —
-  relationships between schema properties.
+- [Gartner Magic Quadrant for Analytics and Business Intelligence Platforms](https://www.gartner.com/en/documents/5726363) —   June 2025 (ID G00822218). Used to identify the vendor landscape in Appendix B and   to source specific vendor capability assessments (metrics layer gaps, NLQ limitations,  synonym management burdens).
+- [OSI Core Metadata Specification](https://github.com/open-semantic-interchange/OSI) —   defines `ai_context` as a string or object with `instructions`, `synonyms`, `examples`.
+- [Microsoft Fabric Semantic Model Best Practices](https://learn.microsoft.com/en-us/fabric/data-science/semantic-model-best-practices) —  "Prep for AI": instructions, verified answers, AI data schema scoping.
+- [Tiger Data: Self-describing Postgres for LLMs](https://www.tigerdata.com/blog/the-database-new-user-llms-need-a-different-database) —  27% SQL accuracy improvement from semantic catalog enrichment.
+- [Sigma Computing: Curating Context for AI Agents](https://www.sigmacomputing.com/blog/curate-context-ai-agents) —  three-pillar context model: warehouse metadata, semantic definitions, user behavior.
+- [Wren AI: Semantic Engine for LLMs](https://www.getwren.ai/post/how-we-design-our-semantic-engine-for-llms-the-backbone-of-the-semantic-layer-for-llm-architecture) —  MDL-based context: instructions, calculations, constraints, relationships.
+- [LLMs and Data Querying: Serialization Survey](https://medium.com/@vijayshankar.mishra/when-tables-finally-started-making-sense-my-deep-dive-into-llms-and-data-querying-3e8cf439b623) —  column type annotations +8%, semantic descriptions +12%, hybrid metadata +20–25%.
+- [RFC-0034: Measures and Dimensions](rfcs/0034-measures-and-dimensions.md) —   introduces measures and dimensions on properties; defines a standalone `synonyms` field  on measures and dimensions; references RFC-0038 for the broader context framework.
+- [RFC-0013: Relationships](rfcs/approved/odcs-v3.1.0/0013-relationships-between-properties.md) —   relationships between schema properties.
 
 ---
 
