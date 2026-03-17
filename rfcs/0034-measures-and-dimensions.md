@@ -190,6 +190,35 @@ schema:
           - ABV
 ```
 
+[!NOTE]
+If the TCS decides positively on RFC 38, then,
+
+```yaml
+      - name: total_turnover_euros
+        implementationType: measure
+        logicalType: number
+        transformLogic: SUM(turnover_euros)
+        synonyms:
+          - TO
+          - Sales
+          - Sales volume
+```
+
+Should be updated to:
+```yaml
+      - name: total_turnover_euros
+        implementationType: measure
+        logicalType: number
+        transformLogic: SUM(turnover_euros)
+        context:
+          synonyms:
+            - TO
+            - Sales
+            - Sales volume
+```
+
+All semantic guidance, including synonyms, lives in context as defined by RFC 38.
+       
 ### Example 3: Dimension with a SQL expression
 
 Dimensions can use SQL expressions in `transformLogic`, not just direct property references.
