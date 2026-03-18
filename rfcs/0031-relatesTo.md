@@ -375,7 +375,7 @@ properties:
 
 **silver-layer.yaml** (Option B shown; Option A substitutes `type: lineage` → `type: relatesTo` with `subtype: lineage`):
 ```yaml
-dataContractSpecification: 3.2.0
+apiVersion: v3.2.0
 kind: DataContract
 id: silver-transactions
 version: 1.0.0
@@ -403,7 +403,7 @@ schema:
 
 **gold-layer.yaml:**
 ```yaml
-dataContractSpecification: 3.2.0
+apiVersion: v3.2.0
 kind: DataContract
 id: gold-daily-revenue
 version: 1.0.0
@@ -436,7 +436,7 @@ See RFC-0015 for the full business glossary contract definition. The technical c
 
 **Option B:**
 ```yaml
-dataContractSpecification: 3.2.0
+apiVersion: v3.2.0
 kind: DataContract
 id: crm-customer-table
 version: 2.3.0

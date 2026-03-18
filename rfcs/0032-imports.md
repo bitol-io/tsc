@@ -104,7 +104,7 @@ Demonstrates reusable quality rule definitions that can be imported across multi
 
 **common-quality-rules.yaml** (Shared Library):
 ```yaml
-dataContractSpecification: 3.2.0
+apiVersion: v3.2.0
 kind: DataContract
 id: common-quality-rules
 version: 1.0.0
@@ -149,7 +149,7 @@ quality:
 
 **customer-contract.yaml** (Consumer Contract):
 ```yaml
-dataContractSpecification: 3.2.0
+apiVersion: v3.2.0
 kind: DataContract
 id: customer-master-data
 version: 1.5.0
@@ -275,7 +275,7 @@ schema:
 This example demonstrates using `foreignKey`, `relatesTo`, and `imports` together:
 
 ```yaml
-dataContractSpecification: 3.2.0
+apiVersion: v3.2.0
 kind: DataContract
 id: ecommerce-orders
 version: 2.1.0
