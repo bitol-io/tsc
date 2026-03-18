@@ -1,12 +1,8 @@
 # RFC-0026a: Adding ID Field for Stable References
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Diego C.
 
 [Slack](https://data-mesh-learning.slack.com/archives/C08EF0M2FFV)
-
-Jira: *replace this text with the link to the dedicated Jira ticket*.
 
 ## Summary
 

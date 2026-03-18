@@ -4,8 +4,6 @@ Champion: jgp
 
 Slack: https://data-mesh-learning.slack.com/archives/C089S376YGM
 
-Jira: https://bitol-io.atlassian.net/browse/ODCS-56
-
 ## Summary
 
 Define scheduling for SLAs as we have for DQ.
@@ -19,7 +17,7 @@ Alignment with DQ.
 ### Example
 
 ```YAML
-slaDefaultElement: tab1.txn_ref_dt # Optional, default value is partitionColumn. ## SEE RCF 0021
+slaDefaultElement: tab1.txn_ref_dt # Optional, default value is partitionColumn. ## SEE RFC 0021
 slaProperties:
   - property: latency # Property, see list of values in DP QoS
     value: 4

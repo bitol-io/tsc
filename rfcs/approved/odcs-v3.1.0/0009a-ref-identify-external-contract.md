@@ -1,12 +1,8 @@
 # Identify an external contract
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Diego C. & Simon Harrer.
 
 [RFC-0009 Slack](https://data-mesh-learning.slack.com/archives/C08EF0M2FFV)
-
-[Jira Ticket](https://bitol-io.atlassian.net/browse/ODCS-48?atlOrigin=eyJpIjoiNWNkM2M2MGYxZmM5NDYyMmI0NGEyYzY1ZjA2Yzg1MDEiLCJwIjoiaiJ9)
 
 ## Summary
 
@@ -97,7 +93,7 @@ Cons:
 - Security Concerns: External URL references may pose security risks without proper validation
 
 
-- We beleive that using Option A allows for users to leverage outside tooling to implement. 
+- We believe that using Option A allows for users to leverage outside tooling to implement. 
 
 
 

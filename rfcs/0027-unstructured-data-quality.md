@@ -1,14 +1,10 @@
 # Unstructured Data Quality for ODCS & ODPS
 
-> The champion is the person who is primarily supporting the RFC.
-
 Authors: Vishwas Balakrishna, Gene Azad
 
 Champion: Jean-Georges Perrin
 
 [Slack](https://data-mesh-learning.slack.com/team/U09APEKU21J)
-
-Jira: **
 
 ## Summary
 > One paragraph explanation of the RFC.

@@ -1,12 +1,8 @@
 # RFC-0032: Add imports Relationship Type
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Diego C.
 
 [Slack](https://data-mesh-learning.slack.com/archives/C08EF0M2FFV)
-
-Jira: *replace this text with the link to the dedicated Jira ticket*.
 
 ## Summary
 
@@ -109,6 +105,7 @@ Demonstrates reusable quality rule definitions that can be imported across multi
 **common-quality-rules.yaml** (Shared Library):
 ```yaml
 dataContractSpecification: 3.2.0
+kind: DataContract
 id: common-quality-rules
 version: 1.0.0
 title: Shared Quality Rules Library
@@ -153,6 +150,7 @@ quality:
 **customer-contract.yaml** (Consumer Contract):
 ```yaml
 dataContractSpecification: 3.2.0
+kind: DataContract
 id: customer-master-data
 version: 1.5.0
 
@@ -278,6 +276,7 @@ This example demonstrates using `foreignKey`, `relatesTo`, and `imports` togethe
 
 ```yaml
 dataContractSpecification: 3.2.0
+kind: DataContract
 id: ecommerce-orders
 version: 2.1.0
 title: E-commerce Orders Contract

@@ -1,7 +1,5 @@
 # Measures and Dimensions
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Jean-Georges Perrin.
 
 Authors: Massil Chabane, Denis Arnaud, Gilles Guglielmoni, and Jean-Georges Perrin.

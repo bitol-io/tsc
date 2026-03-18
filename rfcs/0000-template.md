@@ -8,7 +8,7 @@ Authors: *List of authors, if different than the champion*.
 
 Slack: *replace this text with the link to the dedicated Slack channel*.
 
-GitHub issue: *replace this text with the link to the dedicated Jira ticket*.
+GitHub issue: *replace this text with the link to the dedicated GitHub issue*.
 
 ## Summary
 

@@ -4,8 +4,6 @@ Champion: Andrea Gioia
 
 Slack: NA
 
-Jira: NA
-
 ## Summary
 
 This RFC proposes standardizing the representation of collections of named sub-entities as objects, where each key corresponds to the sub-entity's name and the value is the sub-entity itself. This approach is favored over using arrays of sub-entities with internal name properties.
