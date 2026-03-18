@@ -4,8 +4,6 @@ Champion: Jean-Georges Perrin
 
 Slack: https://data-mesh-learning.slack.com/archives/C089S376YGM (We use [#bitol-wg](https://data-mesh-learning.slack.com/archives/C089S376YGM)).
 
-Jira: https://bitol-io.atlassian.net/browse/ODCS-54.
-
 ## Summary
 
 Add more fields to the customProperties and authoritativeDefinitions block, used accross ODCS and ODPS.

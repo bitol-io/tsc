@@ -1,12 +1,8 @@
 # Title
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Diego C. 
 
 Slack: *replace this text with the link to the dedicated Slack channel*.
-
-Jira: *replace this text with the link to the dedicated Jira ticket*.
 
 ## Summary
 

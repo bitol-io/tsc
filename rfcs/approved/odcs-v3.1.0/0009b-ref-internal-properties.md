@@ -1,12 +1,8 @@
 # Identify an element within a contract
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Diego C. & Simon Harrer.
 
 [RFC-0009 Slack](https://data-mesh-learning.slack.com/archives/C08EF0M2FFV)
-
-[Jira Ticket](https://bitol-io.atlassian.net/browse/ODCS-48?atlOrigin=eyJpIjoiNWNkM2M2MGYxZmM5NDYyMmI0NGEyYzY1ZjA2Yzg1MDEiLCJwIjoiaiJ9)
 
 ## Summary
 
@@ -37,7 +33,7 @@ JSON Pointer (RFC 6901) is a string syntax for identifying a specific value with
 Refs:
 - [JSON POINTER](https://datatracker.ietf.org/doc/html/rfc6901)
 
-<<add description of what a JSON pointer is>>
+A JSON Pointer is a string syntax (defined in RFC 6901) for identifying a specific value within a JSON document, using a series of `/`-separated reference tokens (e.g., `/schema/0/properties/name`).
 
 ``` examples
 schema:
@@ -236,7 +232,7 @@ Terraform: HCL language uses similar named reference patterns
 ## Decision
 
 2025-05-20 - Option D - table.column shortcut approved for schema properties only
-2025-05-20 - Option B | Option A - neither approved. Json Pointers were too brittle given the array structure. JSON paths were too complex in wirtting them effectively. TSC decision was to continue looking for options. 
+2025-05-20 - Option B | Option A - neither approved. Json Pointers were too brittle given the array structure. JSON paths were too complex in writing them effectively. TSC decision was to continue looking for options. 
 
 ## Consequences
 

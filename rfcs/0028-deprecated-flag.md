@@ -1,7 +1,5 @@
 # Deprecated flag for schema and properties
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Simon Harrer
 
 ## Summary

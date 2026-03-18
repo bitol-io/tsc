@@ -1,7 +1,5 @@
 # Implicit Data Quality Rules
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Jochen Christ.
 
 [Slack channel](https://data-mesh-learning.slack.com/archives/C08C9G9PDA7).
@@ -406,7 +404,7 @@ quality:
 
 ##### Null values
 
-Check that the counr of `null` values are within range.
+Check that the count of `null` values are within range.
 
 ```yaml
 properties:

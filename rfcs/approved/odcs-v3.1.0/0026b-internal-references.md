@@ -1,12 +1,8 @@
 # RFC-0026b: Internal References Using Foreign Keys
 
-> The champion is the person who is primarily supporting the RFC.
-
 Champion: Diego C.
 
 [Slack](https://data-mesh-learning.slack.com/archives/C08EF0M2FFV)
-
-Jira: *replace this text with the link to the dedicated Jira ticket*.
 
 ## Summary
 
@@ -817,7 +813,7 @@ schema:
         description: Order must reference valid product within same tenant
 ```
 
-### Example 3: Simple ID-Based Property References
+### Example 4: Simple ID-Based Property References
 
 ```yaml
 schema:
@@ -844,7 +840,7 @@ schema:
         logicalType: integer
 ```
 
-### Example 4: External Contract Reference
+### Example 5: External Contract Reference
 
 ```yaml
 schema:

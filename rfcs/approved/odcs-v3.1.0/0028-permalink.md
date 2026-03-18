@@ -4,8 +4,6 @@ Champion: Jean-Georges Perrin
 
 Slack: https://data-mesh-learning.slack.com/archives/C089S376YGM.
 
-Jira: https://bitol-io.atlassian.net/browse/ODCS-57.
-
 ## Summary
 
 Add **optional** `permalink` to the header/fundamentals of ODCS/ODPS.
