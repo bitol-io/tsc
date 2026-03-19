@@ -46,13 +46,13 @@ Two options are presented for TSC consideration:
 
 ### Option A vs Option B
 
-| Concern                       | Option A                                 | Option B                                           |
-| ----------------------------- | ---------------------------------------- | -------------------------------------------------- |
-| Standard surface area         | Larger: new `variables` section          | Smaller: syntax only                               |
-| Self-documenting contracts    | Yes: consumers can inspect requirements  | No: variable inventory lives outside the contract |
-| Secret masking signal         | `sensitive: true` in the contract        | Left entirely to tooling                           |
-| Required/default enforcement  | Declared in the contract                 | Left entirely to tooling                           |
-| Alignment with guiding values | Favors interoperability                  | Favors a small standard                            |
+| Concern                       | Option A                                | Option B                                          |
+| ----------------------------- | --------------------------------------- | ------------------------------------------------- |
+| Standard surface area         | Larger: new `variables` section         | Smaller: syntax only                              |
+| Self-documenting contracts    | Yes: consumers can inspect requirements | No: variable inventory lives outside the contract |
+| Secret masking signal         | `sensitive: true` in the contract       | Left entirely to tooling                          |
+| Required/default enforcement  | Declared in the contract                | Left entirely to tooling                          |
+| Alignment with guiding values | Favors interoperability                 | Favors a small standard                           |
 
 ### Shared: `${VAR_NAME}` interpolation syntax
 
@@ -267,6 +267,108 @@ Some teams use external templating tools (Helm, Jinja2, envsubst) to substitute 
 ### Restrict to a defined list of secret backends
 
 Coupling the standard to specific secret management systems (Vault, AWS Secrets Manager, etc.) would limit portability and create version drift as backends evolve. Both options keep resolution out of scope for the standard.
+
+## Open Discussion: Alternative Reference Syntax
+
+### Existing `${...}` usage across the standards
+
+The `${VAR_NAME}` interpolation syntax is not new to this RFC. It is already used in several places:
+
+| Location | Usage | Example |
+|----------|-------|---------|
+| **ODCS JSON schema** (all versions) | SQL quality rule examples | `SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL` |
+| **RFC-0007** (data quality, approved) | SQL quality rule queries | `${table}`, `${column}` |
+| **RFC-0027** (unstructured data quality) | SQL quality rule queries | `${object}`, `${property}` |
+| **RFC-0035** (extensions) | Extension naming templates | `${physicalName}-${scope}` |
+| **RFC-0038** (context) | Query answer templates | `${total_turnover_euros}` |
+| **example.yaml** (v2.x reference) | Server credentials | `${env.username}`, `${env.password}` |
+
+The `${...}` syntax is a de facto convention in ODCS for any kind of runtime substitution — SQL templates, extension naming, and environment values. This RFC would formalize and standardize what is already an established pattern.
+
+ODPS does not currently use `${...}` in any standard documents or schema.
+
+### Alternative: `$var` annotation syntax
+
+Both options above use the `${VAR_NAME}` interpolation syntax. An alternative approach — consistent with RFC-0032 Option B's `$import` annotation — would use a `$var` field-level annotation instead of string interpolation.
+
+### `$var` annotation syntax
+
+Instead of embedding `${VAR_NAME}` inside string values, each field that needs variable resolution carries a `$var` annotation alongside its materialized value:
+
+**Example — `${VAR_NAME}` syntax (current proposal):**
+```yaml
+servers:
+  - server: prod_db
+    environment: prod
+    type: postgresql
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    database: orders_prod
+    password: ${DB_PASSWORD}
+```
+
+**Example — `$var` annotation syntax (alternative):**
+```yaml
+servers:
+  - server: prod_db
+    environment: prod
+    type: postgresql
+    host:
+      $var: DB_HOST
+      value: db.prod.acme.com
+    port:
+      $var: DB_PORT
+      value: 5432
+    database: orders_prod
+    password:
+      $var: DB_PASSWORD
+      value: ""
+```
+
+### Trade-offs
+
+| Concern                       | `${VAR_NAME}` syntax                                          | `$var` annotation syntax                                                    |
+| ----------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Self-contained contract**   | No — unresolved `${...}` tokens are not valid values          | Yes — `value` always holds a usable default or last-known value             |
+| **Readability**               | Compact, familiar to DevOps teams                             | More verbose, but explicit about what is variable vs fixed                  |
+| **Substring interpolation**   | Natural: `jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}` | Not supported — each field is either fully variable or fully fixed          |
+| **Consistency with RFC-0032** | Different mechanism (`${...}` vs `$import`)                   | Same pattern — `$` prefix annotation on fields, declaration side + use side |
+| **Tooling complexity**        | String parsing required to find/replace tokens                | Structured field — tooling reads `$var` key directly                        |
+
+### Combined example with Option A `variables` section
+
+```yaml
+variables:
+  - name: DB_HOST
+    description: "Hostname of the PostgreSQL database server"
+    required: true
+  - name: DB_PORT
+    description: "Port for the PostgreSQL database server"
+    default: "5432"
+  - name: DB_PASSWORD
+    description: "Password for the database service account"
+    required: true
+    sensitive: true
+
+servers:
+  - server: prod_db
+    environment: prod
+    type: postgresql
+    host:
+      $var: DB_HOST
+      value: db.prod.acme.com
+    port:
+      $var: DB_PORT
+      value: 5432
+    database: orders_prod
+    password:
+      $var: DB_PASSWORD
+      value: ""
+```
+
+The `variables` section declares what the contract expects (same as Option A). The `$var` annotation marks which fields are variable-resolved, while `value` holds the materialized/default content — making the contract self-contained even before resolution.
+
+The TSC should decide whether the familiarity and compactness of `${VAR_NAME}` outweighs the self-containment and structural consistency of `$var`.
 
 ## Decision
 
