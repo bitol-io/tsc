@@ -8,6 +8,13 @@ Authors: Diego Carvallo, Patrick Beitsma, Martin Meermeyer, Jean-Georges Perrin,
 
 [GitHub issue](https://github.com/bitol-io/open-data-contract-standard/issues/188)
 
+Applies to:
+* [X] ODCS
+* [X] ODPS
+* [ ] OORS
+* [ ] OOCS
+* [ ] OMMS
+
 ## Summary
 
 Define a mechanism for reusing definitions (quality rules, property definitions, SLA configurations, etc.) across data contracts. Two options are presented with fundamentally different philosophies:
@@ -136,7 +143,7 @@ schema:
         logicalType: string
         relationships:
           - type: imports
-            to: common-quality-rules.yaml#quality.email_validation
+            to: common-quality-rules.yaml#quality/email_validation
             description: Import standard email validation
 
       - id: account_balance
@@ -144,7 +151,7 @@ schema:
         logicalType: number
         relationships:
           - type: imports
-            to: common-quality-rules.yaml#quality.non_negative_amount
+            to: common-quality-rules.yaml#quality/non_negative_amount
             description: Balance cannot be negative
 ```
 
@@ -190,7 +197,7 @@ schema:
     name: orders
     relationships:
       - type: imports
-        to: templates.yaml#/schema/audit_fields_template.properties
+        to: templates.yaml#schema/audit_fields_template/properties
         description: "Import standard audit fields (created_at, updated_at)"
     properties:
       - id: order_id
@@ -198,6 +205,16 @@ schema:
         logicalType: integer
       # Audit fields will be merged here after resolution
 ```
+
+### Applicability to ODPS
+
+To extend Option A to ODPS (Open Data Product Standard), the following would be required:
+
+1. **Add `relationships` to ODPS.** ODPS v1.0.0 does not have a `relationships` block. RFC-0026b's relationship structure would need to be adopted into ODPS first — a significant prerequisite.
+2. **Extend the `type: imports` enum.** The `imports` relationship type would need to be added to the ODPS JSON schema.
+3. **Define valid import targets.** ODPS has different sections than ODCS (e.g., `inputPorts`, `outputPorts`, `managementPorts`). Import resolution rules would need to map content types to valid ODPS locations.
+
+**Effort:** High — requires adopting the `relationships` mechanism into ODPS first.
 
 ---
 
@@ -270,48 +287,75 @@ The preprocessor flows from declaration side to use side: it reads import source
 3. **Centralized declaration.** All external dependencies are declared in one top-level `imports` block — a single inventory of what this contract pulls from.
 4. **Preprocessor-driven refresh.** Updating imported content is an explicit action (running the preprocessor), not a runtime resolution step. This is analogous to the C compilation model: `#include` is expanded before compilation, not resolved at runtime.
 
-### The `imports` section
+### The `imports` section (declaration side)
 
-A new optional top-level section `imports` declares named import sources.
+The **declaration side** of the contract. A new optional top-level section `imports` declares named import sources.
 
-| Field         | Type           | Required | Description                                                                          |
-| ------------- | -------------- | -------- | ------------------------------------------------------------------------------------ |
-| `name`        | string         | Yes      | Unique local name for this import, used in `$import` references                      |
-| `from`        | string         | Yes      | Source reference: file path, URL, contract reference with fragment, or `self`         |
-| `description` | string         | No       | Human-readable explanation of what is being imported                                 |
-| `value`       | object or array | No       | Inline definition object. Required when `from: self`. The canonical reusable content |
+| Field         | UX label    | Type            | Required | Description                                                                           |
+| ------------- | ----------- | --------------- | -------- | ------------------------------------------------------------------------------------- |
+| `name`        | Name        | string          | Yes      | Unique local name for this import, used in `$import` references.                      |
+| `from`        | From        | string          | Yes      | Source reference: file path, URL, contract reference with fragment, or `self`.        |
+| `type`        | Type        | enum            | No       | Schema type of the imported content. Enables validation of `value` and use sites.     |
+| `description` | Description | string          | No       | Human-readable explanation of what is being imported.                                 |
+| `value`       | Value       | object or array | No       | Inline definition object. Required when `from: self`. The canonical reusable content. |
+
+**The `type` field** declares what kind of ODCS element the import represents, using the names from the `$defs` section of the ODCS JSON schema. This allows tooling to:
+- Validate the `value` object on the declaration side against the corresponding `$defs` definition in the JSON schema
+- Validate that use sites place the imported content in a compatible location (e.g., a `DataQualityChecks` import must appear inside a `quality:` array, not inside `slaProperties:`)
+- As we reuse those elements from the JSON Schema, we may want to rename them in a more meaningful way. Until now, they were hidden internal constructs.
+
+| `type` value                    | JSON schema `$defs`             | Valid use side locations                  |
+| ------------------------------- | ------------------------------- | ----------------------------------------- |
+| `DataQualityChecks`             | `DataQualityChecks`             | `quality:` arrays on properties or schema |
+| `DataQualityLibrary`            | `DataQualityLibrary`            | `quality:` arrays (library-type rules)    |
+| `DataQualityCustom`             | `DataQualityCustom`             | `quality:` arrays (custom rules)          |
+| `DataQualitySql`                | `DataQualitySql`                | `quality:` arrays (SQL-based rules)       |
+| `SchemaProperty`                | `SchemaProperty`                | `properties:` arrays on schema objects    |
+| `SchemaObject`                  | `SchemaObject`                  | `schema:` array                           |
+| `ServiceLevelAgreementProperty` | `ServiceLevelAgreementProperty` | `slaProperties:` array                    |
+| `CustomProperty`                | `CustomProperty`                | `customProperties:` arrays                |
+| `AuthoritativeDefinitions`      | `AuthoritativeDefinitions`      | `authoritativeDefinitions:` arrays        |
+| `Server`                        | `Server`                        | `servers:` array                          |
+| `SupportItem`                   | `SupportItem`                   | `support:` array                          |
+| `TeamMember`                    | `TeamMember`                    | `team:` array                             |
+| `Role`                          | `Role`                          | `roles:` array                            |
+
+When `type` is omitted, tooling MAY infer the type from the `from` path fragment or from the structure of `value`, but SHOULD warn that explicit typing is recommended.
 
 When `from` is an external reference (file path or URL), the `value` field is not used — the preprocessor fetches content from the source. When `from: self`, the `value` field carries the reusable definition inline, making the contract fully self-contained without any external dependency.
 
 ```yaml
 imports:
-  # External imports — content fetched from other files
+  # DECLARATION SIDE: external imports — content fetched from other files
   - name: email_rules
     from: common-quality-rules.yaml#quality/email_validation
+    type: DataQualityChecks
     description: Standard email format validation
 
   - name: phone_rules
     from: common-quality-rules.yaml#quality/phone_us_format
+    type: DataQualityChecks
     description: US phone number format validation
 
   - name: audit_fields
     from: templates.yaml#schema/audit_fields/properties
+    type: SchemaProperty
     description: Standard audit timestamp fields
 
-  # Self import — reusable definition defined inline
+  # DECLARATION SIDE: self import — reusable definition defined inline
   - name: non_negative
     from: self
+    type: DataQualityChecks
     description: Non-negative numeric value check
     value:
-      quality:
-        - metric: invalidValues
-          arguments:
-            validValues: ['>=0']
+      metric: invalidValues
+      arguments:
+        validValues: ['>=0']
 ```
 
-### The `$import` annotation
+### The `$import` annotation (use side)
 
-Anywhere within the contract, the `$import` field annotates a materialized element with its import source. The `$import` value is the `name` of an entry in the top-level `imports` section.
+The **use side** of the contract — everything outside the `imports` block (`schema`, `quality`, `slaProperties`, etc.). At each **use site**, the `$import` field annotates a materialized element with the name of its import source from the declaration side.
 
 The `$import` field is a **provenance annotation** — it does not trigger resolution. The content alongside it is the actual, materialized content. The contract is fully valid if `$import` annotations are stripped entirely.
 
@@ -319,43 +363,43 @@ The `$import` field is a **provenance annotation** — it does not trigger resol
 
 The preprocessor is an external tool (not part of the runtime contract processing). Its role:
 
-1. **Refresh**: Read each entry in `imports`, fetch the source content (or the `value` object for `from: self`), and update the materialized content at every location that carries the matching `$import` annotation.
+1. **Refresh**: Read each entry on the declaration side, fetch the source content (or the `value` object for `from: self`), and update the materialized content at every use site on the use side that carries the matching `$import` annotation.
 2. **Type Checking**: Verify the imported content type is compatible with its target location.
 3. **Circular Detection**: Detect and reject circular import chains.
 
 The preprocessor is invoked explicitly (e.g., as a CLI tool or CI step). It is never invoked implicitly during contract validation or consumption.
 
-**Managed vs local fields.** The preprocessor only overwrites fields that are present in the import source (`value` object or external content). Fields at the use site that are **not** in the import source are left untouched. This allows each use site to carry local overrides that survive preprocessing.
+**Managed vs local fields.** The preprocessor only overwrites **managed fields** — those present in the declaration side (`value` object or external content). **Local fields** — those at the use site that are **not** in the declaration side — are left untouched. This allows each use site to carry overrides that survive preprocessing.
 
-For example, if the import `value` defines `logicalType`, `physicalType`, and `quality`, but does **not** define `description`, `required`, `id`, or `physicalName`, then:
-- `logicalType`, `physicalType`, and `quality` are **managed** — the preprocessor refreshes them from the source.
-- `description`, `required`, `id`, and `physicalName` are **local** — the preprocessor does not touch them.
+For example, if the declaration side `value` defines `logicalType`, `physicalType`, and `quality`, but does **not** define `description`, `required`, `id`, or `physicalName`, then:
+- `logicalType`, `physicalType`, and `quality` are **managed fields** — the preprocessor refreshes them from the declaration side.
+- `description`, `required`, `id`, and `physicalName` are **local fields** — the preprocessor does not touch them.
 
-This means: **do not include a field in the import `value` if it is expected to vary across use sites.** The `value` is the canonical template; everything outside it is site-specific.
+This means: **do not include a field in the declaration side `value` if it is expected to vary across use sites.** The `value` is the canonical template; everything outside it is site-specific.
 
 ### Validation rules
 
 Implementations SHOULD validate:
 
 1. **Structural rules:**
-   - Every `$import` value MUST match a `name` in the `imports` section
-   - Each `name` in `imports` MUST be unique
-   - Content alongside `$import` MUST be structurally valid for its location (e.g., quality rule in a quality section)
+   - Every `$import` value on the use side MUST match a `name` on the declaration side
+   - Each `name` on the declaration side MUST be unique
+   - Content alongside `$import` on the use side MUST be structurally valid for its location (e.g., quality rule in a quality section)
 
 2. **Self-containment:**
    - A contract MUST be valid without resolving any external source
    - Tooling MUST NOT require access to `from` references during normal contract processing
 
 3. **Preprocessor rules:**
-   - The preprocessor MUST only overwrite fields present in the import source (`value` or external content)
-   - The preprocessor MUST NOT overwrite fields at the use site that are absent from the import source (local overrides survive refresh)
+   - The preprocessor MUST only overwrite managed fields (those present on the declaration side)
+   - The preprocessor MUST NOT overwrite local fields at the use site (those absent from the declaration side survive refresh)
    - The preprocessor MUST preserve the `$import` annotation itself
    - The preprocessor MUST update all locations with a matching `$import` annotation
    - The preprocessor MUST detect circular import chains and reject them
 
 **Example — managed vs local fields during refresh:**
 
-Given this import definition:
+Given this declaration side entry:
 ```yaml
 imports:
   - name: street
@@ -368,7 +412,7 @@ imports:
           mustBe: 0
 ```
 
-And this use site before refresh:
+And this use site (on the use side) before refresh:
 ```yaml
       - $import: street
         id: cust_street_1
@@ -385,7 +429,7 @@ And this use site before refresh:
             description: Street address is required
 ```
 
-If the import `value` changes (e.g., `physicalType` updated to `varchar(500)` and a new quality rule added):
+If the declaration side `value` changes (e.g., `physicalType` updated to `varchar(500)` and a new quality rule added):
 ```yaml
 imports:
   - name: street
@@ -421,9 +465,11 @@ After running the preprocessor, the use site becomes:
               maxLength: 500
 ```
 
-The preprocessor updated `physicalType` and added the new quality rule, but left `id`, `name`, `physicalName`, `required`, `description`, and the existing quality rule's `id` and `description` untouched.
+The preprocessor updated managed fields (`physicalType`, quality `metric`/`mustBe`/`arguments`) from the declaration side, and added the new quality rule. Local fields (`id`, `name`, `physicalName`, `required`, `description`, and the existing quality rule's `id` and `description`) were untouched.
 
 ### Example B-1: Import quality rules with materialized content
+
+The declaration side references an external quality rules library. The use side materializes the rules inline with `$import` provenance annotations.
 
 **common-quality-rules.yaml** (Shared Library — same as Option A):
 ```yaml
@@ -459,9 +505,11 @@ version: 1.5.0
 imports:
   - name: email_rules
     from: common-quality-rules.yaml#quality/email_validation
+    type: DataQualityChecks
     description: Standard email format validation
   - name: amount_rules
     from: common-quality-rules.yaml#quality/non_negative_amount
+    type: DataQualityChecks
     description: Non-negative amount validation
 
 schema:
@@ -493,11 +541,13 @@ schema:
             description: Ensures monetary amounts are non-negative
 ```
 
-The contract is fully self-contained. The `$import` annotations are provenance markers. Tooling can validate this contract without ever accessing `common-quality-rules.yaml`.
+The contract is fully self-contained. The `$import` annotations on the use side are provenance markers linking back to the declaration side. Tooling can validate this contract without ever accessing `common-quality-rules.yaml`.
 
-When the shared library updates its email regex, running the preprocessor refreshes the materialized content in place.
+When the shared library updates its email regex, running the preprocessor refreshes managed fields at every use site.
 
 ### Example B-2: Import audit field properties
+
+The declaration side references an external template library. Each property on the use side carries `$import` linking it back to the declaration.
 
 ```yaml
 apiVersion: v3.2.0
@@ -508,6 +558,7 @@ version: 2.0.0
 imports:
   - name: audit_fields
     from: templates.yaml#schema/audit_fields/properties
+    type: SchemaProperty
     description: Standard audit timestamp fields
 
 schema:
@@ -537,6 +588,8 @@ Each property carries its own `$import` annotation. The preprocessor refreshes a
 
 ### Example B-3: Mixed imports and local definitions
 
+Quality rules on the use side can mix imported rules (with `$import` provenance from the declaration side) and local rules (no `$import`, not managed by the preprocessor).
+
 ```yaml
 apiVersion: v3.2.0
 kind: DataContract
@@ -546,9 +599,11 @@ version: 1.0.0
 imports:
   - name: email_rules
     from: common-quality-rules.yaml#quality/email_validation
+    type: DataQualityChecks
     description: Standard email format validation
   - name: status_values
     from: business-glossary.yaml#schema/customer_concept/properties/customer_status/quality/valid_statuses
+    type: DataQualityChecks
     description: Business-defined valid status values
 
 schema:
@@ -559,7 +614,7 @@ schema:
         name: email
         logicalType: string
         quality:
-          # Imported rule — provenance tracked
+          # Managed — from declaration side, refreshed by preprocessor
           - $import: email_rules
             id: email_validation
             name: email_format_check
@@ -567,7 +622,7 @@ schema:
             arguments:
               regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
             description: Standard email format validation
-          # Local rule — no $import, not managed externally
+          # Local — no $import, not on declaration side, untouched by preprocessor
           - id: email_not_null
             metric: nullValues
             mustBe: 0
@@ -584,9 +639,11 @@ schema:
               validValues: ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'CLOSED']
 ```
 
-Imported and local quality rules coexist naturally. The `$import` annotation distinguishes managed (externally sourced) from local definitions.
+Imported and local quality rules coexist naturally on the use side. The `$import` annotation distinguishes managed fields (sourced from the declaration side) from local fields (defined only at the use site).
 
 ### Example B-4: Import SLA properties
+
+The declaration side and use side pattern works across any section — here, `slaProperties` on the use side references an SLA template from the declaration side.
 
 ```yaml
 apiVersion: v3.2.0
@@ -597,6 +654,7 @@ version: 3.0.0
 imports:
   - name: standard_freshness_sla
     from: sla-templates.yaml#slaProperties/data_freshness
+    type: ServiceLevelAgreementProperty
     description: Organization-wide data freshness SLA
 
 slaProperties:
@@ -607,7 +665,7 @@ slaProperties:
     unit: h
     description: Data must be refreshed within 24 hours
 
-  # Local SLA — not imported
+  # Local — not on declaration side
   - id: payment_accuracy
     property: dataQuality
     value: 99.99
@@ -631,7 +689,7 @@ version: 2.0.0
 title: Procurement System Contract
 
 imports:
-  # Note: value objects contain ONLY managed fields.
+  # DECLARATION SIDE: value objects contain ONLY managed fields.
   # Fields like description, id, physicalName are local to each use site
   # and are NOT overwritten when the preprocessor refreshes.
   # required is managed for fields that are always required (city, state,
@@ -639,6 +697,7 @@ imports:
 
   - name: street
     from: self
+    type: SchemaProperty
     description: Street address line
     value:
       logicalType: string
@@ -649,6 +708,7 @@ imports:
 
   - name: city
     from: self
+    type: SchemaProperty
     description: City name
     value:
       logicalType: string
@@ -660,6 +720,7 @@ imports:
 
   - name: state_province
     from: self
+    type: SchemaProperty
     description: State or province code
     value:
       logicalType: string
@@ -674,6 +735,7 @@ imports:
 
   - name: postal_code
     from: self
+    type: SchemaProperty
     description: Postal or ZIP code
     value:
       logicalType: string
@@ -688,6 +750,7 @@ imports:
 
   - name: country_code
     from: self
+    type: SchemaProperty
     description: ISO 3166-1 alpha-2 country code
     value:
       logicalType: string
@@ -717,7 +780,7 @@ schema:
         logicalType: string
         physicalType: varchar(200)
 
-      # --- Address fields from self-imported definitions ---
+      # --- USE SIDE: address fields from declaration side ---
 
       - $import: street
         id: cust_street_1
@@ -733,7 +796,7 @@ schema:
             mustBe: 0
             description: Street address is required
 
-      # Same street import, used for line 2 — overrides required to false
+      # Same street from declaration side — local field required overridden to false
       - $import: street
         id: cust_street_2
         name: street_line_2
@@ -830,7 +893,7 @@ schema:
         logicalType: string
         physicalType: varchar(300)
 
-      # --- Same imports, different ids and physical names ---
+      # --- USE SIDE: same declaration side imports, different local fields ---
 
       - $import: street
         id: supplier_street_1
@@ -928,12 +991,12 @@ schema:
 ```
 
 Key observations:
-- **Each address field is its own import** (`street`, `city`, `state_province`, `postal_code`, `country_code`) — itemized, not a monolithic object. Each can be referenced independently.
-- **`from: self`** with a **`value` object** — the canonical definition lives inline. No external file needed.
-- **`value` contains only managed fields** — `logicalType`, `physicalType`, and `quality`. Fields like `description`, `required`, `id`, and `physicalName` are absent from `value` because they vary per use site.
-- **The preprocessor only overwrites what's in `value`.** When refreshed, `logicalType`, `physicalType`, and `quality` are updated from the import source. Site-specific fields (`description`, `required`, `id`, `physicalName`) are left untouched — they survive preprocessing.
-- **One `street` definition, two variations** — `cust_street_1` has `required: true` and `description: Primary street address`, while `cust_street_2` reuses the same `$import: street` but with `required: false` and `description: Secondary address line`. Both get the same `logicalType`, `physicalType`, and `quality` from the import.
-- **`physicalName` varies per table** — `cust_addr_line1` vs `sup_addr_line1`. The import provides the type and quality rules; the physical mapping is specific to each table.
+- **Each address field is its own import on the declaration side** (`street`, `city`, `state_province`, `postal_code`, `country_code`) — itemized, not a monolithic object. Each can be referenced independently on the use side.
+- **`from: self`** with a **`value` object** on the declaration side — the canonical definition lives inline. No external file needed.
+- **`value` contains only managed fields** — `logicalType`, `physicalType`, `quality`, and `required` (where it doesn't vary). Local fields like `description`, `id`, and `physicalName` are absent from `value` because they vary per use site.
+- **The preprocessor only overwrites managed fields.** When refreshed, fields from the declaration side `value` are updated at each use site. Local fields (`description`, `id`, `physicalName`, and `required` for `street`) are untouched — they survive preprocessing.
+- **One `street` declaration, two variations on the use side** — `cust_street_1` has `required: true` and `description: Primary street address`, while `cust_street_2` reuses the same `$import: street` but with `required: false` and `description: Secondary address line`. Both get the same managed fields (`logicalType`, `physicalType`, `quality`) from the declaration side.
+- **`physicalName` is a local field** — `cust_addr_line1` vs `sup_addr_line1`. The declaration side provides the type and quality rules; the physical mapping is specific to each use site.
 
 ### Example B-6: Importing from a non-DataContract definition store
 
@@ -991,22 +1054,28 @@ imports:
   # Address fields from the shared definition store
   - name: address_street_1
     from: 0032-shared-definitions.yaml#address/street_line_1
+    type: SchemaProperty
     description: Street address with not-null quality rule
   - name: address_city
     from: 0032-shared-definitions.yaml#address/city
+    type: SchemaProperty
     description: City with not-null quality rule
   - name: address_postal
     from: 0032-shared-definitions.yaml#address/postal_code
+    type: SchemaProperty
     description: Postal code with format validation
   - name: address_country
     from: 0032-shared-definitions.yaml#address/country_code
+    type: SchemaProperty
     description: ISO country code with format validation
   # Quality rules from the shared definition store
   - name: email_rules
     from: 0032-shared-definitions.yaml#quality/email_validation
+    type: DataQualityChecks
     description: Standard email format validation
   - name: amount_rules
     from: 0032-shared-definitions.yaml#quality/non_negative_amount
+    type: DataQualityChecks
     description: Non-negative amount validation
 
 schema:
@@ -1183,11 +1252,35 @@ schema:
 ```
 
 Key observations:
-- The import source is `kind: DefinitionStore`, **not** `kind: DataContract`. Import sources can be any YAML file with a resolvable structure — they are not limited to data contracts.
-- The `DefinitionStore` organizes definitions by purpose (`address`, `quality`) rather than by the data contract schema structure. This makes it a natural fit for organization-wide libraries.
-- Both **structural imports** (address fields with their quality rules) and **quality-only imports** (email validation, amount checks) come from the same source file.
-- The contract mixes imports from different sections of the same source: `#address/street_line_1` for properties, `#quality/email_validation` for quality rules.
+- The declaration side references a `kind: DefinitionStore`, **not** `kind: DataContract`. Import sources on the declaration side can be any YAML file with a resolvable structure — they are not limited to data contracts.
+- The `DefinitionStore` organizes definitions by purpose (`address`, `quality`) rather than by the data contract schema structure. This makes it a natural fit for organization-wide libraries referenced from the declaration side.
+- The declaration side mixes imports from different sections of the same source: `#address/street_line_1` for properties, `#quality/email_validation` for quality rules.
+- On the use side, both **structural imports** (address fields with their quality rules) and **quality-only imports** (email validation, amount checks) are materialized inline with `$import` provenance.
 - The companion file [`0032-shared-definitions.yaml`](0032-shared-definitions.yaml) is provided alongside this RFC as a concrete reference.
+
+### Applicability to ODPS
+
+To extend Option B to ODPS (Open Data Product Standard), the following would be required:
+
+1. **Add `imports` top-level section to ODPS.** A new optional `imports` array in the ODPS JSON schema, using the same field structure (`name`, `from`, `type`, `description`, `value`).
+2. **Allow `$import` annotation on ODPS elements.** Extend ODPS element schemas (output port properties, input contracts, etc.) to accept `$import` as an optional string field.
+3. **Map `type` values to ODPS `$defs`.** The ODPS JSON schema has its own `$defs` (`OutputPort`, `InputPort`, `InputContract`, `ManagementPort`, `TeamMember`, `CustomProperty`, `AuthoritativeDefinition`, `Support`, `SBOM`). These would be added to the `type` enum table.
+4. **Preprocessor support.** The same preprocessor tool can handle both ODCS and ODPS contracts — the managed/local field logic is schema-agnostic.
+
+**Effort:** Low — Option B introduces no dependency on ODCS-specific mechanisms like `relationships`. The `imports`/`$import` pattern is self-contained and can be added to any YAML-based standard independently.
+
+### Key name conflicts
+
+The new fields introduced by Option B do not conflict with existing ODCS or ODPS field names:
+
+| Field | Conflict check |
+|-------|----------------|
+| `imports` (top-level) | Not used in ODCS or ODPS. No conflict. |
+| `$import` (annotation) | Not used in ODCS or ODPS. The `$` prefix is valid YAML and distinct from all existing field names. |
+| `from` (in `imports`) | Used in ODCS `relationships` for foreign key source references, but only within the `relationships` block — different schema context. No ambiguity. |
+| `value` (in `imports`) | Used in ODCS `CustomProperty` and `DataQualityOperators`, but only within those blocks — different schema context. No ambiguity. |
+| `type` (in `imports`) | Used in ODCS for `DataQuality` and `Server` types, but only within those blocks — different schema context. No ambiguity. |
+| `name` (in `imports`) | Used widely in ODCS/ODPS, but only within the `imports` block — different schema context. No ambiguity. |
 
 ---
 
@@ -1197,8 +1290,8 @@ Key observations:
 | ------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | **Self-contained contract**          | No — requires resolution at processing time                    | Yes — content always materialized inline                                         |
 | **Standard surface area**            | Smaller — reuses existing `relationships` block                | Larger — new `imports` section + `$import` annotation                            |
-| **Import declaration**               | Scattered across `relationships` blocks on individual elements | Centralized in one top-level `imports` section                                   |
-| **Provenance**                       | Implicit — the `type: imports` relationship is the only trace  | Explicit — `$import` annotation on every materialized element                    |
+| **Import declaration**               | Scattered across `relationships` blocks on individual elements | Centralized on the declaration side (`imports` section)                          |
+| **Provenance**                       | Implicit — the `type: imports` relationship is the only trace  | Explicit — `$import` annotation on every use site                                |
 | **External dependencies at runtime** | Required — tooling must access source files                    | Not required — contract stands alone                                             |
 | **Updating from source**             | Automatic at processing time                                   | Explicit — run preprocessor to refresh                                           |
 | **Alignment with guiding values**    | Favors a small standard (reuses `relationships`)               | Favors interoperability (self-contained, tool-independent)                       |
@@ -1247,10 +1340,11 @@ Key scenarios enabled by both options:
 
 ### Positive (Option B only)
 - Contracts are always self-contained and valid without external access
-- Single inventory of all external dependencies in `imports` block
-- Explicit provenance on every imported element
+- Single inventory of all external dependencies on the declaration side
+- Explicit provenance (`$import`) on every use site
+- Clear separation: declaration side defines sources, use side materializes content
 - No runtime resolution required — simpler tooling for consumers
-- Updating from source is an explicit, auditable action
+- Updating from source is an explicit, auditable action (preprocessor refreshes managed fields only)
 
 ### Negative (Option A)
 - Contracts are not self-contained — tooling must resolve external references
@@ -1258,9 +1352,9 @@ Key scenarios enabled by both options:
 - Circular import detection required at runtime
 
 ### Negative (Option B)
-- Larger specification surface area (new `imports` section + `$import` annotation)
+- Larger specification surface area (declaration side `imports` section + use side `$import` annotation)
 - Content duplication between source and consumer contracts (by design — the cost of self-containment)
-- Requires a preprocessor tool to refresh content from sources
+- Requires a preprocessor tool to refresh managed fields from sources
 
 ### Neutral
 - Documentation must explain import behavior clearly
