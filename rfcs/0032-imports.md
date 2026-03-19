@@ -241,9 +241,9 @@ graph TB
     subgraph "DECLARATION SIDE (imports)"
         direction TB
         I1["imports:"]
-        I2["  - name: street<br/>    from: self<br/>    value: {logicalType, physicalType, quality}"]
-        I3["  - name: email_rules<br/>    from: common-rules.yaml#quality/email<br/>"]
-        I4["  - name: audit_fields<br/>    from: templates.yaml#schema/audit/properties"]
+        I2["  - id: street<br/>    from: self<br/>    value: {logicalType, physicalType, quality}"]
+        I3["  - id: email_rules<br/>    from: common-rules.yaml#quality/email<br/>"]
+        I4["  - id: audit_fields<br/>    from: templates.yaml#schema/audit/properties"]
         I1 --- I2
         I1 --- I3
         I1 --- I4
@@ -274,9 +274,9 @@ graph TB
     style S4 fill:#f0ffe1,stroke:#6ab04c
 ```
 
-**Declaration side** — The `imports` block at the top of the contract. Declares all import sources (external files or `self`), each with a unique `name`. For `from: self` entries, the `value` object carries the canonical reusable definition. This is the **header** — like `#include` and `#define` in C.
+**Declaration side** — The `imports` block at the top of the contract. Declares all import sources (external files or `self`), each with a unique `id`. For `from: self` entries, the `value` object carries the canonical reusable definition. This is the **header** — like `#include` and `#define` in C.
 
-**Use side** — The rest of the contract (`schema`, `quality`, `slaProperties`, etc.). Elements carry `$import: <name>` annotations linking them back to their import source. The content is fully materialized — the `$import` is provenance, not a lazy reference. This is the **body** — like the C code that uses the macros.
+**Use side** — The rest of the contract (`schema`, `quality`, `slaProperties`, etc.). Elements carry `$import: <id>` annotations linking them back to their import source. The content is fully materialized — the `$import` is provenance, not a lazy reference. This is the **body** — like the C code that uses the macros.
 
 The preprocessor flows from declaration side to use side: it reads import sources and refreshes materialized content at every `$import` annotation, overwriting only managed fields (those present in the source) and leaving local fields untouched.
 
@@ -293,7 +293,7 @@ The **declaration side** of the contract. A new optional top-level section `impo
 
 | Field         | UX label    | Type            | Required | Description                                                                           |
 | ------------- | ----------- | --------------- | -------- | ------------------------------------------------------------------------------------- |
-| `name`        | Name        | string          | Yes      | Unique local name for this import, used in `$import` references.                      |
+| `id`          | Id          | string          | Yes      | Unique local identifier for this import, used in `$import` references.                |
 | `from`        | From        | string          | Yes      | Source reference: file path, URL, contract reference with fragment, or `self`.        |
 | `type`        | Type        | enum            | No       | Schema type of the imported content. Enables validation of `value` and use sites.     |
 | `description` | Description | string          | No       | Human-readable explanation of what is being imported.                                 |
@@ -327,23 +327,23 @@ When `from` is an external reference (file path or URL), the `value` field is no
 ```yaml
 imports:
   # DECLARATION SIDE: external imports — content fetched from other files
-  - name: email_rules
+  - id: email_rules
     from: common-quality-rules.yaml#quality/email_validation
     type: DataQualityChecks
     description: Standard email format validation
 
-  - name: phone_rules
+  - id: phone_rules
     from: common-quality-rules.yaml#quality/phone_us_format
     type: DataQualityChecks
     description: US phone number format validation
 
-  - name: audit_fields
+  - id: audit_fields
     from: templates.yaml#schema/audit_fields/properties
     type: SchemaProperty
     description: Standard audit timestamp fields
 
   # DECLARATION SIDE: self import — reusable definition defined inline
-  - name: non_negative
+  - id: non_negative
     from: self
     type: DataQualityChecks
     description: Non-negative numeric value check
@@ -355,7 +355,7 @@ imports:
 
 ### The `$import` annotation (use side)
 
-The **use side** of the contract — everything outside the `imports` block (`schema`, `quality`, `slaProperties`, etc.). At each **use site**, the `$import` field annotates a materialized element with the name of its import source from the declaration side.
+The **use side** of the contract — everything outside the `imports` block (`schema`, `quality`, `slaProperties`, etc.). At each **use site**, the `$import` field annotates a materialized element with the `id` of its import source from the declaration side.
 
 The `$import` field is a **provenance annotation** — it does not trigger resolution. The content alongside it is the actual, materialized content. The contract is fully valid if `$import` annotations are stripped entirely.
 
@@ -382,8 +382,8 @@ This means: **do not include a field in the declaration side `value` if it is ex
 Implementations SHOULD validate:
 
 1. **Structural rules:**
-   - Every `$import` value on the use side MUST match a `name` on the declaration side
-   - Each `name` on the declaration side MUST be unique
+   - Every `$import` value on the use side MUST match an `id` on the declaration side
+   - Each `id` on the declaration side MUST be unique
    - Content alongside `$import` on the use side MUST be structurally valid for its location (e.g., quality rule in a quality section)
 
 2. **Self-containment:**
@@ -402,7 +402,7 @@ Implementations SHOULD validate:
 Given this declaration side entry:
 ```yaml
 imports:
-  - name: street
+  - id: street
     from: self
     value:
       logicalType: string
@@ -432,7 +432,7 @@ And this use site (on the use side) before refresh:
 If the declaration side `value` changes (e.g., `physicalType` updated to `varchar(500)` and a new quality rule added):
 ```yaml
 imports:
-  - name: street
+  - id: street
     from: self
     value:
       logicalType: string
@@ -465,7 +465,7 @@ After running the preprocessor, the use site becomes:
               maxLength: 500
 ```
 
-The preprocessor updated managed fields (`physicalType`, quality `metric`/`mustBe`/`arguments`) from the declaration side, and added the new quality rule. Local fields (`id`, `name`, `physicalName`, `required`, `description`, and the existing quality rule's `id` and `description`) were untouched.
+The preprocessor updated managed fields (`physicalType`, quality `metric`/`mustBe`/`arguments`) from the declaration side, and added the new quality rule. Local fields (`id`, `name`, `physicalName`, `required`, `description`, and the existing quality rule's local `id` and `description`) were untouched.
 
 ### Example B-1: Import quality rules with materialized content
 
@@ -503,11 +503,11 @@ id: customer-master-data
 version: 1.5.0
 
 imports:
-  - name: email_rules
+  - id: email_rules
     from: common-quality-rules.yaml#quality/email_validation
     type: DataQualityChecks
     description: Standard email format validation
-  - name: amount_rules
+  - id: amount_rules
     from: common-quality-rules.yaml#quality/non_negative_amount
     type: DataQualityChecks
     description: Non-negative amount validation
@@ -556,7 +556,7 @@ id: order-management
 version: 2.0.0
 
 imports:
-  - name: audit_fields
+  - id: audit_fields
     from: templates.yaml#schema/audit_fields/properties
     type: SchemaProperty
     description: Standard audit timestamp fields
@@ -597,11 +597,11 @@ id: crm-contacts
 version: 1.0.0
 
 imports:
-  - name: email_rules
+  - id: email_rules
     from: common-quality-rules.yaml#quality/email_validation
     type: DataQualityChecks
     description: Standard email format validation
-  - name: status_values
+  - id: status_values
     from: business-glossary.yaml#schema/customer_concept/properties/customer_status/quality/valid_statuses
     type: DataQualityChecks
     description: Business-defined valid status values
@@ -652,7 +652,7 @@ id: payment-transactions
 version: 3.0.0
 
 imports:
-  - name: standard_freshness_sla
+  - id: standard_freshness_sla
     from: sla-templates.yaml#slaProperties/data_freshness
     type: ServiceLevelAgreementProperty
     description: Organization-wide data freshness SLA
@@ -695,7 +695,7 @@ imports:
   # required is managed for fields that are always required (city, state,
   # postal, country) but omitted from street — which varies per use site.
 
-  - name: street
+  - id: street
     from: self
     type: SchemaProperty
     description: Street address line
@@ -706,7 +706,7 @@ imports:
         - metric: nullValues
           mustBe: 0
 
-  - name: city
+  - id: city
     from: self
     type: SchemaProperty
     description: City name
@@ -718,7 +718,7 @@ imports:
         - metric: nullValues
           mustBe: 0
 
-  - name: state_province
+  - id: state_province
     from: self
     type: SchemaProperty
     description: State or province code
@@ -733,7 +733,7 @@ imports:
           arguments:
             maxLength: 10
 
-  - name: postal_code
+  - id: postal_code
     from: self
     type: SchemaProperty
     description: Postal or ZIP code
@@ -748,7 +748,7 @@ imports:
           arguments:
             regex: '^\d{5}(-\d{4})?$|^[A-Z]\d[A-Z]\s?\d[A-Z]\d$'
 
-  - name: country_code
+  - id: country_code
     from: self
     type: SchemaProperty
     description: ISO 3166-1 alpha-2 country code
@@ -1052,28 +1052,28 @@ title: Retail Orders Contract
 
 imports:
   # Address fields from the shared definition store
-  - name: address_street_1
+  - id: address_street_1
     from: 0032-shared-definitions.yaml#address/street_line_1
     type: SchemaProperty
     description: Street address with not-null quality rule
-  - name: address_city
+  - id: address_city
     from: 0032-shared-definitions.yaml#address/city
     type: SchemaProperty
     description: City with not-null quality rule
-  - name: address_postal
+  - id: address_postal
     from: 0032-shared-definitions.yaml#address/postal_code
     type: SchemaProperty
     description: Postal code with format validation
-  - name: address_country
+  - id: address_country
     from: 0032-shared-definitions.yaml#address/country_code
     type: SchemaProperty
     description: ISO country code with format validation
   # Quality rules from the shared definition store
-  - name: email_rules
+  - id: email_rules
     from: 0032-shared-definitions.yaml#quality/email_validation
     type: DataQualityChecks
     description: Standard email format validation
-  - name: amount_rules
+  - id: amount_rules
     from: 0032-shared-definitions.yaml#quality/non_negative_amount
     type: DataQualityChecks
     description: Non-negative amount validation
@@ -1262,12 +1262,23 @@ Key observations:
 
 To extend Option B to ODPS (Open Data Product Standard), the following would be required:
 
-1. **Add `imports` top-level section to ODPS.** A new optional `imports` array in the ODPS JSON schema, using the same field structure (`name`, `from`, `type`, `description`, `value`).
+1. **Add `imports` top-level section to ODPS.** A new optional `imports` array in the ODPS JSON schema, using the same field structure (`id`, `from`, `type`, `description`, `value`).
 2. **Allow `$import` annotation on ODPS elements.** Extend ODPS element schemas (output port properties, input contracts, etc.) to accept `$import` as an optional string field.
 3. **Map `type` values to ODPS `$defs`.** The ODPS JSON schema has its own `$defs` (`OutputPort`, `InputPort`, `InputContract`, `ManagementPort`, `TeamMember`, `CustomProperty`, `AuthoritativeDefinition`, `Support`, `SBOM`). These would be added to the `type` enum table.
 4. **Preprocessor support.** The same preprocessor tool can handle both ODCS and ODPS contracts — the managed/local field logic is schema-agnostic.
 
 **Effort:** Low — Option B introduces no dependency on ODCS-specific mechanisms like `relationships`. The `imports`/`$import` pattern is self-contained and can be added to any YAML-based standard independently.
+
+### Naming — open for discussion
+
+The terms `imports` (declaration side) and `$import` (use side annotation) are working names. Alternative naming candidates include:
+
+| Current | Alternatives | Notes |
+|---------|-------------|-------|
+| `imports` | `definitions`, `macros`, `templates`, `reusables` | `definitions` aligns with JSON Schema `$defs`; `macros` reinforces the C preprocessor analogy; `templates` is familiar but overloaded |
+| `$import` | `$def`, `$macro`, `$template`, `$from` | Should mirror the declaration side name; `$` prefix distinguishes it from standard ODCS fields |
+
+The TSC should decide on final naming. The mechanism is the same regardless of the terms chosen.
 
 ### Key name conflicts
 
@@ -1280,7 +1291,7 @@ The new fields introduced by Option B do not conflict with existing ODCS or ODPS
 | `from` (in `imports`) | Used in ODCS `relationships` for foreign key source references, but only within the `relationships` block — different schema context. No ambiguity. |
 | `value` (in `imports`) | Used in ODCS `CustomProperty` and `DataQualityOperators`, but only within those blocks — different schema context. No ambiguity. |
 | `type` (in `imports`) | Used in ODCS for `DataQuality` and `Server` types, but only within those blocks — different schema context. No ambiguity. |
-| `name` (in `imports`) | Used widely in ODCS/ODPS, but only within the `imports` block — different schema context. No ambiguity. |
+| `id` (in `imports`) | Used widely in ODCS/ODPS for element identification. Consistent with the `id` standardization (RFC-0026a). No ambiguity — the `imports` block is a separate schema context. |
 
 ---
 
