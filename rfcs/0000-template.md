@@ -10,6 +10,13 @@ Slack: *replace this text with the link to the dedicated Slack channel*.
 
 GitHub issue: *replace this text with the link to the dedicated GitHub issue*.
 
+Applies to:
+* [ ] ODCS
+* [ ] ODPS
+* [ ] OORS
+* [ ] OOCS
+* [ ] OMMS
+ 
 ## Summary
 
 > One paragraph explanation of the RFC.
