@@ -328,17 +328,17 @@ When `from` is an external reference (file path or URL), the `value` field is no
 imports:
   # DECLARATION SIDE: external imports — content fetched from other files
   - id: email_rules
-    from: common-quality-rules.yaml#quality/email_validation
+    from: common-quality-rules.yaml#quality/email_validation # !!!!!!!!!!!!!!!!!!!! VERSION !!!!!!!!!!!!!!!!!!!!!!!
     type: DataQualityChecks
     description: Standard email format validation
 
   - id: phone_rules
-    from: common-quality-rules.yaml#quality/phone_us_format
+    from: common-quality-rules.yaml#quality/phone_us_format # !!!!!!!!!!!!!!!!!!!! VERSION !!!!!!!!!!!!!!!!!!!!!!!
     type: DataQualityChecks
     description: US phone number format validation
 
   - id: audit_fields
-    from: templates.yaml#schema/audit_fields/properties
+    from: templates.yaml#schema/audit_fields/properties # !!!!!!!!!!!!!!!!!!!! VERSION !!!!!!!!!!!!!!!!!!!!!!!
     type: SchemaProperty
     description: Standard audit timestamp fields
 
