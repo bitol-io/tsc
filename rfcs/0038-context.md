@@ -67,8 +67,9 @@ RFC-0034 introduced a standalone `synonyms` field on measure and dimension prope
 
 ### Example
 
+Example #1: Full structured object
+
 ```yaml
-# Full structured object
 context:
   instructions: >
     This contract governs the turnover dataset for the EMEA sales domain.
@@ -91,6 +92,42 @@ context:
     - "Do not join with customer PII tables without explicit data access approval."
 ```
 
+Example #2: Full structured object with external resource (authoritative definitions)
+
+```yaml
+context:
+  instructions: >
+    This contract governs the turnover dataset for the EMEA sales
+    domain. Use it for revenue analysis, order volume trends, and basket value
+    benchmarking. Do not use it for individual customer PII queries.
+  synonyms:
+    - sales contract
+    - revenue data contract
+    - TO contract
+  examples:
+    - What was total revenue in France last quarter?
+    - Show me the top 10 countries by order count this year.
+  verifiedAnswers:
+    - question: What was the total revenue last year?
+      answer: Query ${total_turnover_euros} grouped by year using ${turnover_ts_dim}.
+    - question: What is the average basket value?
+      answer: Use the ${average_basket_value} measure directly; it is pre-computed.
+  constraints:
+    - Do not expose individual order details; always aggregate to at least
+      country level.
+    - Do not join with customer PII tables without explicit data access approval.
+  authoritativeDefinitions:
+    - url: https://example.com/MyGlobalAndMarvelousOntology
+      type: Ontology
+      description: Link to the onto
+    - url: https://example.com/MySpecificAndWonderfulGlossary
+      type: Glossary
+      description: Link to the glossary
+    - url: https://example.com/OneOfManyTaxonomy
+      type: Taxonomy
+      description: Link to the taxonomy
+```
+
 ### Definitions
 
 | Key                                  | UX label         | Type               | Required | Description                                                                                                                                                                                                                                          |
@@ -103,6 +140,12 @@ context:
 | `context.verifiedAnswers[].question` | Question         | `string`           | Yes      | The canonical question.                                                                                                                                                                                                                              |
 | `context.verifiedAnswers[].answer`   | Answer           | `string`           | Yes      | The expected response or result description.                                                                                                                                                                                                         |
 | `context.constraints`                | Constraints      | `array of strings` | No       | Negative guidance: what AI agents must NOT do with this entity. Safety hints and constraint guidance reduce hallucinations and incorrect joins in production deployments.                                                                            |
+
+In addition to custom properties, like `CanonicalUrl`:
+
+* Ontology (or OntologyUrl?)
+* Glossary (or GlossaryUrl?)
+* Taxonomy (or TaxonomyUrl?)
 
 ### Applicable levels
 
