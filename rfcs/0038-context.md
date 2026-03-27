@@ -2,7 +2,7 @@
 
 Champion: Jean-Georges Perrin
 
-Authors: Jean-Georges Perrin
+Authors/Reviewers: Denis Arnaud, Jean-Georges Perrin
 
 Slack: TBD.
 
