@@ -6,7 +6,7 @@ Authors/Reviewers: Denis Arnaud, Jean-Georges Perrin
 
 Slack: TBD.
 
-GitHub issue: TBD.
+GitHub issue: [#52](https://github.com/bitol-io/tsc/issues/52).
 
 ---
 
