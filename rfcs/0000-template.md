@@ -4,18 +4,19 @@
 
 Champion: *The champion is a member of the TSC*.
 
-Authors: *List of authors, if different than the champion*.
+Authors: *List of authors, including the champion*.
 
 Slack: *replace this text with the link to the dedicated Slack channel*.
 
 GitHub issue: *replace this text with the link to the dedicated GitHub issue*.
 
 Applies to:
-* [ ] ODCS
-* [ ] ODPS
-* [ ] OORS
-* [ ] OOCS
-* [ ] OMMS
+* [ ] ODCS - Open Data Contract Standard
+* [ ] ODPS - Open Data Product Standard
+* [ ] OORS - Open Observability Results Standard
+* [ ] OOCS - Open Orchestration and Control Standard
+* [ ] OMMS - Open Maturity Model Standard
+* [ ] OMDS - Open Metadata Difference Standard
  
 ## Summary
 
