@@ -355,9 +355,7 @@ The following diagram shows the cascading order from most general (top) to most 
 ODPS (Product)
 └── Data Product
     └── context  ← broadest scope: domain, overall purpose, top-level constraints
-        └── Output Port
-            └── context  ← consumption-specific: how to query this port, format hints
-                └── (links to ODCS contract)
+        └──  (links to ODCS contract)
 
 ODCS (Contract)
 └── Data Contract
@@ -372,10 +370,9 @@ When traversing from ODPS down to ODCS properties, the full chain is:
 
 ```
 Data Product context
-  → Output Port context
-    → Contract context
-      → Schema Object context
-        → Property context
+  → Contract context
+    → Schema Object context
+      → Property context
 ```
 
 ### Proposed cascading rule
@@ -393,7 +390,7 @@ Suggested normative language for tooling:
 
 ### Open questions for TSC
 
-1. Should cascading be normative (MUST/SHOULD) or advisory (MAY)?
+1. Should cascading be normative (MUST/SHOULD) or advisory (MAY)? -> normative
 2. Should a lower level be able to explicitly *suppress* a higher-level instruction    (e.g., a property-level `context` that says "ignore contract-level instructions for    this field")? If so, how is that expressed?
 3. Should the Data Product → Output Port → Contract chain be formally defined as a    cascading path in ODPS, or is it left to ODCS to define its own chain independently?
 
