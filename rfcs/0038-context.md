@@ -2,17 +2,24 @@
 
 Champion: Jean-Georges Perrin
 
-Authors/Reviewers: Denis Arnaud, Jean-Georges Perrin
+Authors/Reviewers: Diego Carvallo, Patrick Beitsma, Martin Meermeyer, Denis Arnaud, Jean-Georges Perrin.
 
 Slack: TBD.
 
 GitHub issue: [#52](https://github.com/bitol-io/tsc/issues/52).
 
+Applies to:
+* [x] ODCS - Open Data Contract Standard
+* [x] ODPS - Open Data Product Standard
+* [ ] OORS - Open Observability Results Standard
+* [ ] OOCS - Open Orchestration and Control Standard
+* [ ] OMMS - Open Maturity Model Standard
+* [ ] OMDS - Open Metadata Difference Standard
 ---
 
 ## Summary
 
-This RFC proposes adding a standard `context` block to both ODCS and ODPS. The block provides structured, human- and machine-readable guidance that helps AI agents, LLMs, BI tools, and semantic layer platforms understand how to interpret and consume data governed by Bitol standards. It is optional at every level, additive, and non-breaking.
+This RFC proposes adding a standard `context` block to both ODCS (targeting v3.2.0) and ODPS (targeting v1.1.0). The block provides structured, human- and machine-readable guidance that helps AI agents, LLMs, BI tools, and semantic layer platforms understand how to interpret and consume data governed by Bitol standards. It is optional at every level, additive, and non-breaking.
 
 The name `context` is proposed as the primary option. Alternatives are discussed below.
 
@@ -35,20 +42,20 @@ Without a standardized way to express this guidance, every team reinvents it in 
 
 ### Relationship to RFC-0034 (Measures and Dimensions)
 
-> See also Appendix B for the full vendor detail survey.
+> See also Appendix C for the full vendor detail survey.
 
-RFC-0034 introduced a standalone `synonyms` field on measure and dimension properties, and references this RFC for the broader context framework. RFC-0034 and RFC-0038 are independent: RFC-0034 is not amended by this RFC. The `context.synonyms` field defined here covers all levels (contract, schema object, property, product, output port); RFC-0034's `synonyms` covers measure and dimension properties specifically. Tooling MAY treat them as equivalent at the property level. Authors are encouraged to use `context.synonyms` for consistency, but both forms remain valid.
+Synonyms are **out of scope for this RFC**. RFC-0034 is the sole authoritative source for `synonyms` in the Bitol standards. `synonyms` is defined by RFC-0034 at the schema level (on measures and dimensions) and is not duplicated inside the `context` block. Tools that need synonym-based disambiguation MUST read them from RFC-0034's `synonyms` field, not from `context`.
 
 ### Relationship to OSI
 
-> See Appendix B.1 — for the full OSI analysis and comparison to other standards.
+> See Appendix C.1 — for the full OSI analysis and comparison to other standards.
 
 ### Use cases
 
 1. **Text-to-SQL accuracy**: An LLM generating queries against an ODCS-governed dataset reads  `context.instructions` on the schema object to understand how to join it, and reads   `context.constraints` on a property to learn it must never be used as a filter alone.
-2. **Natural language querying**: A BI tool reads `context.synonyms` on a measure to resolve    "revenue", "sales", and "TO" to the same `total_turnover_euros` property.
+2. **Natural language querying**: A BI tool reads `synonyms` on a measure (as defined by RFC-0034) to resolve    "revenue", "sales", and "TO" to the same `total_turnover_euros` property. Synonyms are NOT part of the `context` block.
 3. **AI agent onboarding**: A data product exposes `context.instructions` at the product level    so an AI agent knows which output port to use, what domain it covers, and what questions it    can answer.
-4. **Verified Q&A grounding**: A contract owner pre-anchors frequent business questions via    `context.verifiedAnswers`, preventing the LLM from fabricating answers to known questions.
+4. **Verified Q&A grounding**: A contract owner pre-anchors frequent business questions via    `context.<name>` entries with both `question` and `answer`, preventing the LLM from fabricating answers to known questions.
 5. **Sensitive data protection**: `context.constraints` on a property instructs AI agents not    to expose raw values, only aggregated results.
 
 ### Alignment with guiding values
@@ -70,19 +77,16 @@ RFC-0034 introduced a standalone `synonyms` field on measure and dimension prope
 Example #1: Full structured object
 
 ```yaml
+apiVersion: v3.2.0
+kind: DataContract
 context:
   instructions: >
     This contract governs the turnover dataset for the EMEA sales domain.
     Use it for revenue analysis, order volume trends, and basket value
     benchmarking. Do not use it for individual customer PII queries.
-  synonyms:
-    - sales contract
-    - revenue data contract
-    - TO contract
-  examples:
-    - "What was total revenue in France last quarter?"
-    - "Show me the top 10 countries by order count this year."
-  verifiedAnswers:
+  <name>:
+    - question: "What was total revenue in France last quarter?"
+    - question: "Show me the top 10 countries by order count this year."
     - question: "What was the total revenue last year?"
       answer: "Query ${total_turnover_euros} grouped by year using ${turnover_ts_dim}."
     - question: "What is the average basket value?"
@@ -92,22 +96,21 @@ context:
     - "Do not join with customer PII tables without explicit data access approval."
 ```
 
+> **Note:** `synonyms` are defined by RFC-0034 at the schema level (measures and dimensions), not inside `context`. See the "Relationship to RFC-0034" section above.
+
 Example #2: Full structured object with external resource (authoritative definitions)
 
 ```yaml
+apiVersion: v3.2.0
+kind: DataContract
 context:
   instructions: >
     This contract governs the turnover dataset for the EMEA sales
     domain. Use it for revenue analysis, order volume trends, and basket value
     benchmarking. Do not use it for individual customer PII queries.
-  synonyms:
-    - sales contract
-    - revenue data contract
-    - TO contract
-  examples:
-    - What was total revenue in France last quarter?
-    - Show me the top 10 countries by order count this year.
-  verifiedAnswers:
+  <name>:
+    - question: What was total revenue in France last quarter?
+    - question: Show me the top 10 countries by order count this year.
     - question: What was the total revenue last year?
       answer: Query ${total_turnover_euros} grouped by year using ${turnover_ts_dim}.
     - question: What is the average basket value?
@@ -130,16 +133,14 @@ context:
 
 ### Definitions
 
-| Key                                  | UX label         | Type               | Required | Description                                                                                                                                                                                                                                          |
-| ------------------------------------ | ---------------- | ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `context`                            | Context          | `object`           | No       | AI and semantic context block. Applicable at contract, schema object, and property level in ODCS; at product and output port level in ODPS. Input ports do not define `context` — refer to the linked ODCS contract instead.                         |
-| `context.instructions`               | Instructions     | `string`           | No       | Natural language guidance for AI agents and tools on how to use this entity. Equivalent to a system prompt scoped to this level. Be specific: clarify business terminology, specify preferred analysis approaches, and state data source priorities. |
-| `context.synonyms`                   | Synonyms         | `array of strings` | No       | Alternative names for this entity, used for disambiguation in natural language queries. At the property level, tooling MAY treat this as equivalent to the standalone `synonyms` field introduced in RFC-0034 for measures and dimensions.           |
-| `context.examples`                   | Examples         | `array of strings` | No       | Sample natural language questions or use cases for this entity. Proven to be the highest-impact accuracy booster for text-to-SQL and agentic analytics.                                                                                              |
-| `context.verifiedAnswers`            | Verified Answers | `array of objects` | No       | Pre-anchored question/answer pairs. When an AI agent receives a question semantically similar to a verified answer, it should return the verified answer directly rather than generating a new response.                                             |
-| `context.verifiedAnswers[].question` | Question         | `string`           | Yes      | The canonical question.                                                                                                                                                                                                                              |
-| `context.verifiedAnswers[].answer`   | Answer           | `string`           | Yes      | The expected response or result description.                                                                                                                                                                                                         |
-| `context.constraints`                | Constraints      | `array of strings` | No       | Negative guidance: what AI agents must NOT do with this entity. Safety hints and constraint guidance reduce hallucinations and incorrect joins in production deployments.                                                                            |
+| Key                         | UX label     | Type               | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------------------- | ------------ | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context`                   | Context      | `object`           | No       | AI and semantic context block. Applicable at contract, schema object, and property level in ODCS; at product and output port level in ODPS. Input ports do not define `context` — refer to the linked ODCS contract instead.                                                                                                                                                                                                                                                                 |
+| `context.instructions`      | Instructions | `string`           | No       | Natural language guidance for AI agents and tools on how to use this entity. Equivalent to a system prompt scoped to this level. Be specific: clarify business terminology, specify preferred analysis approaches, and state data source priorities.                                                                                                                                                                                                                                         |
+| `context.<name>`            | (TBD)        | `array of objects` | No       | Merged field replacing `examples` and `verifiedAnswers`. Each entry anchors a canonical business question. Entries without `answer` act like the former `examples` (sample questions for disambiguation and text-to-SQL priming). Entries with `answer` act like the former `verifiedAnswers` (pre-anchored responses; agents should return the curated `answer` rather than generate a new one when a query is semantically close). The field name is pending — see "Merged block" section. |
+| `context.<name>[].question` | Question     | `string`           | Yes      | The canonical question.                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `context.<name>[].answer`   | Answer       | `string`           | No       | The expected response or result description. Optional — omit to signal an unanswered sample question.                                                                                                                                                                                                                                                                                                                                                                                        |
+| `context.constraints`       | Constraints  | `array of strings` | No       | Negative guidance: what AI agents must NOT do with this entity. Safety hints and constraint guidance reduce hallucinations and incorrect joins in production deployments.                                                                                                                                                                                                                                                                                                                    |
 
 In addition to custom properties, like `CanonicalUrl`:
 
@@ -183,9 +184,9 @@ schema:
         This table contains pre-aggregated turnover metrics at order granularity.
         Always filter by turnover_ts when querying time ranges.
         For cross-country comparisons, normalize using the currency_code dimension.
-      examples:
-        - "What is the total revenue for Germany in Q1 2025?"
-        - "How many orders were placed in the UK last month?"
+      <name>:
+        - question: "What is the total revenue for Germany in Q1 2025?"
+        - question: "How many orders were placed in the UK last month?"
       constraints:
         - "Do not query without a date range filter; the table is unbounded and queries without filters will be expensive."
         - "Do not compare turnover_euros values across different currency_code values without normalization."
@@ -202,9 +203,6 @@ schema:
             This column stores the transaction value converted to EUR at the
             time of the transaction. It is NOT adjusted for refunds. Use
             total_turnover_euros (a measure) for aggregated reporting.
-          synonyms:
-            - revenue euros
-            - transaction value
           constraints:
             - "Do not SUM this column directly; use the total_turnover_euros measure instead."
             - "Do not compare raw values across different product_type values without weighting."
@@ -213,7 +211,7 @@ schema:
 #### Product-level context (ODPS)
 
 ```yaml
-apiVersion: v1.0.0
+apiVersion: v1.1.0
 kind: DataProduct
 id: turnover-product
 name: Turnover Data Product
@@ -224,13 +222,9 @@ context:
     analytics and AI agents. Use the 'metrics' output port for aggregated
     reporting. Use the 'raw' output port only for audit and reconciliation.
     Do not use this product for real-time pricing decisions; data latency is 4 hours.
-  synonyms:
-    - sales data product
-    - revenue product
-    - TO product
-  examples:
-    - "What was total revenue by country last quarter?"
-    - "Show me order volume trends for the past 12 months."
+  <name>:
+    - question: "What was total revenue by country last quarter?"
+    - question: "Show me order volume trends for the past 12 months."
   constraints:
     - "Do not use for real-time decisions; SLA latency is 4 hours."
     - "Do not expose output port credentials in shared environments."
@@ -248,93 +242,18 @@ outputPorts:
         It exposes pre-computed measures and dimensions as defined in the
         linked ODCS contract. Prefer measures over raw columns for all
         aggregation queries.
-      examples:
-        - "SELECT total_turnover_euros, country_code_dim FROM metrics_turnover GROUP BY 2"
+      <name>:
+        - question: "SELECT total_turnover_euros, country_code_dim FROM metrics_turnover GROUP BY 2"
       constraints:
         - "Do not write INSERT, UPDATE, or DELETE statements against this port."
         - "Do not query more than 90 days of data in a single request without pagination."
 ```
 
----
-
-### JSON Schema definition
-
-```json
-"Context": {
-  "description": "Structured guidance for AI agents and semantic tools",
-  "oneOf": [
-    {
-      "type": "string",
-      "description": "Shorthand: equivalent to providing instructions only"
-    },
-    {
-      "type": "object",
-      "properties": {
-        "instructions": {
-          "type": "string",
-          "description": "Natural language guidance on how to use this entity"
-        },
-        "synonyms": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Alternative names for disambiguation in NL queries"
-        },
-        "examples": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Sample natural language questions or use cases"
-        },
-        "verifiedAnswers": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "question": { "type": "string" },
-              "answer":   { "type": "string" }
-            },
-            "required": ["question", "answer"],
-            "additionalProperties": false
-          },
-          "description": "Pre-anchored Q&A pairs for high-confidence responses"
-        },
-        "constraints": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Negative guidance: what AI agents must NOT do with this entity"
-        }
-      },
-      "additionalProperties": false
-    }
-  ]
-}
-```
+> The formal JSON Schema definition of the `context` block is provided in Appendix D.
 
 ---
 
-## Discussion: field name
-
-The name `context` is preferred because:
-- It is not AI-specific: it is useful for human readers, documentation tools, and data catalogs   too, not only LLMs.
-- It is shorter and more neutral than `aiContext` or `semanticContext`.
-- It aligns with the broader industry use of "context" in RAG, agent frameworks, and metadata   standards.
-
-Alternatives considered:
-
-| Name              | Assessment                                                    |
-| ----------------- | ------------------------------------------------------------- |
-| `context`         | Preferred: broad, neutral, future-proof                       |
-| `aiContext`       | Too narrow: implies AI-only, may age poorly                   |
-| `semanticContext` | Verbose: "semantic" is already implied by measures/dimensions |
-| `guidance`        | Reasonable alternative if `context` feels too generic         |
-| `agentContext`    | Too narrow: implies agentic use only                          |
-
-Community input on the final name is welcome.
-
----
-
-## Discussion: Context Inheritance and Cascading
-
-This section is open for TSC discussion. No decision has been made.
+## Cascading and inheritance
 
 ### The question
 
@@ -344,12 +263,11 @@ When `context` is defined at multiple levels simultaneously — for example, at 
 
 This is analogous to an existing design tension in ODPS/ODCS: an output port describes how to consume a data product, while the linked data contract describes what the data promises. They operate at different levels of specificity. The port is the consumer-facing surface; the contract is the producer-facing commitment. Neither overrides the other: they compose.
 
-The same principle should apply to `context`: each level adds specificity without invalidating the level above it.
+The same principle applies to `context`: each level adds specificity without invalidating the level above it.
 
-### Proposed hierarchy
+### Hierarchy
 
-The following diagram shows the cascading order from most general (top) to most specific
-(bottom), across both ODCS and ODPS:
+The following diagram shows the cascading order from most general (top) to most specific (bottom), across both ODCS and ODPS:
 
 ```
 ODPS (Product)
@@ -375,40 +293,106 @@ Data Product context
       → Property context
 ```
 
-### Proposed cascading rule
+### Cascading rules (normative)
 
-**Lower levels are more specific and take precedence for the same sub-field.**
-Higher levels provide context that lower levels do not repeat unless overriding.
+**Lower levels are more specific and take precedence for the same sub-field.** Higher levels provide context that lower levels do not repeat unless overriding. Cascading is normative — tooling SHOULD follow these rules.
 
-Suggested normative language for tooling:
-
-- For `instructions`: tools SHOULD present context from all levels, ordered from most   general to most specific (product → port → contract → schema → property). Each level   adds, rather than replaces, the level above it. Tools MAY concatenate them into a   single prompt prefix.
-- For `synonyms`: tools SHOULD merge all synonym arrays across levels into a single   deduplicated set for NL disambiguation.
-- For `examples`: tools SHOULD merge all example arrays across levels.
-- For `verifiedAnswers`: tools SHOULD merge all verified answer arrays across levels.   If two levels define a verified answer for the same question, the more specific level   (lower in the hierarchy) takes precedence.
-- For `constraints`: tools SHOULD merge all constraint arrays across levels. No   constraint is ever overridden by a higher level — the most restrictive set applies.
-
-### Open questions for TSC
-
-1. Should cascading be normative (MUST/SHOULD) or advisory (MAY)? -> normative
-2. Should a lower level be able to explicitly *suppress* a higher-level instruction    (e.g., a property-level `context` that says "ignore contract-level instructions for    this field")? If so, how is that expressed?
-3. Should the Data Product → Output Port → Contract chain be formally defined as a    cascading path in ODPS, or is it left to ODCS to define its own chain independently?
+- **`instructions`**: Tools SHOULD present context from all levels, ordered from most general to most specific (product → port → contract → schema → property). Each level adds, rather than replaces, the level above it. Tools MAY concatenate them into a single prompt prefix.
+- **`<name>` (merged former `examples` + `verifiedAnswers`)**: Tools SHOULD merge all entries across levels, keyed by `question`. If two levels define the same question, the more specific level (lower in the hierarchy) takes precedence. An entry with an `answer` at a lower level overrides an entry with only a `question` at a higher level for the same question.
+- **`constraints`**: Tools SHOULD merge all constraint arrays across levels. No constraint is ever overridden by a higher level — the most restrictive set applies.
 
 ---
 
-## Alternatives
+## Merged block: former `examples` + `verifiedAnswers`
+
+> **Status:** decision adopted — `examples` and `verifiedAnswers` are merged into a single field. Only the field name is still open. In this document the placeholder `<name>` is used everywhere the final name will appear.
+
+`examples` and `verifiedAnswers` are two points on the same spectrum: an `examples` entry is a question with no answer yet; a `verifiedAnswers` entry is the same question once an answer has been curated. Keeping them separate forced authors to pick a bucket upfront and migrate entries between arrays as they matured. They are now merged into a single field.
+
+### Shape
+
+Entries are **always objects** (like `verifiedAnswers` was). `answer` is optional — an entry with only a `question` replaces the former free-text `examples` entry; an entry with both `question` and `answer` replaces the former `verifiedAnswers` entry. Free-string entries are no longer accepted: all entries are objects, for interoperability and a uniform schema.
+
+```yaml
+context:
+  <name>:
+    - question: "What was total revenue in France last quarter?"
+    - question: "What was the total revenue last year?"
+      answer: "Query ${total_turnover_euros} grouped by year using ${turnover_ts_dim}."
+```
+
+### Naming (open)
+
+The field name is **not yet chosen**. See **Discussion 2** in "Discussions and alternatives" for the current candidates (`statements`, `interactions`, `questions`, `affirmations`). The final name will be plural. Whichever name is selected replaces `<name>` throughout the RFC.
+
+---
+
+## Discussions and alternatives
+
+Open topics for TSC and community input, together with alternatives that were considered and rejected.
+
+### Discussion 1: Field name for the `context` block
+
+The name `context` is proposed because:
+
+- It is not AI-specific: useful for human readers, documentation tools, and data catalogs, not only LLMs.
+- It is shorter and more neutral than `aiContext` or `semanticContext`.
+- It aligns with broader industry use of "context" in RAG, agent frameworks, and metadata standards.
+
+Alternatives considered:
+
+| Name              | Assessment                                                    |
+| ----------------- | ------------------------------------------------------------- |
+| `context`         | Preferred: broad, neutral, future-proof                       |
+| `aiContext`       | Too narrow: implies AI-only, may age poorly                   |
+| `semanticContext` | Verbose: "semantic" is already implied by measures/dimensions |
+| `guidance`        | Reasonable alternative if `context` feels too generic         |
+| `agentContext`    | Too narrow: implies agentic use only                          |
+
+Community input on the final name is welcome.
+
+---
+
+### Discussion 2: Name for the merged `<name>` block
+
+The merge of `examples` and `verifiedAnswers` is decided (see the "Merged block" section). The **name** of the merged field is still open. The final name will be **plural** (the field is an array). The placeholder `<name>` appears throughout the RFC until this is resolved.
+
+Current candidates:
+
+| Candidate      | Notes                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `statements`   | Neutral; covers both questions and declarative entries. Doesn't imply an answer is required.                  |
+| `interactions` | Frames each entry as an exchange (prompt + optional reply). Reads well when `answer` is present.              |
+| `questions`    | Aligns with the sub-field `question`; may feel odd for entries that read as statements rather than questions. |
+| `affirmations` | Emphasises the curated/authoritative nature of entries; reads oddly for unanswered entries.                   |
+
+Additional candidates are welcome before the name is locked.
+
+---
+
+### Discussion 3: Can lower levels suppress higher-level instructions? (deferred)
+
+Should a lower level be able to explicitly *suppress* a higher-level instruction (e.g., a property-level `context` that says "ignore contract-level instructions for this field")? If so, how is that expressed?
+
+Not in scope for this RFC — deferred for future work.
+
+---
 
 ### Alternative A: Add fields directly without a wrapper block (rejected)
 
-Add `instructions`, `synonyms`, `examples` etc. as top-level fields on schema objects and contracts rather than wrapping them in a `context` block.
+Add `instructions`, `<name>`, `constraints` as top-level fields on schema objects and contracts rather than wrapping them in a `context` block.
 
 Rejected because: a wrapper block keeps the namespace clean, makes the concept discoverable as a unit, and allows the string shorthand. It also mirrors OSI's design, supporting interoperability.
 
-### Alternative B: Reuse `description` for instructions (rejected)
+---
+
+### Alternative B: Reuse `description` for `instructions` (rejected)
 
 `description` already exists at all levels and is a free-text string.
 
 Rejected because: `description` is for human documentation. `context.instructions` is for AI agent consumption and may contain guidance that is not appropriate in documentation (e.g., join constraints, negative guidance, cardinality warnings). Conflating them degrades both.
+
+---
 
 ### Alternative C: Separate RFCs for ODCS and ODPS (rejected)
 
@@ -420,17 +404,17 @@ Rejected because: the block is identical in structure across both standards. A s
 
 ## Compatibility with OSI
 
-The Bitol `context` block is a strict superset of OSI's `ai_context`:
+The Bitol `context` block covers most of OSI's `ai_context`, with `synonyms` delegated to RFC-0034:
 
-| OSI `ai_context` field | Bitol `context` equivalent |
-| ---------------------- | -------------------------- |
-| `instructions`         | `context.instructions`     |
-| `synonyms`             | `context.synonyms`         |
-| `examples`             | `context.examples`         |
-| (not present)          | `context.verifiedAnswers`  |
-| (not present)          | `context.constraints`      |
+| OSI `ai_context` field | Bitol equivalent                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| `instructions`         | `context.instructions`                                                              |
+| `synonyms`             | RFC-0034 `synonyms` (schema level, not context)                                     |
+| `examples`             | `context.<name>` entries with `question` only (no `answer`)                         |
+| (not present)          | `context.<name>` entries with both `question` and `answer` (former verifiedAnswers) |
+| (not present)          | `context.constraints`                                                               |
 
-An OSI-to-ODCS converter can map `ai_context` to `context` losslessly. An ODCS-to-OSI exporter can project `context.instructions`, `context.synonyms`, and `context.examples` into `ai_context` without loss.
+An OSI-to-ODCS converter can map `ai_context.synonyms` to RFC-0034's `synonyms` field on measures/dimensions, map each `ai_context.examples` string to a `context.<name>` entry `{question: <string>}`, and map the remaining `ai_context` fields to `context`. An ODCS-to-OSI exporter can project `context.instructions` into `ai_context.instructions`, project `context.<name>[].question` values (entries without `answer`) into `ai_context.examples`, drop the answered entries (OSI has no equivalent), and project RFC-0034 `synonyms` into `ai_context.synonyms`.
 
 ---
 
@@ -446,15 +430,15 @@ TBD.
 
 - **Non-breaking**: `context` is optional at every level. All existing contracts and products  remain valid.
 - **Shared structure**: The same `context` block definition is reused across ODCS and ODPS,   reducing maintenance overhead and ensuring consistent tooling.
-- **OSI superset**: Bitol `context` covers all OSI `ai_context` fields plus `verifiedAnswers`   and `constraints`, positioning Bitol as the governed alternative to OSI for organizations  needing both semantics and governance.
-- **RFC-0034 relationship**: RFC-0034 defines a standalone `synonyms` field on measure   and dimension properties and references this RFC for the broader context framework.   The two RFCs are independent. If both passes TSC validation, only one `synonyms` will survive or tooling MAY treat RFC-0034 `synonyms` and `context.synonyms`   as equivalent at the property level.
-- **ODPS alignment**: A follow-up RFC may bring `context` to the linked contract reference   level within ODPS if use cases emerge.
+- **OSI compatibility**: Bitol `context` covers OSI `ai_context` for `instructions` and `examples`, and adds `verifiedAnswers` and `constraints`. OSI's `synonyms` maps to RFC-0034's `synonyms` (schema level), not to `context`.
+- **RFC-0034 relationship**: `synonyms` is owned exclusively by RFC-0034 at the schema level (measures and dimensions). RFC-0038 does not define `synonyms` and does not duplicate them inside `context`. Tools needing synonym disambiguation MUST read RFC-0034's `synonyms` field.
+- **ODPS coverage**: This RFC lands in ODPS v1.1.0 and defines `context` at the product and output-port levels directly. Input ports do not define their own `context`; consumers refer to the `context` in the ODCS data contract linked from the input port.
 
 ---
 
 ## References
 
-- [Gartner Magic Quadrant for Analytics and Business Intelligence Platforms](https://www.gartner.com/en/documents/5726363) —   June 2025 (ID G00822218). Used to identify the vendor landscape in Appendix B and   to source specific vendor capability assessments (metrics layer gaps, NLQ limitations,  synonym management burdens).
+- [Gartner Magic Quadrant for Analytics and Business Intelligence Platforms](https://www.gartner.com/en/documents/5726363) —   June 2025 (ID G00822218). Used to identify the vendor landscape in Appendix C and   to source specific vendor capability assessments (metrics layer gaps, NLQ limitations,  synonym management burdens).
 - [OSI Core Metadata Specification](https://github.com/open-semantic-interchange/OSI) —   defines `ai_context` as a string or object with `instructions`, `synonyms`, `examples`.
 - [Microsoft Fabric Semantic Model Best Practices](https://learn.microsoft.com/en-us/fabric/data-science/semantic-model-best-practices) —  "Prep for AI": instructions, verified answers, AI data schema scoping.
 - [Tiger Data: Self-describing Postgres for LLMs](https://www.tigerdata.com/blog/the-database-new-user-llms-need-a-different-database) —  27% SQL accuracy improvement from semantic catalog enrichment.
@@ -466,10 +450,28 @@ TBD.
 
 ---
 
-## Appendix A: Summary Comparison
+## Appendix A: Changelog
 
-Vendors as rows, features as columns. See Appendix B for full detail on each vendor.
-Abbreviations: Inst. = `instructions`, Syn. = `synonyms`, Ex. = `examples`,
+All substantive modifications to this RFC are tracked here. Each entry includes the
+date, a short summary, rationale, and the scope of affected sections.
+
+| Date       | Change                                                                                                                                                                                                                                                       | Rationale                                                                                                                                                                                                                                                                                                                                | Affected sections                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-17 | Removed `synonyms` from the `context` block; delegated to RFC-0034.                                                                                                                                                                                          | Decision made by the Bitol Working Group on 2026-04-14 to exclude `synonyms` from `context`. Avoids duplicating `synonyms` across two RFCs. `synonyms` belongs at the schema level (measures/dimensions) per RFC-0034, not at every level where `context` is available. Enforces RFC-0034 as the sole authoritative source for synonyms. | Relationship to RFC-0034; Use cases (#2); Examples #1 and #2; Definitions table; Property-level example; Product-level example; JSON Schema definition; Cascading rule; Alternative A; Compatibility with OSI (table and paragraph); Consequences (OSI superset and RFC-0034 relationship bullets); Appendix B table row for Bitol RFC-0038 and abbreviation legend; summary paragraph after Appendix B.                                                                                                         |
+| 2026-04-17 | Added this changelog as Appendix A; renumbered prior appendices.                                                                                                                                                                                             | Track every RFC modification going forward so reviewers can see what changed and why.                                                                                                                                                                                                                                                    | Appendix A (new); former Appendix A renamed to Appendix B (Summary Comparison); former Appendix B renamed to Appendix C (Vendor Detail Survey).                                                                                                                                                                                                                                                                                                                                                                  |
+| 2026-04-17 | Added `apiVersion: v3.2.0` and `kind: DataContract` to Examples #1 and #2.                                                                                                                                                                                   | Anchor the canonical ODCS examples to the target version (v3.2.0) in which this RFC is expected to land.                                                                                                                                                                                                                                 | Design and examples (Example #1, Example #2).                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 2026-04-17 | Moved the JSON Schema definition from the body to Appendix D.                                                                                                                                                                                                | Keep the normative prose focused; relegate the formal schema to an appendix for reference.                                                                                                                                                                                                                                               | Design and examples (removed inline JSON Schema section, replaced with pointer); new Appendix D.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 2026-04-17 | Merged `examples` and `verifiedAnswers` into a single object-typed field; `answer` is now optional. Field name is still open; the placeholder `<name>` is used throughout the RFC. Candidate names: `request`, `statement`, `question`, `example`, `prompt`. | An `examples` entry is effectively a question without an answer, and promoting it to `verifiedAnswers` was a manual migration. A single field with optional `answer` removes the split and the migration step. Free-string entries are no longer accepted — all entries are objects for schema uniformity.                               | "Merged block" section (replaces the prior discussion section); Use cases (#4); Definitions table (collapsed four rows into three; `answer` now optional); Example #1, Example #2, schema object example, product example, output port example (all YAML examples updated); Cascading rule (two bullets merged into one); Compatibility with OSI (table + paragraph); Appendix D JSON Schema (collapsed `examples` and `verifiedAnswers` into a single `<name>` array of objects with only `question` required). |
+| 2026-04-17 | Scoped ODPS coverage directly into this RFC; target ODPS v1.1.0. Removed the "ODPS alignment" future-work bullet and replaced it with an "ODPS coverage" statement. Product example updated to `apiVersion: v1.1.0`.                                         | The prior Consequences bullet deferred ODPS product/port `context` to a follow-up RFC. That split is unnecessary since the block definition is identical across ODCS and ODPS; landing both together in RFC-0038 avoids a second RFC for a purely mechanical extension.                                                                  | Summary (now explicitly targets ODCS v3.2.0 and ODPS v1.1.0); Product-level example (`apiVersion: v1.1.0`); Consequences (replaced "ODPS alignment" bullet with "ODPS coverage").                                                                                                                                                                                                                                                                                                                                |
+| 2026-04-17 | Consolidated all open discussions under a single top-level `## Discussion` section; replaced candidate names for the merged `<name>` block with `statements`, `interactions`, `questions`, `affirmations`.                                                   | Previously there were two sibling `## Discussion:` sections plus a naming table embedded in the "Merged block" decision section. Grouping them under one umbrella keeps decided content separate from open questions, and the naming candidates were trimmed/renamed to reflect the current shortlist.                                   | Replaced `## Discussion: field name` and `## Discussion: Context Inheritance and Cascading` with a single `## Discussion` containing three numbered sub-discussions (field name, cascading, merged-block name); moved the naming table out of the "Merged block" section into Discussion 3 and replaced its pointer; candidate list in the new Discussion 3 uses `statements`, `interactions`, `questions`, `affirmations`.                                                                                    |
+| 2026-04-17 | Resolved most cascading discussions into a normative "Cascading and inheritance" section; collapsed and renumbered the Discussions section; merged Alternatives into Discussions.                                                                            | After review the cascading framing (former Discussion 2) and the three per-field cascading rules (former Discussions 3/4/5) were agreed as-is, and the normative/advisory question (former Discussion 6) was settled as "normative — SHOULD". The ODPS chain question (former Discussion 8) was dropped. Remaining open items are only the `context` name, the merged-block name, and the suppression question (deferred). Alternatives A/B/C are now in the same umbrella section as Discussions for a single "what was considered, what is still open" view. | New normative `## Cascading and inheritance` section (framing + three SHOULD rules). Old `## Discussions` section replaced with `## Discussions and alternatives` containing only: Discussion 1 (`context` name), Discussion 2 (merged `<name>` block — absorbs former Discussions 9/10/11; plural decided in-text), Discussion 3 (lower-level suppression, deferred — was Discussion 7), then Alternatives A/B/C. Merged block pointer updated from "Discussion 3" to "Discussion 2". Former Discussions 5 / 6 / 8 removed (absorbed or dropped).                                                                                                                                                                                                                                                                                                      |
+
+---
+
+## Appendix B: Summary Comparison
+
+Vendors as rows, features as columns. See Appendix C for full detail on each vendor.
+Abbreviations: Inst. = `instructions`, Syn. = `synonyms` (RFC-0034, not part of RFC-0038 `context`), Ex. = `examples`,
 VA = `verifiedAnswers`, Con. = `constraints`, In-model = context defined inside the model spec,
 OL = open license, IG = independent governance, RFC = formal RFC process,
 NSB = neutral stewardship body, Gov. = governed with contracts,
@@ -478,7 +480,7 @@ Runtime = runtime-executable semantics.
 
 | Vendor                    | Inst.    | Syn.     | Ex.    | VA      | Con.      | In-model | OL      | IG      | RFC     | NSB     | Gov. | Prop. | Rel. | Port.   | Runtime    |
 | ------------------------- | -------- | -------- | ------ | ------- | --------- | -------- | ------- | ------- | ------- | ------- | ---- | ----- | ---- | ------- | ---------- |
-| **Bitol RFC-0038**        | yes      | yes      | yes    | yes     | yes       | yes      | yes     | yes     | yes     | yes     | yes  | yes   | yes  | yes     | no         |
+| **Bitol RFC-0038**        | yes      | RFC-0034 | yes    | yes     | yes       | yes      | yes     | yes     | yes     | yes     | yes  | yes   | yes  | yes     | no         |
 | Actian AI Analyst (Wobby) | yes      | partial  | no     | no      | yes exec. | yes      | no      | no      | no      | no      | no   | yes   | no   | no      | yes SemQL  |
 | Amazon QuickSight         | no       | no       | no     | no      | no        | yes      | no      | no      | no      | no      | no   | yes   | no   | no      | yes        |
 | AtScale SML               | no       | no       | no     | no      | no        | yes      | yes     | no      | no      | no      | no   | yes   | no   | yes     | yes        |
@@ -534,12 +536,14 @@ Runtime = runtime-executable semantics.
   independent governance via Linux Foundation TSC, formal RFC process, and neutral
   stewardship body.
 
-RFC-0038 is the only open standard combining all five context sub-fields with in-model
-placement and data governance via ODCS/ODPS. See Appendix B for full vendor detail.
+RFC-0038 (combined with RFC-0034 for `synonyms`) is the only open standard combining
+`instructions`, `examples`, `verifiedAnswers`, and `constraints` inside the model spec,
+alongside schema-level `synonyms`, with data governance via ODCS/ODPS. See Appendix C
+for full vendor detail.
 
 ---
 
-## Appendix B: Vendor Detail Survey
+## Appendix C: Vendor Detail Survey
 
 This appendix surveys how each semantic layer tool or initiative handles AI context,
 instructions, synonyms, examples, and constraints in detail. It informs the design of
@@ -1594,3 +1598,49 @@ dedicated AI context block is documented.
 | `verifiedAnswers` | None                           | no          |
 | `constraints`     | None                           | no          |
 | `description`     | Field and dataset descriptions | yes         |
+
+---
+
+## Appendix D: JSON Schema definition
+
+> **Note:** `<name>` is a placeholder for the merged field that replaces `examples` and `verifiedAnswers`. The final name is pending — see the "Merged block" section of this RFC.
+
+```json
+"Context": {
+  "description": "Structured guidance for AI agents and semantic tools",
+  "oneOf": [
+    {
+      "type": "string",
+      "description": "Shorthand: equivalent to providing instructions only"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "instructions": {
+          "type": "string",
+          "description": "Natural language guidance on how to use this entity"
+        },
+        "<name>": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "question": { "type": "string" },
+              "answer":   { "type": "string" }
+            },
+            "required": ["question"],
+            "additionalProperties": false
+          },
+          "description": "Canonical questions (entries without `answer`) and verified Q&A pairs (entries with `answer`). Merges the former `examples` and `verifiedAnswers` fields."
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Negative guidance: what AI agents must NOT do with this entity"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
+```

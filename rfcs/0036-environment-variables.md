@@ -8,6 +8,14 @@ Slack: [#bitol-wg](https://data-mesh-learning.slack.com/archives/C089S376YGM)
 
 GitHub issue: [TSC #50](https://github.com/bitol-io/tsc/issues/50)
 
+Applies to:
+* [x] ODCS - Open Data Contract Standard
+* [ ] ODPS - Open Data Product Standard
+* [ ] OORS - Open Observability Results Standard
+* [ ] OOCS - Open Orchestration and Control Standard
+* [ ] OMMS - Open Maturity Model Standard
+* [ ] OMDS - Open Metadata Difference Standard
+
 ## Summary
 
 This RFC introduces a standardized mechanism to reference named variables within the `servers` section of a data contract, enabling server configuration values to be injected at runtime rather than hardcoded. Variables are resolved from environment variables, secrets managers, or any external source at runtime.
@@ -274,14 +282,14 @@ Coupling the standard to specific secret management systems (Vault, AWS Secrets 
 
 The `${VAR_NAME}` interpolation syntax is not new to this RFC. It is already used in several places:
 
-| Location | Usage | Example |
-|----------|-------|---------|
-| **ODCS JSON schema** (all versions) | SQL quality rule examples | `SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL` |
-| **RFC-0007** (data quality, approved) | SQL quality rule queries | `${table}`, `${column}` |
-| **RFC-0027** (unstructured data quality) | SQL quality rule queries | `${object}`, `${property}` |
-| **RFC-0035** (extensions) | Extension naming templates | `${physicalName}-${scope}` |
-| **RFC-0038** (context) | Query answer templates | `${total_turnover_euros}` |
-| **example.yaml** (v2.x reference) | Server credentials | `${env.username}`, `${env.password}` |
+| Location                                 | Usage                      | Example                                                     |
+| ---------------------------------------- | -------------------------- | ----------------------------------------------------------- |
+| **ODCS JSON schema** (all versions)      | SQL quality rule examples  | `SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL` |
+| **RFC-0007** (data quality, approved)    | SQL quality rule queries   | `${table}`, `${column}`                                     |
+| **RFC-0027** (unstructured data quality) | SQL quality rule queries   | `${object}`, `${property}`                                  |
+| **RFC-0035** (extensions)                | Extension naming templates | `${physicalName}-${scope}`                                  |
+| **RFC-0038** (context)                   | Query answer templates     | `${total_turnover_euros}`                                   |
+| **example.yaml** (v2.x reference)        | Server credentials         | `${env.username}`, `${env.password}`                        |
 
 The `${...}` syntax is a de facto convention in ODCS for any kind of runtime substitution — SQL templates, extension naming, and environment values. This RFC would formalize and standardize what is already an established pattern.
 

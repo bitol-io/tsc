@@ -4,6 +4,14 @@
 **Champion:** TBD  
 **Authors:** Gene Azad  
 
+Applies to:
+* [x] ODCS - Open Data Contract Standard
+* [ ] ODPS - Open Data Product Standard
+* [ ] OORS - Open Observability Results Standard
+* [ ] OOCS - Open Orchestration and Control Standard
+* [ ] OMMS - Open Maturity Model Standard
+* [ ] OMDS - Open Metadata Difference Standard
+
 ## Summary
 
 This RFC standardizes a **extension mechanism** for ODCS.  

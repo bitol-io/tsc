@@ -2,6 +2,14 @@
 
 Champion: Simon Harrer
 
+Applies to:
+* [x] ODCS - Open Data Contract Standard
+* [x] ODPS - Open Data Product Standard
+* [ ] OORS - Open Observability Results Standard
+* [ ] OOCS - Open Orchestration and Control Standard
+* [ ] OMMS - Open Maturity Model Standard
+* [ ] OMDS - Open Metadata Difference Standard
+
 ## Summary
 
 Add an optional `deprecated` boolean flag to schema objects and properties to indicate when data elements are no longer recommended for use. The flag defaults to `false` when not specified.
@@ -26,9 +34,9 @@ Add optional `deprecated` boolean field (defaults to `false`) to:
 - Schema objects (`schema[]`)
 - Properties (`schema[].properties[]` including nested properties)
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `deprecated` | boolean | No | `false` | Indicates this element is deprecated and should not be used in new implementations |
+| Field        | Type    | Required | Default | Description                                                                        |
+| ------------ | ------- | -------- | ------- | ---------------------------------------------------------------------------------- |
+| `deprecated` | boolean | No       | `false` | Indicates this element is deprecated and should not be used in new implementations |
 
 **Guidelines:**
 - Deprecated elements remain documented and validated for backward compatibility

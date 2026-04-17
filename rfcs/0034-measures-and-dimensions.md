@@ -8,6 +8,14 @@ Slack: TBD.
 
 GitHub issue: TBD.
 
+Applies to:
+* [x] ODCS - Open Data Contract Standard
+* [ ] ODPS - Open Data Product Standard
+* [ ] OORS - Open Observability Results Standard
+* [ ] OOCS - Open Orchestration and Control Standard
+* [ ] OMMS - Open Maturity Model Standard
+* [ ] OMDS - Open Metadata Difference Standard
+
 ## Summary
 
 This RFC proposes adding support for **measures** and **dimensions** to ODCS by extending the existing `properties` array with a new optional `implementationType` field. A property can be a `column` (default), a `measure` (aggregated value, e.g., `SUM(revenue)`), or a `dimension` (categorical attribute for grouping/filtering). This allows data contracts to express business metrics as first-class properties, reusing all existing property fields, so they can be consumed consistently across reporting, analytics, and AI tools.
@@ -42,22 +50,74 @@ Measures and dimensions are **properties**. Rather than introducing new top-leve
 
 Specifies how the property is implemented. One of:
 
-| Value | Description |
-|-------|-------------|
-| `column` | A physical column in the underlying data store. **This is the default** — if `implementationType` is omitted, the property is a column. |
-| `measure` | An aggregated value computed via a SQL aggregation expression (e.g., `SUM(revenue)`, `COUNT(DISTINCT order_id)`). The `transformLogic` field contains the aggregation expression. |
-| `dimension` | A categorical attribute used for grouping and filtering. The `transformLogic` field contains the SQL expression or property reference. |
+| Value       | Description                                                                                                                                                                       |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `column`    | A physical column in the underlying data store. **This is the default** — if `implementationType` is omitted, the property is a column.                                           |
+| `measure`   | An aggregated value computed via a SQL aggregation expression (e.g., `SUM(revenue)`, `COUNT(DISTINCT order_id)`). The `transformLogic` field contains the aggregation expression. |
+| `dimension` | A categorical attribute used for grouping and filtering. The `transformLogic` field contains the SQL expression or property reference.                                            |
 
-#### `synonyms` (optional, array of strings, on properties)
+#### `synonyms` (optional, array, on properties)
 
-Alternative names for discovery, useful for AI/LLM tools and natural language querying. Applicable to any property but especially relevant for measures and dimensions.
+Alternative names for discovery, useful for AI/LLM tools, catalogs, and natural language querying. Applicable to any property but especially relevant for measures and dimensions, where business users commonly refer to the same metric by several names (e.g., "Turnover", "TO", "Sales volume").
+
+The standard will define **exactly one** shape for `synonyms`. Two shapes are under discussion; the working group **recommends the object form** (Option B). The TSC will pick one before approval.
+
+##### Discussion item: pick one form
+
+Option A — **array of strings** (simple, compact):
+
+```yaml
+synonyms:
+  - TO
+  - Sales
+  - Sales volume
+```
+
+Option B — **array of objects** (**WG recommendation**):
+
+Each synonym is a structured object, which allows attaching metadata (locale, source, status, etc.) and makes synonyms extensible without breaking changes.
+
+```yaml
+synonyms:
+  - name: TO
+    description: "Common abbreviation used by the finance team"
+  - name: Sales
+    locale: en-US
+  - id: sales-fr
+    name: "Chiffre d'affaires"
+    locale: fr-FR
+    description: "French equivalent used in French-speaking subsidiaries"
+```
+
+**Why the WG recommends Option B:**
+
+- Carries metadata natively (`locale`, `source`, `status`, …) instead of pushing it into naming conventions or external systems.
+- Extensible without breaking changes — future fields are just additional optional keys.
+- Consistent with other ODCS structures that evolved from strings to objects (e.g., roles, authoritative definitions).
+- Maps cleanly to richer semantic-layer targets (glossaries, ontologies, multi-locale catalogs) even though simpler targets (e.g., Databricks) only need `name`.
+
+**Trade-off for Option A:** shorter and easier to author by hand, but every future need (locale, deprecation, provenance) forces either a breaking change or an escape into `customProperties`.
+
+The remainder of this RFC is written assuming **Option B** is adopted.
+
+##### Synonym object fields (Option B)
+
+| Field              | Required | Type   | Description                                                                                                                          |
+| ------------------ | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`               | No       | string | Stable identifier for the synonym, useful when referencing or deduplicating synonyms across tools.                                   |
+| `name`             | Yes      | string | The synonymous term.                                                                                                                 |
+| `description`      | No       | string | Short human-readable note about when or why this synonym is used.                                                                    |
+| `locale`           | No       | string | [BCP 47](https://datatracker.ietf.org/doc/html/rfc5646) language tag (e.g., `en-US`, `fr-FR`) when the synonym is language-specific. |
+| `source`           | No       | string | Origin of the synonym (e.g., `glossary`, `finance-team`, `legacy-system`).                                                           |
+| `status`           | No       | string | Lifecycle status of the synonym (e.g., `active`, `deprecated`).                                                                      |
+| `customProperties` | No       | array  | Extension point, per the standard pattern.                                                                                           |
 
 ### Example 1: Minimal — a single measure and dimension
 
 A simple e-commerce contract with one revenue measure and one dimension, alongside regular column properties.
 
 ```yaml
-apiVersion: v3.1.0
+apiVersion: v3.2.0
 kind: DataContract
 id: turnover-metrics
 name: Turnover Metrics
@@ -92,7 +152,7 @@ schema:
 Inspired by the [data-engineering-helpers semantic layer example](https://github.com/data-engineering-helpers/semantic-layer/blob/main/odcs/metrics-turnover.yml).
 
 ```yaml
-apiVersion: v3.1.0
+apiVersion: v3.2.0
 kind: DataContract
 id: turnover-detailed-metrics
 name: Turnover Detailed Metrics
@@ -139,7 +199,8 @@ schema:
         description: "Country code where the order was made"
         businessName: Country Code
         synonyms:
-          - "ISO-3166-2 country code"
+          - name: "ISO-3166-2 country code"
+            source: glossary
       - name: product_type_dim
         implementationType: dimension
         logicalType: string
@@ -159,9 +220,16 @@ schema:
         description: "Total TurnOver in Euros"
         businessName: TurnOver (Euros)
         synonyms:
-          - TO
-          - Sales
-          - Sales volume
+          - name: TO
+            description: "Common abbreviation used by the finance team"
+            source: finance-team
+          - name: Sales
+            locale: en-US
+          - name: Sales volume
+            locale: en-US
+          - name: Chiffre d'affaires
+            locale: fr-FR
+            description: "French equivalent used in European subsidiaries"
       - name: nb_receipts
         implementationType: measure
         logicalType: integer
@@ -171,9 +239,10 @@ schema:
         description: "Number of receipts"
         businessName: Number of Receipts
         synonyms:
-          - Number of orders
-          - Order Count
-          - Total number of orders
+          - name: Number of orders
+          - name: Order Count
+          - name: Total number of orders
+            status: deprecated
       - name: average_basket_value
         implementationType: measure
         logicalType: number
@@ -185,7 +254,8 @@ schema:
         description: "Average basket value in Euros"
         businessName: Average Basket Value
         synonyms:
-          - ABV
+          - name: ABV
+            source: glossary
 ```
 
 [!NOTE]
@@ -197,9 +267,12 @@ If the TCS decides positively on RFC 38, then,
         logicalType: number
         transformLogic: SUM(turnover_euros)
         synonyms:
-          - TO
-          - Sales
-          - Sales volume
+          - name: TO
+            description: "Common abbreviation used by the finance team"
+          - name: Sales
+            locale: en-US
+          - name: Sales volume
+            locale: en-US
 ```
 
 Should be updated to:
@@ -210,12 +283,15 @@ Should be updated to:
         transformLogic: SUM(turnover_euros)
         context:
           synonyms:
-            - TO
-            - Sales
-            - Sales volume
+            - name: TO
+              description: "Common abbreviation used by the finance team"
+            - name: Sales
+              locale: en-US
+            - name: Sales volume
+              locale: en-US
 ```
 
-All semantic guidance, including synonyms, lives in context as defined by RFC 38.
+All semantic guidance, including synonyms, lives in context as defined by RFC 38. The object form of synonyms is preserved unchanged when nested under `context`.
        
 ### Example 3: Dimension with a SQL expression
 
@@ -247,18 +323,20 @@ Dimensions can use SQL expressions in `transformLogic`, not just direct property
 
 The proposed structure maps to Databricks Metric Views YAML. In Databricks, measures and dimensions are separate arrays; in ODCS, they are unified as properties distinguished by `implementationType`:
 
-| ODCS property field | Databricks Metric View field |
-|---------------------|------------------------------|
-| `implementationType: dimension` | entry in `dimensions[]` |
-| `implementationType: measure` | entry in `measures[]` |
-| `name` | `name` |
-| `transformLogic` | `expr` |
-| `description` | `comment` |
-| `businessName` | `display_name` |
-| `logicalTypeOptions` | `format` |
-| `synonyms` | `synonyms` |
+| ODCS property field                | Databricks Metric View field |
+| ---------------------------------- | ---------------------------- |
+| `implementationType: dimension`    | entry in `dimensions[]`      |
+| `implementationType: measure`      | entry in `measures[]`        |
+| `name`                             | `name`                       |
+| `transformLogic`                   | `expr`                       |
+| `description`                      | `comment`                    |
+| `businessName`                     | `display_name`               |
+| `logicalTypeOptions`               | `format`                     |
+| `synonyms` (object or string form) | `synonyms` (string form)     |
 
 ODCS reuses existing property field names (`transformLogic`, `businessName`, `logicalType`, `logicalTypeOptions`) for consistency with the rest of the standard, while Databricks uses its own naming (`expr`, `display_name`, `format`). ODCS uses `camelCase` per convention; Databricks uses `snake_case`.
+
+Note on `synonyms`: Databricks accepts a flat list of strings. When exporting from ODCS to Databricks, tools should project each synonym object to its `name` value. When importing from Databricks, tools may either keep the string form or expand each synonym into an object `{ name: <string> }` — both are valid ODCS.
 
 ### Discussion: naming of `implementationType`
 
@@ -331,33 +409,44 @@ The concept of measures and dimensions is central to the semantic layer ecosyste
 
 ### Warehouse-Native Semantic Layers
 
-| Vendor | Product | Measures/Dimensions Support | Notes |
-|--------|---------|---------------------------|-------|
-| **Databricks** | [Metric Views](https://docs.databricks.com/aws/en/metric-views/) | YAML-based measures, dimensions, joins, filters, semantic metadata (synonyms, display names, format) | Unity Catalog native. Primary inspiration for this RFC. |
-| **Google BigQuery** | [BigQuery BI Engine / Looker Semantic Layer](https://cloud.google.com/looker/docs/reference/param-measure-types) | Measures (with typed aggregations), dimensions via LookML | Embedded in Looker/LookML modeling language. |
-| **Snowflake** | [Semantic Views](https://docs.snowflake.com/en/user-guide/views-semantic/overview) | Metrics (aggregated measures), dimensions, facts as schema-level objects | GA since Snowflake Summit 2025. Native to Snowflake. |
+| Vendor              | Product                                                                                                          | Measures/Dimensions Support                                                                          | Notes                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Databricks**      | [Metric Views](https://docs.databricks.com/aws/en/metric-views/)                                                 | YAML-based measures, dimensions, joins, filters, semantic metadata (synonyms, display names, format) | Unity Catalog native. Primary inspiration for this RFC. |
+| **Google BigQuery** | [BigQuery BI Engine / Looker Semantic Layer](https://cloud.google.com/looker/docs/reference/param-measure-types) | Measures (with typed aggregations), dimensions via LookML                                            | Embedded in Looker/LookML modeling language.            |
+| **Snowflake**       | [Semantic Views](https://docs.snowflake.com/en/user-guide/views-semantic/overview)                               | Metrics (aggregated measures), dimensions, facts as schema-level objects                             | GA since Snowflake Summit 2025. Native to Snowflake.    |
 
 ### Standalone Semantic Layer Platforms
 
-| Vendor | Product | Measures/Dimensions Support | Notes |
-|--------|---------|---------------------------|-------|
-| **AtScale** | [AtScale / SML](https://www.atscale.com/glossary/semantic-modeling-language/) | Measures, dimensions, hierarchies, semi-additive measures, many-to-many relationships via open-source SML (YAML). | Enterprise-grade. First open-source semantic modeling language (2024). Joined OSI in Jan 2026. |
-| **Cube** | [Cube Semantic Layer](https://cube.dev/docs/product/data-modeling/reference/measures) | Measures and dimensions defined in YAML or JavaScript. Pre-aggregations, caching, multi-tenancy. | API-first / headless BI. Supports 20+ BI tools. |
-| **dbt Labs** | [dbt Semantic Layer / MetricFlow](https://docs.getdbt.com/docs/build/about-metricflow) | Measures, dimensions, entities in YAML semantic models. Metrics defined as compositions of measures. | Powers the OSI proprietary standard. Integrates with Snowflake, Databricks, BigQuery, Redshift. |
-| **Lightdash** | [Lightdash Metrics Explorer](https://www.lightdash.com/) | Measures and dimensions on top of dbt models. Metrics Explorer for governed metric reuse. | Open-source. Deep dbt integration. |
+| Vendor        | Product                                                                                | Measures/Dimensions Support                                                                                       | Notes                                                                                           |
+| ------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **AtScale**   | [AtScale / SML](https://www.atscale.com/glossary/semantic-modeling-language/)          | Measures, dimensions, hierarchies, semi-additive measures, many-to-many relationships via open-source SML (YAML). | Enterprise-grade. First open-source semantic modeling language (2024). Joined OSI in Jan 2026.  |
+| **Cube**      | [Cube Semantic Layer](https://cube.dev/docs/product/data-modeling/reference/measures)  | Measures and dimensions defined in YAML or JavaScript. Pre-aggregations, caching, multi-tenancy.                  | API-first / headless BI. Supports 20+ BI tools.                                                 |
+| **dbt Labs**  | [dbt Semantic Layer / MetricFlow](https://docs.getdbt.com/docs/build/about-metricflow) | Measures, dimensions, entities in YAML semantic models. Metrics defined as compositions of measures.              | Powers the OSI proprietary standard. Integrates with Snowflake, Databricks, BigQuery, Redshift. |
+| **Lightdash** | [Lightdash Metrics Explorer](https://www.lightdash.com/)                               | Measures and dimensions on top of dbt models. Metrics Explorer for governed metric reuse.                         | Open-source. Deep dbt integration.                                                              |
 
 ### BI Tools with Embedded Semantic Layers
 
-| Vendor | Product | Measures/Dimensions Support | Notes |
-|--------|---------|---------------------------|-------|
-| **Apache** | [Apache Superset](https://github.com/apache/superset/issues/35003) | Lightweight semantic layer with metrics and dimensions via SQL-first datasets. | Open-source. SIP-182 proposes deeper semantic layer support. |
-| **Google** | [Looker / LookML](https://cloud.google.com/looker/docs/reference/param-measure-types) | Dimensions and measures as core LookML building blocks. Typed aggregations (sum, avg, count, etc.). | LookML is a YAML-like modeling language. |
-| **Metabase** | [Metabase](https://www.metabase.com/) | Simple semantic layer with aggregated metrics and certified measures. | Open-source. Best for non-technical users. |
-| **Microsoft** | [Power BI Semantic Models](https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-understand) | Measures (DAX), dimensions, hierarchies in semantic models (formerly datasets). | Fabric IQ (2025) elevates semantic models into ontologies for AI agents. |
-| **Omni Analytics** | [Omni](https://omni.co/) | Measures and dimensions with semantic modeling. OSI founding member. | Modern BI tool with shared semantic definitions. |
-| **Salesforce / Tableau** | [Tableau Semantic Layer](https://www.salesforce.com/blog/agentic-future-demands-open-semantic-layer/) | Dimensions, measures, calculated fields. Participating in OSI initiative. | Salesforce actively advocates for open semantic layer standards. |
-| **ThoughtSpot** | [ThoughtSpot](https://www.thoughtspot.com/) | Measures and dimensions for AI-driven natural language search. Participating in OSI. | Search-first BI. |
+| Vendor                   | Product                                                                                                         | Measures/Dimensions Support                                                                         | Notes                                                                    |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **Apache**               | [Apache Superset](https://github.com/apache/superset/issues/35003)                                              | Lightweight semantic layer with metrics and dimensions via SQL-first datasets.                      | Open-source. SIP-182 proposes deeper semantic layer support.             |
+| **Google**               | [Looker / LookML](https://cloud.google.com/looker/docs/reference/param-measure-types)                           | Dimensions and measures as core LookML building blocks. Typed aggregations (sum, avg, count, etc.). | LookML is a YAML-like modeling language.                                 |
+| **Metabase**             | [Metabase](https://www.metabase.com/)                                                                           | Simple semantic layer with aggregated metrics and certified measures.                               | Open-source. Best for non-technical users.                               |
+| **Microsoft**            | [Power BI Semantic Models](https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-understand) | Measures (DAX), dimensions, hierarchies in semantic models (formerly datasets).                     | Fabric IQ (2025) elevates semantic models into ontologies for AI agents. |
+| **Omni Analytics**       | [Omni](https://omni.co/)                                                                                        | Measures and dimensions with semantic modeling. OSI founding member.                                | Modern BI tool with shared semantic definitions.                         |
+| **Salesforce / Tableau** | [Tableau Semantic Layer](https://www.salesforce.com/blog/agentic-future-demands-open-semantic-layer/)           | Dimensions, measures, calculated fields. Participating in OSI initiative.                           | Salesforce actively advocates for open semantic layer standards.         |
+| **ThoughtSpot**          | [ThoughtSpot](https://www.thoughtspot.com/)                                                                     | Measures and dimensions for AI-driven natural language search. Participating in OSI.                | Search-first BI.                                                         |
 
 ### Summary
 
 The measures-and-dimensions pattern is a universal concept across the entire data analytics stack — from warehouse-native implementations (Databricks, Snowflake) to standalone semantic layers (dbt, Cube, AtScale) to BI tools (Power BI, Tableau, Looker, Superset). Adding measures and dimensions to ODCS positions the standard at the center of this ecosystem, enabling data contracts to serve as a portable, tool-agnostic semantic interchange format.
+
+## Appendix: Changelog
+
+All notable changes to this RFC are recorded here. Dates are `YYYY-MM-DD`. Entries are listed newest-first.
+
+| Date       | Author                                                                | Change                                                                                                                                                                                                                                                                                                                                                                |
+| ---------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-17 | Jean-Georges Perrin                                                   | Reframed `synonyms` as a **single-form** field (not dual-form). Two candidate shapes — array of strings vs. array of objects — are now presented as a TSC discussion item. The WG recommends the object form (with fields `id`, `name`, `description`, `locale`, `source`, `status`, `customProperties`); the rest of the RFC assumes that recommendation is adopted. |
+|            |                                                                       | Bumped example `apiVersion` from `v3.1.0` to `v3.2.0` to reflect that this RFC targets the next ODCS minor release.                                                                                                                                                                                                                                                   |
+|            |                                                                       | Added this Changelog appendix.                                                                                                                                                                                                                                                                                                                                        |
+| —          | Massil Chabane, Denis Arnaud, Gilles Guglielmoni, Jean-Georges Perrin | Initial draft: `implementationType` on properties (`column`, `measure`, `dimension`), `synonyms` as array of strings, two worked examples, Databricks Metric Views mapping, alternatives, vendor landscape appendix.                                                                                                                                                  |
