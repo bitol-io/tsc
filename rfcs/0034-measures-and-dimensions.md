@@ -20,6 +20,8 @@ Applies to:
 
 This RFC proposes adding support for **measures** and **dimensions** to ODCS by extending the existing `properties` array with a new optional `implementationType` field. A property can be a `column` (default), a `measure` (aggregated value, e.g., `SUM(revenue)`), or a `dimension` (categorical attribute for grouping/filtering). This allows data contracts to express business metrics as first-class properties, reusing all existing property fields, so they can be consumed consistently across reporting, analytics, and AI tools.
 
+Synonyms, originally proposed as part of this RFC, have been factored out into [RFC-0041](0041-synonyms.md) so they apply uniformly to any named object (columns, schemas, output ports, data products) rather than only to measures and dimensions.
+
 ## Motivation
 
 ### Why are we doing this?
@@ -31,11 +33,11 @@ Data contracts today describe the physical and logical structure of data (schema
 1. **Consistent metric definitions**: A data contract owner defines "Total Revenue = SUM(revenue_euros)" once. All downstream tools (BI, AI assistants, data catalogs) consume the same definition.
 2. **Semantic layer interoperability**: Tools like Databricks Metric Views, dbt Semantic Layer, and others define metrics in proprietary formats. ODCS can serve as a portable, tool-agnostic interchange format.
 3. **Self-service analytics**: Data consumers can discover available measures and dimensions from the contract without needing to understand the underlying SQL or table structure.
-4. **AI/LLM readability**: Synonyms and business names help AI assistants understand what a metric means in business terms, enabling natural language querying.
+4. **AI/LLM readability**: Business names and (via [RFC-0041](0041-synonyms.md)) synonyms help AI assistants understand what a metric means in business terms, enabling natural language querying.
 
 ### Alignment with guiding values
 
-- **We favor a small standard over a large one**: This RFC adds a single optional field (`implementationType`) to existing properties, plus one new optional field (`synonyms`). No new top-level structures are introduced. Advanced features (joins, grains, materialization) are left to tool-specific extensions via `customProperties`.
+- **We favor a small standard over a large one**: This RFC adds a single optional field (`implementationType`) to existing properties. No new top-level structures are introduced. Advanced features (joins, grains, materialization) are left to tool-specific extensions via `customProperties`. Synonyms, originally bundled here, are now handled by [RFC-0041](0041-synonyms.md).
 - **We favor interoperability over readability**: The design is compatible with Databricks Metric Views, dbt metrics, and similar semantic layer tools, enabling import/export between ODCS and these tools.
 
 ## Design and examples
@@ -56,61 +58,9 @@ Specifies how the property is implemented. One of:
 | `measure`   | An aggregated value computed via a SQL aggregation expression (e.g., `SUM(revenue)`, `COUNT(DISTINCT order_id)`). The `transformLogic` field contains the aggregation expression. |
 | `dimension` | A categorical attribute used for grouping and filtering. The `transformLogic` field contains the SQL expression or property reference.                                            |
 
-#### `synonyms` (optional, array, on properties)
+#### `synonyms` — moved to RFC-0041
 
-Alternative names for discovery, useful for AI/LLM tools, catalogs, and natural language querying. Applicable to any property but especially relevant for measures and dimensions, where business users commonly refer to the same metric by several names (e.g., "Turnover", "TO", "Sales volume").
-
-The standard will define **exactly one** shape for `synonyms`. Two shapes are under discussion; the working group **recommends the object form** (Option B). The TSC will pick one before approval.
-
-##### Discussion item: pick one form
-
-Option A — **array of strings** (simple, compact):
-
-```yaml
-synonyms:
-  - TO
-  - Sales
-  - Sales volume
-```
-
-Option B — **array of objects** (**WG recommendation**):
-
-Each synonym is a structured object, which allows attaching metadata (locale, source, status, etc.) and makes synonyms extensible without breaking changes.
-
-```yaml
-synonyms:
-  - name: TO
-    description: "Common abbreviation used by the finance team"
-  - name: Sales
-    locale: en-US
-  - id: sales-fr
-    name: "Chiffre d'affaires"
-    locale: fr-FR
-    description: "French equivalent used in French-speaking subsidiaries"
-```
-
-**Why the WG recommends Option B:**
-
-- Carries metadata natively (`locale`, `source`, `status`, …) instead of pushing it into naming conventions or external systems.
-- Extensible without breaking changes — future fields are just additional optional keys.
-- Consistent with other ODCS structures that evolved from strings to objects (e.g., roles, authoritative definitions).
-- Maps cleanly to richer semantic-layer targets (glossaries, ontologies, multi-locale catalogs) even though simpler targets (e.g., Databricks) only need `name`.
-
-**Trade-off for Option A:** shorter and easier to author by hand, but every future need (locale, deprecation, provenance) forces either a breaking change or an escape into `customProperties`.
-
-The remainder of this RFC is written assuming **Option B** is adopted.
-
-##### Synonym object fields (Option B)
-
-| Field              | Required | Type   | Description                                                                                                                          |
-| ------------------ | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`               | No       | string | Stable identifier for the synonym, useful when referencing or deduplicating synonyms across tools.                                   |
-| `name`             | Yes      | string | The synonymous term.                                                                                                                 |
-| `description`      | No       | string | Short human-readable note about when or why this synonym is used.                                                                    |
-| `locale`           | No       | string | [BCP 47](https://datatracker.ietf.org/doc/html/rfc5646) language tag (e.g., `en-US`, `fr-FR`) when the synonym is language-specific. |
-| `source`           | No       | string | Origin of the synonym (e.g., `glossary`, `finance-team`, `legacy-system`).                                                           |
-| `status`           | No       | string | Lifecycle status of the synonym (e.g., `active`, `deprecated`).                                                                      |
-| `customProperties` | No       | array  | Extension point, per the standard pattern.                                                                                           |
+Synonyms were originally defined in this RFC. They have been factored out into [RFC-0041](0041-synonyms.md) so they apply uniformly to any named object in ODCS and ODPS. The examples below that use `synonyms` are valid if both this RFC and RFC-0041 are adopted; see RFC-0041 for the authoritative field shape and semantics.
 
 ### Example 1: Minimal — a single measure and dimension
 
@@ -147,7 +97,10 @@ schema:
         description: "Total revenue in Euros"
 ```
 
-### Example 2: Detailed — turnover metrics with formatting, synonyms, and computed measures
+### Example 2: Detailed — turnover metrics with formatting and computed measures
+
+> The `synonyms` entries shown below are defined by [RFC-0041](0041-synonyms.md); they are included here to illustrate how measures and dimensions compose with synonyms in a realistic contract.
+
 
 Inspired by the [data-engineering-helpers semantic layer example](https://github.com/data-engineering-helpers/semantic-layer/blob/main/odcs/metrics-turnover.yml).
 
@@ -258,41 +211,9 @@ schema:
             source: glossary
 ```
 
-[!NOTE]
-If the TCS decides positively on RFC 38, then,
+> **Note:** `synonyms` is defined by [RFC-0041](0041-synonyms.md). RFC-0038 (`context`) covers interpretive guidance for AI agents (instructions, constraints, verified Q&A) and does **not** duplicate synonyms — RFC-0038 delegates synonym definition to RFC-0041.
 
-```yaml
-      - name: total_turnover_euros
-        implementationType: measure
-        logicalType: number
-        transformLogic: SUM(turnover_euros)
-        synonyms:
-          - name: TO
-            description: "Common abbreviation used by the finance team"
-          - name: Sales
-            locale: en-US
-          - name: Sales volume
-            locale: en-US
-```
 
-Should be updated to:
-```yaml
-      - name: total_turnover_euros
-        implementationType: measure
-        logicalType: number
-        transformLogic: SUM(turnover_euros)
-        context:
-          synonyms:
-            - name: TO
-              description: "Common abbreviation used by the finance team"
-            - name: Sales
-              locale: en-US
-            - name: Sales volume
-              locale: en-US
-```
-
-All semantic guidance, including synonyms, lives in context as defined by RFC 38. The object form of synonyms is preserved unchanged when nested under `context`.
-       
 ### Example 3: Dimension with a SQL expression
 
 Dimensions can use SQL expressions in `transformLogic`, not just direct property references.
@@ -332,11 +253,10 @@ The proposed structure maps to Databricks Metric Views YAML. In Databricks, meas
 | `description`                      | `comment`                    |
 | `businessName`                     | `display_name`               |
 | `logicalTypeOptions`               | `format`                     |
-| `synonyms` (object or string form) | `synonyms` (string form)     |
 
 ODCS reuses existing property field names (`transformLogic`, `businessName`, `logicalType`, `logicalTypeOptions`) for consistency with the rest of the standard, while Databricks uses its own naming (`expr`, `display_name`, `format`). ODCS uses `camelCase` per convention; Databricks uses `snake_case`.
 
-Note on `synonyms`: Databricks accepts a flat list of strings. When exporting from ODCS to Databricks, tools should project each synonym object to its `name` value. When importing from Databricks, tools may either keep the string form or expand each synonym into an object `{ name: <string> }` — both are valid ODCS.
+Synonym interoperability with Databricks Metric Views is covered by [RFC-0041](0041-synonyms.md).
 
 ### Discussion: naming of `implementationType`
 
@@ -385,7 +305,8 @@ TBD.
 
 ## Consequences
 
-- **Non-breaking change**: `implementationType` and `synonyms` are optional fields on properties. Existing contracts remain valid — all current properties are implicitly `implementationType: column`.
+- **Non-breaking change**: `implementationType` is an optional field on properties. Existing contracts remain valid — all current properties are implicitly `implementationType: column`.
+- **Synonyms handled separately**: The `synonyms` field formerly defined in this RFC is now covered by [RFC-0041](0041-synonyms.md), which broadens its scope beyond measures and dimensions.
 - **No schema duplication**: Measures and dimensions reuse the full property schema (name, logicalType, logicalTypeOptions, businessName, description, transformLogic, customProperties, authoritativeDefinitions, etc.).
 - **Tool interoperability**: Tools supporting Databricks Metric Views, dbt Semantic Layer, or similar can import/export measures and dimensions via ODCS.
 - **Schema evolution**: Future RFCs may extend this with joins across schemas, filter expressions, or grain definitions, building on this foundation.
@@ -446,6 +367,7 @@ All notable changes to this RFC are recorded here. Dates are `YYYY-MM-DD`. Entri
 
 | Date       | Author                                                                | Change                                                                                                                                                                                                                                                                                                                                                                |
 | ---------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-21 | Jean-Georges Perrin                                                   | Split `synonyms` out of this RFC into [RFC-0041](0041-synonyms.md) following the TSC meeting on 2026-04-21. Removed the `synonyms` field definition and its discussion item; kept `synonyms` in Example 2 with a pointer to RFC-0041 to show how measures/dimensions compose with synonyms. Updated Summary, Use cases, Alignment-with-guiding-values, RFC-0038 note, Databricks compatibility table, and Consequences. No change to `implementationType` or its values.                                                                                                             |
 | 2026-04-17 | Jean-Georges Perrin                                                   | Reframed `synonyms` as a **single-form** field (not dual-form). Two candidate shapes — array of strings vs. array of objects — are now presented as a TSC discussion item. The WG recommends the object form (with fields `id`, `name`, `description`, `locale`, `source`, `status`, `customProperties`); the rest of the RFC assumes that recommendation is adopted. |
 |            |                                                                       | Bumped example `apiVersion` from `v3.1.0` to `v3.2.0` to reflect that this RFC targets the next ODCS minor release.                                                                                                                                                                                                                                                   |
 |            |                                                                       | Added this Changelog appendix.                                                                                                                                                                                                                                                                                                                                        |
