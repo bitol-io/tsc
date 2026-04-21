@@ -78,7 +78,7 @@ schema:
     properties:
       - name: order_id
         logicalType: string
-        isPrimary: true
+        primaryKey: true
       - name: order_date
         logicalType: date
       - name: revenue_euros
