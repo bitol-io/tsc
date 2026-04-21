@@ -40,11 +40,13 @@ Research and production deployments show that structured context dramatically im
 
 Without a standardized way to express this guidance, every team reinvents it in proprietary formats, defeating the interoperability goals of both ODCS and ODPS.
 
-### Relationship to RFC-0034 (Measures and Dimensions)
+### Relationship to RFC-0041 (Synonyms)
 
 > See also Appendix C for the full vendor detail survey.
 
-Synonyms are **out of scope for this RFC**. RFC-0034 is the sole authoritative source for `synonyms` in the Bitol standards. `synonyms` is defined by RFC-0034 at the schema level (on measures and dimensions) and is not duplicated inside the `context` block. Tools that need synonym-based disambiguation MUST read them from RFC-0034's `synonyms` field, not from `context`.
+Synonyms are **out of scope for this RFC**. [RFC-0041](0041-synonyms.md) is the sole authoritative source for `synonyms` in the Bitol standards. `synonyms` is defined by RFC-0041 at the schema level (on named objects such as properties, schemas, output ports, and data products) and is not duplicated inside the `context` block. Tools that need synonym-based disambiguation MUST read them from RFC-0041's `synonyms` field, not from `context`.
+
+(Synonyms were originally defined inside RFC-0034 — Measures and Dimensions — and factored out into RFC-0041 following the TSC meeting on 2026-04-21.)
 
 ### Relationship to OSI
 
@@ -53,7 +55,7 @@ Synonyms are **out of scope for this RFC**. RFC-0034 is the sole authoritative s
 ### Use cases
 
 1. **Text-to-SQL accuracy**: An LLM generating queries against an ODCS-governed dataset reads  `context.instructions` on the schema object to understand how to join it, and reads   `context.constraints` on a property to learn it must never be used as a filter alone.
-2. **Natural language querying**: A BI tool reads `synonyms` on a measure (as defined by RFC-0034) to resolve    "revenue", "sales", and "TO" to the same `total_turnover_euros` property. Synonyms are NOT part of the `context` block.
+2. **Natural language querying**: A BI tool reads `synonyms` on a measure (as defined by [RFC-0041](0041-synonyms.md)) to resolve    "revenue", "sales", and "TO" to the same `total_turnover_euros` property. Synonyms are NOT part of the `context` block.
 3. **AI agent onboarding**: A data product exposes `context.instructions` at the product level    so an AI agent knows which output port to use, what domain it covers, and what questions it    can answer.
 4. **Verified Q&A grounding**: A contract owner pre-anchors frequent business questions via    `context.<name>` entries with both `question` and `answer`, preventing the LLM from fabricating answers to known questions.
 5. **Sensitive data protection**: `context.constraints` on a property instructs AI agents not    to expose raw values, only aggregated results.
@@ -96,7 +98,7 @@ context:
     - "Do not join with customer PII tables without explicit data access approval."
 ```
 
-> **Note:** `synonyms` are defined by RFC-0034 at the schema level (measures and dimensions), not inside `context`. See the "Relationship to RFC-0034" section above.
+> **Note:** `synonyms` are defined by [RFC-0041](0041-synonyms.md) at the schema level (on named objects such as properties, schemas, output ports, and data products), not inside `context`. See the "Relationship to RFC-0041" section above.
 
 Example #2: Full structured object with external resource (authoritative definitions)
 
@@ -404,17 +406,17 @@ Rejected because: the block is identical in structure across both standards. A s
 
 ## Compatibility with OSI
 
-The Bitol `context` block covers most of OSI's `ai_context`, with `synonyms` delegated to RFC-0034:
+The Bitol `context` block covers most of OSI's `ai_context`, with `synonyms` delegated to [RFC-0041](0041-synonyms.md):
 
 | OSI `ai_context` field | Bitol equivalent                                                                    |
 | ---------------------- | ----------------------------------------------------------------------------------- |
 | `instructions`         | `context.instructions`                                                              |
-| `synonyms`             | RFC-0034 `synonyms` (schema level, not context)                                     |
+| `synonyms`             | RFC-0041 `synonyms` (schema level, not context)                                     |
 | `examples`             | `context.<name>` entries with `question` only (no `answer`)                         |
 | (not present)          | `context.<name>` entries with both `question` and `answer` (former verifiedAnswers) |
 | (not present)          | `context.constraints`                                                               |
 
-An OSI-to-ODCS converter can map `ai_context.synonyms` to RFC-0034's `synonyms` field on measures/dimensions, map each `ai_context.examples` string to a `context.<name>` entry `{question: <string>}`, and map the remaining `ai_context` fields to `context`. An ODCS-to-OSI exporter can project `context.instructions` into `ai_context.instructions`, project `context.<name>[].question` values (entries without `answer`) into `ai_context.examples`, drop the answered entries (OSI has no equivalent), and project RFC-0034 `synonyms` into `ai_context.synonyms`.
+An OSI-to-ODCS converter can map `ai_context.synonyms` to RFC-0041's `synonyms` field on the appropriate named object, map each `ai_context.examples` string to a `context.<name>` entry `{question: <string>}`, and map the remaining `ai_context` fields to `context`. An ODCS-to-OSI exporter can project `context.instructions` into `ai_context.instructions`, project `context.<name>[].question` values (entries without `answer`) into `ai_context.examples`, drop the answered entries (OSI has no equivalent), and project RFC-0041 `synonyms` into `ai_context.synonyms`.
 
 ---
 
@@ -430,8 +432,8 @@ TBD.
 
 - **Non-breaking**: `context` is optional at every level. All existing contracts and products  remain valid.
 - **Shared structure**: The same `context` block definition is reused across ODCS and ODPS,   reducing maintenance overhead and ensuring consistent tooling.
-- **OSI compatibility**: Bitol `context` covers OSI `ai_context` for `instructions` and `examples`, and adds `verifiedAnswers` and `constraints`. OSI's `synonyms` maps to RFC-0034's `synonyms` (schema level), not to `context`.
-- **RFC-0034 relationship**: `synonyms` is owned exclusively by RFC-0034 at the schema level (measures and dimensions). RFC-0038 does not define `synonyms` and does not duplicate them inside `context`. Tools needing synonym disambiguation MUST read RFC-0034's `synonyms` field.
+- **OSI compatibility**: Bitol `context` covers OSI `ai_context` for `instructions` and `examples`, and adds `verifiedAnswers` and `constraints`. OSI's `synonyms` maps to [RFC-0041](0041-synonyms.md)'s `synonyms` (schema level), not to `context`.
+- **RFC-0041 relationship**: `synonyms` is owned exclusively by [RFC-0041](0041-synonyms.md) at the schema level (on named objects such as properties, schemas, output ports, and data products). RFC-0038 does not define `synonyms` and does not duplicate them inside `context`. Tools needing synonym disambiguation MUST read RFC-0041's `synonyms` field.
 - **ODPS coverage**: This RFC lands in ODPS v1.1.0 and defines `context` at the product and output-port levels directly. Input ports do not define their own `context`; consumers refer to the `context` in the ODCS data contract linked from the input port.
 
 ---
@@ -445,8 +447,9 @@ TBD.
 - [Sigma Computing: Curating Context for AI Agents](https://www.sigmacomputing.com/blog/curate-context-ai-agents) —  three-pillar context model: warehouse metadata, semantic definitions, user behavior.
 - [Wren AI: Semantic Engine for LLMs](https://www.getwren.ai/post/how-we-design-our-semantic-engine-for-llms-the-backbone-of-the-semantic-layer-for-llm-architecture) —  MDL-based context: instructions, calculations, constraints, relationships.
 - [LLMs and Data Querying: Serialization Survey](https://medium.com/@vijayshankar.mishra/when-tables-finally-started-making-sense-my-deep-dive-into-llms-and-data-querying-3e8cf439b623) —  column type annotations +8%, semantic descriptions +12%, hybrid metadata +20–25%.
-- [RFC-0034: Measures and Dimensions](rfcs/0034-measures-and-dimensions.md) —   introduces measures and dimensions on properties; defines a standalone `synonyms` field  on measures and dimensions; references RFC-0038 for the broader context framework.
-- [RFC-0013: Relationships](rfcs/approved/odcs-v3.1.0/0013-relationships-between-properties.md) —   relationships between schema properties.
+- [RFC-0034: Measures and Dimensions](0034-measures-and-dimensions.md) —   introduces measures and dimensions on properties; references RFC-0038 for the broader context framework and RFC-0041 for synonyms.
+- [RFC-0041: Synonyms](0041-synonyms.md) —   defines the `synonyms` field on named objects (properties, schemas, output ports, data products). Split out of RFC-0034 on 2026-04-21. RFC-0038 delegates all synonym definition to RFC-0041.
+- [RFC-0013: Relationships](approved/odcs-v3.1.0/0013-relationships-between-properties.md) —   relationships between schema properties.
 
 ---
 
@@ -457,6 +460,7 @@ date, a short summary, rationale, and the scope of affected sections.
 
 | Date       | Change                                                                                                                                                                                                                                                       | Rationale                                                                                                                                                                                                                                                                                                                                | Affected sections                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-21 | Retargeted all `synonyms` delegation from RFC-0034 to [RFC-0041](0041-synonyms.md).                                                                                                                                                                          | Following the TSC meeting on 2026-04-21, `synonyms` was factored out of RFC-0034 into a new standalone RFC-0041 so it applies to any named object (columns, schemas, output ports, data products), not only measures and dimensions. RFC-0038 still delegates all synonym definition externally — only the target RFC changed. | "Relationship to RFC-0034" renamed to "Relationship to RFC-0041"; Use cases (#2); Example #1 note; OSI compatibility table row and surrounding paragraph; Consequences (OSI superset and former "RFC-0034 relationship" bullet, now "RFC-0041 relationship"); References (added RFC-0041 entry, updated RFC-0034 entry); Appendix B table row "Syn." legend and the Bitol RFC-0038 row value. |
 | 2026-04-17 | Removed `synonyms` from the `context` block; delegated to RFC-0034.                                                                                                                                                                                          | Decision made by the Bitol Working Group on 2026-04-14 to exclude `synonyms` from `context`. Avoids duplicating `synonyms` across two RFCs. `synonyms` belongs at the schema level (measures/dimensions) per RFC-0034, not at every level where `context` is available. Enforces RFC-0034 as the sole authoritative source for synonyms. | Relationship to RFC-0034; Use cases (#2); Examples #1 and #2; Definitions table; Property-level example; Product-level example; JSON Schema definition; Cascading rule; Alternative A; Compatibility with OSI (table and paragraph); Consequences (OSI superset and RFC-0034 relationship bullets); Appendix B table row for Bitol RFC-0038 and abbreviation legend; summary paragraph after Appendix B.                                                                                                         |
 | 2026-04-17 | Added this changelog as Appendix A; renumbered prior appendices.                                                                                                                                                                                             | Track every RFC modification going forward so reviewers can see what changed and why.                                                                                                                                                                                                                                                    | Appendix A (new); former Appendix A renamed to Appendix B (Summary Comparison); former Appendix B renamed to Appendix C (Vendor Detail Survey).                                                                                                                                                                                                                                                                                                                                                                  |
 | 2026-04-17 | Added `apiVersion: v3.2.0` and `kind: DataContract` to Examples #1 and #2.                                                                                                                                                                                   | Anchor the canonical ODCS examples to the target version (v3.2.0) in which this RFC is expected to land.                                                                                                                                                                                                                                 | Design and examples (Example #1, Example #2).                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -471,7 +475,7 @@ date, a short summary, rationale, and the scope of affected sections.
 ## Appendix B: Summary Comparison
 
 Vendors as rows, features as columns. See Appendix C for full detail on each vendor.
-Abbreviations: Inst. = `instructions`, Syn. = `synonyms` (RFC-0034, not part of RFC-0038 `context`), Ex. = `examples`,
+Abbreviations: Inst. = `instructions`, Syn. = `synonyms` (RFC-0041, not part of RFC-0038 `context`), Ex. = `examples`,
 VA = `verifiedAnswers`, Con. = `constraints`, In-model = context defined inside the model spec,
 OL = open license, IG = independent governance, RFC = formal RFC process,
 NSB = neutral stewardship body, Gov. = governed with contracts,
@@ -480,7 +484,7 @@ Runtime = runtime-executable semantics.
 
 | Vendor                    | Inst.    | Syn.     | Ex.    | VA      | Con.      | In-model | OL      | IG      | RFC     | NSB     | Gov. | Prop. | Rel. | Port.   | Runtime    |
 | ------------------------- | -------- | -------- | ------ | ------- | --------- | -------- | ------- | ------- | ------- | ------- | ---- | ----- | ---- | ------- | ---------- |
-| **Bitol RFC-0038**        | yes      | RFC-0034 | yes    | yes     | yes       | yes      | yes     | yes     | yes     | yes     | yes  | yes   | yes  | yes     | no         |
+| **Bitol RFC-0038**        | yes      | RFC-0041 | yes    | yes     | yes       | yes      | yes     | yes     | yes     | yes     | yes  | yes   | yes  | yes     | no         |
 | Actian AI Analyst (Wobby) | yes      | partial  | no     | no      | yes exec. | yes      | no      | no      | no      | no      | no   | yes   | no   | no      | yes SemQL  |
 | Amazon QuickSight         | no       | no       | no     | no      | no        | yes      | no      | no      | no      | no      | no   | yes   | no   | no      | yes        |
 | AtScale SML               | no       | no       | no     | no      | no        | yes      | yes     | no      | no      | no      | no   | yes   | no   | yes     | yes        |
@@ -536,7 +540,7 @@ Runtime = runtime-executable semantics.
   independent governance via Linux Foundation TSC, formal RFC process, and neutral
   stewardship body.
 
-RFC-0038 (combined with RFC-0034 for `synonyms`) is the only open standard combining
+RFC-0038 (combined with [RFC-0041](0041-synonyms.md) for `synonyms`) is the only open standard combining
 `instructions`, `examples`, `verifiedAnswers`, and `constraints` inside the model spec,
 alongside schema-level `synonyms`, with data governance via ODCS/ODPS. See Appendix C
 for full vendor detail.
