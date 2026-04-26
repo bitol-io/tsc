@@ -5,12 +5,13 @@
 **Authors:** Gene Azad  
 
 Applies to:
-* [x] ODCS - Open Data Contract Standard
-* [ ] ODPS - Open Data Product Standard
-* [ ] OORS - Open Observability Results Standard
-* [ ] OOCS - Open Orchestration and Control Standard
-* [ ] OMMS - Open Maturity Model Standard
-* [ ] OMDS - Open Metadata Difference Standard
+
+- [x] ODCS - Open Data Contract Standard
+- [ ] ODPS - Open Data Product Standard
+- [ ] OORS - Open Observability Results Standard
+- [ ] OOCS - Open Orchestration and Control Standard
+- [ ] OMMS - Open Maturity Model Standard
+- [ ] OMDS - Open Metadata Difference Standard
 
 ## Summary
 
@@ -51,15 +52,19 @@ Add an optional `vendor` field to ODCS `customProperties`.
 
 ```yaml
 customProperties:
-  - property: string
+  - id: string # optional
+    property: string
     value: any
-    vendor: string   # optional
+    description: string # optional
+    vendor: string # optional
 ```
 
 ### Semantics
 
+- `id` is an optional stable identifier for the custom property
 - `property` identifies the custom property name
 - `value` contains the custom property value
+- `description` optionally describes the custom property
 - `vendor` identifies the vendor or external system associated with the property
 
 If `vendor` is omitted, the property is treated as a generic custom property.
@@ -94,8 +99,9 @@ Tools MUST preserve unknown vendor values.
 
 ```yaml
 customProperties:
-  - id: theNewOne
-    vendor: myPropGovObject
+  - id: prop_gov_object
+    property: propGovObject
+    vendor: my-vendor
     value:
       myObject:
         mo.x: abc
@@ -104,13 +110,11 @@ customProperties:
           - 1
           - 2
           - 3
-    tags:
-      - finance
 ```
 
 ### Example 2: Vendor property with authoritative definitions
 
-This example shows how `authoritativeDefinitions` can be used in tandem with the `vendor` property.
+This example shows how `authoritativeDefinitions` can be used in tandem with the `vendor` field.
 
 ```yaml
 customProperties:
@@ -125,21 +129,20 @@ customProperties:
           - 2
           - 3
     description: Cluster name for specific applications
-    vendor: Confluent
-    tags:
-      - finance
-    authoritativeDefinitions:
-      - url: https://catalog.data.gov/vendors.txt
-        type: vendorList
-        description: List of vendors.
-      - url: https://catalog.data.gov/vendor-schema-extension.json
-        type: validationRule
-        description: Validation rule for the specific data.
-  - property: GlossaryRefs
-    vendor: Zeenea
+    vendor: confluent
+  - property: glossaryRefs
+    vendor: zeenea
     value:
       - category: KPI
         def: Number of Delivered Doses of Vaccine
+
+authoritativeDefinitions:
+  - url: https://catalog.data.gov/vendors.txt
+    type: vendorList
+    description: List of vendors.
+  - url: https://catalog.data.gov/vendor-schema-extension.json
+    type: validationRule
+    description: Validation rule for the specific data.
 ```
 
 ## Alternatives
