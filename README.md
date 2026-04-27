@@ -21,11 +21,10 @@ In addition to our [chart](https://github.com/bitol-io/tsc/blob/main/240618%20Bi
 1. The chair is elected for one year.
 1. A TSC member cannot get excused or absent more than 3 times in a row.
 
-Please refer to 
 
 ## RFCs
 
-In the rfcs directory.
+In the [rfcs](rfcs) directory.
 
 ## Members
 

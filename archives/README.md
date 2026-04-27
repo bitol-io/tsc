@@ -1,0 +1,1 @@
+This folder contains older artefacts that may not be relevant anymore and might be deleted in the future.
