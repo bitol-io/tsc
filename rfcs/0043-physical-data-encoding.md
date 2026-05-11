@@ -186,7 +186,9 @@ Rejected for now. An enum would improve validation but risks excluding valid pla
 
 ## Decision
 
-TBD by TSC.
+Accepted by the TSC via RFC PR [#59](https://github.com/bitol-io/tsc/pull/59).
+
+This RFC establishes character encoding as optional metadata for describing physical data payloads in ODCS. The precise ODCS schema placement and implementation scope should be finalized in the ODCS repository before the implementation PR, especially for server-level defaults and dataset/schema-level overrides.
 
 ## Consequences
 
