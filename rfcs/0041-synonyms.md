@@ -4,7 +4,7 @@ Champion: Jean-Georges Perrin.
 
 Authors: Massil Chabane, Denis Arnaud, Gilles Guglielmoni, and Jean-Georges Perrin.
 
-Slack: TBD.
+Slack: https://data-mesh-learning.slack.com/archives/C0B334HJQV7
 
 GitHub issue: TBD.
 

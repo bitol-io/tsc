@@ -4,7 +4,7 @@ Champion: Jean-Georges Perrin
 
 Authors/Reviewers: Diego Carvallo, Patrick Beitsma, Martin Meermeyer, Denis Arnaud, Jean-Georges Perrin.
 
-Slack: TBD.
+Slack: https://data-mesh-learning.slack.com/archives/C0B334HJQV7
 
 GitHub issue: [#52](https://github.com/bitol-io/tsc/issues/52).
 
