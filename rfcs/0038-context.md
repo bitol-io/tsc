@@ -282,6 +282,10 @@ ODCS (Contract)
     └── context  ← contract-wide scope: dataset purpose, known limitations
         └── Schema Object  (table / API object)
             └── context  ← object-specific: join hints, cardinality, time range guidance
+```
+
+Decisions on 2026-05-18, we do not support (as of now) the context at the property (field) level.
+```
                 └── Property  (column / measure / dimension)
                     └── context  ← field-level: what this field means, what not to do with it
 ```
@@ -290,9 +294,8 @@ When traversing from ODPS down to ODCS properties, the full chain is:
 
 ```
 Data Product context
-  → Contract context
+  → Data Contract context
     → Schema Object context
-      → Property context
 ```
 
 ### Cascading rules (normative)
