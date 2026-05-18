@@ -364,11 +364,15 @@ Current candidates:
 | Candidate      | Notes                                                                                                         |
 | -------------- | ------------------------------------------------------------------------------------------------------------- |
 | `statements`   | Neutral; covers both questions and declarative entries. Doesn't imply an answer is required.                  |
-| `interactions` | Frames each entry as an exchange (prompt + optional reply). Reads well when `answer` is present.              |
-| `questions`    | Aligns with the sub-field `question`; may feel odd for entries that read as statements rather than questions. |
+| ~~`interactions`~~ | Frames each entry as an exchange (prompt + optional reply). Reads well when `answer` is present.              |
+| ~~`questions`~~    | Aligns with the sub-field `question`; may feel odd for entries that read as statements rather than questions. |
 | `affirmations` | Emphasises the curated/authoritative nature of entries; reads oddly for unanswered entries.                   |
+| ~~`expressions`~~  |                    |
 
 Additional candidates are welcome before the name is locked.
+
+Decisions:
+* questions, interactions, expressions rejected 2026-05-18
 
 ---
 
