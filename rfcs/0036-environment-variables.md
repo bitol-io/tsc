@@ -47,46 +47,17 @@ This RFC aligns with the guiding value of **favoring interoperability**: tools t
 
 ## Design and examples
 
-Two options are presented for TSC consideration:
+The working group recommends standardizing **`${VAR_NAME}` interpolation in server values only**, with no in-contract `variables` declaration section. This keeps the standard surface small — the contract simply marks where substitution happens, and resolution is left entirely to tooling.
 
-- **Option A** — `${VAR_NAME}` interpolation syntax in server values, accompanied by an optional top-level `variables` section that declares what the contract expects (name, description, default, required, sensitive).
-- **Option B** — `${VAR_NAME}` interpolation syntax in server values only, with no `variables` section. Smaller surface area; resolution is entirely left to tooling.
+A richer variant — adding a top-level `variables` declaration block (name, description, default, required, sensitive) — was considered and is **deferred to a future RFC**; see [Future considerations](#future-considerations).
 
-### Option A vs Option B
+### `${VAR_NAME}` interpolation syntax
 
-| Concern                       | Option A                                | Option B                                          |
-| ----------------------------- | --------------------------------------- | ------------------------------------------------- |
-| Standard surface area         | Larger: new `variables` section         | Smaller: syntax only                              |
-| Self-documenting contracts    | Yes: consumers can inspect requirements | No: variable inventory lives outside the contract |
-| Secret masking signal         | `sensitive: true` in the contract       | Left entirely to tooling                          |
-| Required/default enforcement  | Declared in the contract                | Left entirely to tooling                          |
-| Alignment with guiding values | Favors interoperability                 | Favors a small standard                           |
-
-### Shared: `${VAR_NAME}` interpolation syntax
-
-Both options use the same reference syntax. Any string value within the `servers` section MAY contain one or more variable references using `${VAR_NAME}`. References MAY appear anywhere within a string value, including as substrings (e.g., `jdbc:postgresql://${DB_HOST}:${DB_PORT}/orders`).
+Any string value within the `servers` section MAY contain one or more variable references using `${VAR_NAME}`. References MAY appear anywhere within a string value, including as substrings (e.g., `jdbc:postgresql://${DB_HOST}:${DB_PORT}/orders`).
 
 Variable resolution is intentionally left to tooling. Common sources include OS environment variables, `.env` files, Vault, AWS Secrets Manager, Kubernetes secrets, and CI/CD pipeline variables.
 
----
-
-## Option A — Interpolation with `variables` declaration
-
-### Variable declaration: the `variables` section
-
-A new optional top-level section `variables` declares the named variables a contract expects. Each variable entry supports:
-
-| Field         | Type    | Required | Description                                                                                                                  |
-| ------------- | ------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `name`        | string  | Yes      | Variable name, used in `${name}` references                                                                                  |
-| `description` | string  | No       | Human-readable explanation of the variable's purpose                                                                         |
-| `default`     | string  | No       | Default value if none is supplied by the environment                                                                         |
-| `required`    | boolean | No       | When `true`, tooling MUST refuse to process the contract if no value is provided and no default exists. Defaults to `false`. |
-| `sensitive`   | boolean | No       | When `true`, tooling MUST NOT log, display, or persist the resolved value in plain text. Defaults to `false`.                |
-
-### Example A-1: Minimal — references only, no declaration
-
-References can be used without a `variables` section when tooling has an established resolution convention:
+### Example 1: Minimal — DB connection
 
 ```yaml
 apiVersion: v3.2.0
@@ -105,115 +76,7 @@ servers:
     password: ${DB_PASSWORD}
 ```
 
-### Example A-2: Full — explicit variable declarations
-
-When the contract needs to communicate its requirements to consumers or enforce resolution:
-
-```yaml
-apiVersion: v3.2.0
-kind: DataContract
-id: 81a10b42-4ee9-4306-8824-34edea77e4b9
-name: Orders
-version: v1.0.0
-
-variables:
-  - name: DB_HOST
-    description: "Hostname of the PostgreSQL database server"
-    required: true
-  - name: DB_PORT
-    description: "Port for the PostgreSQL database server"
-    default: "5432"
-  - name: DB_PASSWORD
-    description: "Password for the database service account"
-    required: true
-    sensitive: true
-  - name: S3_BUCKET
-    description: "S3 bucket for raw data export"
-    required: true
-
-servers:
-  - server: prod_db
-    environment: prod
-    type: postgresql
-    host: ${DB_HOST}
-    port: ${DB_PORT}
-    database: orders_prod
-    password: ${DB_PASSWORD}
-
-  - server: dev_db
-    environment: dev
-    type: postgresql
-    host: ${DB_HOST}
-    port: ${DB_PORT}
-    database: orders_dev
-    password: ${DB_PASSWORD}
-
-  - server: prod_s3
-    environment: prod
-    type: s3
-    location: s3://${S3_BUCKET}/orders/
-```
-
-### Example A-3: Inline substring interpolation
-
-```yaml
-variables:
-  - name: DB_HOST
-    required: true
-  - name: DB_PORT
-    default: "5432"
-  - name: DB_NAME
-    required: true
-
-servers:
-  - server: prod_jdbc
-    environment: prod
-    type: jdbc
-    connection: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
-```
-
-### Tooling behavior under Option A (normative)
-
-- Tools MUST resolve `${VAR_NAME}` references before using server values for any purpose.
-- Tools MUST NOT store or log the resolved value of a variable declared `sensitive: true` in plain text.
-- If a variable is declared `required: true` and no value or default is available, tools MUST surface an error and MUST NOT silently use an empty string.
-- If a `variables` section is absent: 
-  - Option A1: (or if a variable is not listed), tools SHOULD still attempt to resolve `${VAR_NAME}` references using their default resolution strategy (e.g., OS environment variables).
-  - Option A2: fail if variables are used (not a breaking change).
-- Tools SHOULD warn when a `${VAR_NAME}` reference appears in a server value but `VAR_NAME` is not declared in the `variables` section (Option A1).
-- Tools MUST preserve unresolved `${VAR_NAME}` tokens verbatim when serializing a contract back to YAML (round-trip safety).
-
----
-
-## Option B — Interpolation only, no `variables` section
-
-Option B standardizes the `${VAR_NAME}` syntax in `servers` values without introducing any new top-level section. The contract makes no declaration about what variables it uses or whether they are required or sensitive. Tooling resolves values from whatever source it supports.
-
-This option favors a smaller standard. It is sufficient when:
-- Teams already manage variable inventories outside the contract (e.g., in infrastructure-as-code or CI/CD tooling).
-- Contracts are not shared with external consumers who need to understand variable requirements.
-- There is no need for the contract itself to enforce resolution.
-
-### Example B-1: Minimal — DB connection
-
-```yaml
-apiVersion: v3.2.0
-kind: DataContract
-id: 81a10b42-4ee9-4306-8824-34edea77e4b9
-name: Orders
-version: v1.0.0
-
-servers:
-  - server: prod_db
-    environment: prod
-    type: postgresql
-    host: ${DB_HOST}
-    port: ${DB_PORT}
-    database: orders_prod
-    password: ${DB_PASSWORD}
-```
-
-### Example B-2: Multiple servers and S3
+### Example 2: Multiple servers and S3
 
 ```yaml
 apiVersion: v3.2.0
@@ -245,7 +108,7 @@ servers:
     location: s3://${S3_BUCKET}/orders/
 ```
 
-### Example B-3: Inline substring interpolation
+### Example 3: Inline substring interpolation
 
 ```yaml
 servers:
@@ -255,7 +118,7 @@ servers:
     connection: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
 ```
 
-### Tooling behavior under Option B (normative)
+### Tooling behavior (normative)
 
 - Tools MUST resolve `${VAR_NAME}` references before using server values for any purpose.
 - If a referenced variable cannot be resolved, tools SHOULD surface an error and MUST NOT silently use an empty string.
@@ -270,11 +133,11 @@ servers:
 
 ### Rely on pre-processing outside the standard
 
-Some teams use external templating tools (Helm, Jinja2, envsubst) to substitute values before passing the contract to tooling. This works but is invisible to the standard — consumers cannot inspect the contract and understand what variables it requires without running the pre-processor. Standardizing the `${VAR_NAME}` syntax (even under Option B) makes references machine-readable without requiring a pre-processor.
+Some teams use external templating tools (Helm, Jinja2, envsubst) to substitute values before passing the contract to tooling. This works but is invisible to the standard — consumers cannot inspect the contract and understand what variables it requires without running the pre-processor. Standardizing the `${VAR_NAME}` syntax makes references machine-readable without requiring a pre-processor.
 
 ### Restrict to a defined list of secret backends
 
-Coupling the standard to specific secret management systems (Vault, AWS Secrets Manager, etc.) would limit portability and create version drift as backends evolve. Both options keep resolution out of scope for the standard.
+Coupling the standard to specific secret management systems (Vault, AWS Secrets Manager, etc.) would limit portability and create version drift as backends evolve. This RFC keeps resolution out of scope for the standard.
 
 ## Open Discussion: Alternative Reference Syntax
 
@@ -297,7 +160,7 @@ ODPS does not currently use `${...}` in any standard documents or schema.
 
 ### Alternative: `$var` annotation syntax
 
-Both options above use the `${VAR_NAME}` interpolation syntax. An alternative approach — consistent with RFC-0032 Option B's `$import` annotation — would use a `$var` field-level annotation instead of string interpolation.
+This RFC proposes the `${VAR_NAME}` interpolation syntax. An alternative approach — consistent with RFC-0032 Option B's `$import` annotation — would use a `$var` field-level annotation instead of string interpolation.
 
 ### `$var` annotation syntax
 
@@ -343,7 +206,7 @@ servers:
 | **Consistency with RFC-0032** | Different mechanism (`${...}` vs `$import`)                   | Same pattern — `$` prefix annotation on fields, declaration side + use side |
 | **Tooling complexity**        | String parsing required to find/replace tokens                | Structured field — tooling reads `$var` key directly                        |
 
-### Combined example with Option A `variables` section
+### Combined example with the deferred `variables` declaration block
 
 ```yaml
 variables:
@@ -374,37 +237,133 @@ servers:
       value: ""
 ```
 
-The `variables` section declares what the contract expects (same as Option A). The `$var` annotation marks which fields are variable-resolved, while `value` holds the materialized/default content — making the contract self-contained even before resolution.
+The `variables` section (deferred — see [Future considerations](#future-considerations)) would declare what the contract expects. The `$var` annotation marks which fields are variable-resolved, while `value` holds the materialized/default content — making the contract self-contained even before resolution.
 
 The TSC should decide whether the familiarity and compactness of `${VAR_NAME}` outweighs the self-containment and structural consistency of `$var`.
 
+## Future considerations
+
+### Future 1 — Top-level `variables` declaration block
+
+A natural follow-up is to add a top-level `variables` section that declares the variables a contract expects (description, default value, required, sensitive). This trades a slightly larger standard surface for self-documenting contracts: consumers can inspect requirements, tooling can validate completeness before connecting, and `sensitive: true` becomes a standard signal for secret masking.
+
+Sketch:
+
+```yaml
+variables:
+  - name: DB_HOST
+    description: "Hostname of the PostgreSQL database server"
+    required: true
+  - name: DB_PORT
+    description: "Port for the PostgreSQL database server"
+    default: "5432"
+  - name: DB_PASSWORD
+    description: "Password for the database service account"
+    required: true
+    sensitive: true
+
+servers:
+  - server: prod_db
+    type: postgresql
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    password: ${DB_PASSWORD}
+```
+
+Open design points to settle in the follow-up RFC:
+
+- **Identifier key** for each entry — candidates are `name` (consistent with the rest of ODCS/ODPS), `variable` (self-describing inside a `variables[]` array), or `id` (emphasizes identifier role, but may clash with ODCS's use of `id` for UUID-like stable identifiers).
+- **Behavior when a `${VAR_NAME}` reference is used without a matching declaration** — warn, error, or silently fall through to the runtime resolution strategy.
+- **Whether the section is optional** (additive over this RFC) or **mandatory** (every `${...}` reference must be declared).
+- **Sensitivity propagation** into logs, diffs, and tool UIs.
+
+This is deferred so this RFC can stay minimal. The `${VAR_NAME}` syntax adopted here is forward-compatible with any of the design choices above.
+
+### Future 2 — Variables + `$import`: parameterized fragments
+
+This RFC scopes variable references to the `servers` section. A natural extension is to combine variables with **RFC-0032 `$import`** so that an imported fragment becomes a parameterized template — effectively **turning a data contract (or part of one) into a function**.
+
+#### Sketch: parameterizing an imported SLA block
+
+Today, SLA properties are hardcoded in a contract. With variables + `$import`, a reusable SLA fragment could be imported and bound at the call site:
+
+```yaml
+# slas/gold-tier.odcs.yaml — reusable, parameterized fragment
+slaProperties:
+  - property: latency
+    value: ${SLA_LATENCY_MS}
+    unit: ms
+  - property: retention
+    value: ${SLA_RETENTION_DAYS}
+    unit: d
+  - property: availability
+    value: ${SLA_AVAILABILITY_PCT}
+    unit: "%"
+```
+
+```yaml
+# orders.odcs.yaml — caller binds the parameters
+apiVersion: v3.2.0
+kind: DataContract
+id: orders
+name: Orders
+
+variables:
+  - name: SLA_LATENCY_MS
+    default: "500"
+  - name: SLA_RETENTION_DAYS
+    default: "90"
+  - name: SLA_AVAILABILITY_PCT
+    default: "99.9"
+
+$import: ./slas/gold-tier.odcs.yaml
+```
+
+The imported fragment behaves like a function body; the `variables` (or inline overrides at the import site) behave like the call arguments. The same fragment can produce a "gold", "silver", or "bronze" SLA contract by varying the bindings, without duplicating the fragment.
+
+#### What this would unlock
+
+- **Reusable SLA tiers, quality rule packs, and server templates** shared across many contracts.
+- **Environment specialization** of a single canonical contract (prod vs. dev parameters injected at import time).
+- **Policy-as-code patterns**: a central governance team publishes parameterized building blocks; product teams import and bind.
+- **Composition**: a contract becomes a small program that imports parameterized pieces and supplies bindings — a step toward treating data contracts as first-class composable artifacts.
+
+#### What needs to be worked out (out of scope here)
+
+- **Scoping rules**: do variables defined in the caller flow into the imported fragment, or must bindings be passed explicitly (e.g., an `with:` block on the `$import`)?
+- **Required vs. optional parameters** at the fragment boundary, and how to surface missing bindings as errors.
+- **Override precedence** between caller-defined variables, fragment defaults, and the runtime environment.
+- **Sensitivity propagation** — a `sensitive: true` flag on a caller variable must follow the value into the imported fragment.
+- **Round-trip and resolution semantics** when a fragment is rendered without bindings.
+
+These are explicitly **deferred to a follow-up RFC** so this RFC can stay small. The intent here is only to record that the design space exists and that the `${VAR_NAME}` (or `$var`) mechanism chosen by this RFC should be forward-compatible with that future.
+
 ## Decision
 
-> The decision made by the TSC.
+TBD. With the `variables` declaration block deferred to a follow-up RFC (see [Future considerations](#future-considerations)), the only remaining item open for the TSC is:
+
+1. **Reference syntax** — `${VAR_NAME}` interpolation vs. `$var` field-level annotation (see "Open Discussion: Alternative Reference Syntax").
+
+The WG recommends the `${VAR_NAME}` form. This item will be put to a vote at the next TSC meeting.
 
 ## Consequences
 
-### Positive (both options)
+### Positive
 
 - Contracts can be stored in version control without exposing credentials.
 - The same contract can be used across environments (prod, staging, dev) by supplying different variable values.
 - Operational parameters can change without requiring consumers to re-approve the contract.
-
-### Positive (Option A only)
-
-- Tooling can inspect the `variables` section to validate that all required values are present before attempting a connection.
-- `sensitive: true` provides a standard signal for tooling to protect secret values in logs and UIs.
-- Contracts are self-documenting: consumers can see exactly what variables are required and what they mean.
+- Small standard surface: a single interpolation syntax, no new top-level section.
 
 ### Negative
 
-- Contracts with unresolved `${VAR_NAME}` references are not self-contained; consumers need access to a variable source to use them. (Both options.)
-- Option A introduces a new concept (`variables`) that implementations must understand to process contracts correctly.
+- Contracts with unresolved `${VAR_NAME}` references are not self-contained; consumers need access to a variable source to use them.
+- No in-contract signal for which variables are required or sensitive — that responsibility lives in tooling until the `variables` declaration block in [Future considerations](#future-considerations) is adopted.
 
 ### Neutral
 
-- Resolution order and priority (e.g., environment variable over default) are left to tooling under both options.
-- This RFC does not cover variable references outside the `servers` section. A future RFC may extend the mechanism to other sections (e.g., quality rule parameters, SLA thresholds).
+- Resolution order and priority (e.g., environment variable over default) are left to tooling.
+- This RFC does not cover variable references outside the `servers` section. A future RFC may extend the mechanism to other sections (e.g., quality rule parameters, SLA thresholds — see [Future 2](#future-2--variables--import-parameterized-fragments)).
 
 ## References
 
