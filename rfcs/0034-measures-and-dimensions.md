@@ -271,6 +271,14 @@ The name `implementationType` is a proposal and the authors do not feel strongly
 
 Community input on the best name is welcome.
 
+Update wg 12-05-26: 
+Alternative names which were discussed:
+
+- `interpretationType` - (prefered) guides how the property should be interpreted by tools and consumers (as opposed to `implementationType` which emphasizes how the property is implemented in the underlying data store)
+- `reportingType` - as the type is often used for reporting and analytics purposes (Kimball)
+- `usageType` - guides how to use the property (for reporting, grouping, filtering, etc.), more generic than `interpretationType`.
+
+
 ## Alternatives
 
 ### Alternative A: Separate `measures` and `dimensions` arrays at the schema level (rejected)
