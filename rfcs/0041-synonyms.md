@@ -99,12 +99,36 @@ The remainder of this RFC is written assuming **Option B** is adopted.
 | Field              | Required | Type   | Description                                                                                                                          |
 | ------------------ | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `id`               | No       | string | Stable identifier for the synonym, useful when referencing or deduplicating synonyms across tools.                                   |
-| `name`             | Yes      | string | The synonymous term.                                                                                                                 |
+| `name` **or** `synonym` | Yes  | string | The synonymous term. The key name itself is **under discussion** — see "Discussion item: `name` vs. `synonym`" below.                |
 | `description`      | No       | string | Short human-readable note about when or why this synonym is used.                                                                    |
 | `locale`           | No       | string | [BCP 47](https://datatracker.ietf.org/doc/html/rfc5646) language tag (e.g., `en-US`, `fr-FR`) when the synonym is language-specific. |
 | `source`           | No       | string | Origin of the synonym (e.g., `glossary`, `finance-team`, `legacy-system`).                                                           |
 | `status`           | No       | string | Lifecycle status of the synonym (e.g., `active`, `deprecated`).                                                                      |
 | `customProperties` | No       | array  | Extension point, per the standard pattern.                                                                                           |
+
+#### Discussion item: `name` vs. `synonym`
+
+The required term-carrying key has two candidate names:
+
+- **`name`** — consistent with the rest of ODCS/ODPS, where named objects use a `name` field (properties, schemas, output ports, roles, …). Pros: uniform vocabulary across the standard, lower cognitive load. Cons: ambiguous in isolation — `name: TO` inside a `synonyms[]` entry could be misread as the *owning* object's name.
+
+  ```yaml
+  synonyms:
+    - name: TO
+    - name: Sales
+      locale: en-US
+  ```
+
+- **`synonym`** — self-describing inside a `synonyms[]` array. Pros: unambiguous when an entry is read out of context (logs, diffs, partial extracts); reads naturally (`synonym: TO`). Cons: breaks the "everything is `name`" pattern; introduces a one-off key.
+
+  ```yaml
+  synonyms:
+    - synonym: TO
+    - synonym: Sales
+      locale: fr-FR
+  ```
+
+Either is acceptable to the WG. **The TSC will pick one before approval.** Until then, the examples below use `name` for consistency with the rest of the codebase, but they remain valid under either choice — only the key spelling changes. Community input is welcome on the dedicated Slack channel.
 
 ### Example 1: Minimal — synonyms on a property
 
@@ -202,9 +226,12 @@ Always use an array of strings, never objects.
 
 ## Decision
 
-> The decision made by the TSC.
+TBD. Two items remain open for the TSC:
 
-TBD.
+1. **Field shape**: array of strings (Option A) vs. array of objects (Option B, WG-recommended) — see "Discussion item: pick one form".
+2. **Term-carrying key**: `name` vs. `synonym` — see "Discussion item: `name` vs. `synonym`".
+
+Both will be put to a vote at the next TSC meeting.
 
 ## Consequences
 
@@ -227,4 +254,5 @@ All notable changes to this RFC are recorded here. Dates are `YYYY-MM-DD`. Entri
 
 | Date       | Author              | Change                                                                                                                                                                                                           |
 | ---------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-19 | Jean-Georges Perrin | Opened a second discussion item: the term-carrying key inside a synonym object could be `name` (consistent with the rest of ODCS/ODPS) or `synonym` (self-describing inside `synonyms[]`). Updated the field table and Decision section; called for a vote at the next TSC meeting.                |
 | 2026-04-21 | Jean-Georges Perrin | Initial draft, factored out of RFC-0034 after the TSC meeting on 2026-04-21. Broadened scope from measures/dimensions to any named object in ODCS and ODPS. Added schema-level and output-port example sections. |
