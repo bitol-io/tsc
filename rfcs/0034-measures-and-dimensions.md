@@ -37,7 +37,7 @@ Data contracts today describe the physical and logical structure of data (schema
 
 ### Alignment with guiding values
 
-- **We favor a small standard over a large one**: This RFC adds a single optional field (`implementationType`) to existing properties. No new top-level structures are introduced. Advanced features (joins, grains, materialization) are left to tool-specific extensions via `customProperties`. Synonyms, originally bundled here, are now handled by [RFC-0041](0041-synonyms.md).
+- **We favor a small standard over a large one**: This RFC adds a single optional field (`implementationType`) to existing properties. No new top-level structures are introduced. Advanced features (joins, grains, materialization) are left to tool-specific extensions via `customProperties`.
 - **We favor interoperability over readability**: The design is compatible with Databricks Metric Views, dbt metrics, and similar semantic layer tools, enabling import/export between ODCS and these tools.
 
 ## Design and examples
@@ -58,10 +58,6 @@ Specifies how the property is implemented. One of:
 | `measure`   | An aggregated value computed via a SQL aggregation expression (e.g., `SUM(revenue)`, `COUNT(DISTINCT order_id)`). The `transformLogic` field contains the aggregation expression. |
 | `dimension` | A categorical attribute used for grouping and filtering. The `transformLogic` field contains the SQL expression or property reference.                                            |
 
-#### `synonyms` — moved to RFC-0041
-
-Synonyms were originally defined in this RFC. They have been factored out into [RFC-0041](0041-synonyms.md) so they apply uniformly to any named object in ODCS and ODPS. The examples below that use `synonyms` are valid if both this RFC and RFC-0041 are adopted; see RFC-0041 for the authoritative field shape and semantics.
-
 ### Example 1: Minimal — a single measure and dimension
 
 A simple e-commerce contract with one revenue measure and one dimension, alongside regular column properties.
@@ -79,8 +75,6 @@ schema:
       - name: order_id
         logicalType: string
         primaryKey: true
-      - name: order_date
-        logicalType: date
       - name: revenue_euros
         logicalType: number
       - name: country_code
@@ -211,9 +205,6 @@ schema:
             source: glossary
 ```
 
-> **Note:** `synonyms` is defined by [RFC-0041](0041-synonyms.md). RFC-0038 (`context`) covers interpretive guidance for AI agents (instructions, constraints, verified Q&A) and does **not** duplicate synonyms — RFC-0038 delegates synonym definition to RFC-0041.
-
-
 ### Example 3: Dimension with a SQL expression
 
 Dimensions can use SQL expressions in `transformLogic`, not just direct property references.
@@ -258,18 +249,18 @@ ODCS reuses existing property field names (`transformLogic`, `businessName`, `lo
 
 Synonym interoperability with Databricks Metric Views is covered by [RFC-0041](0041-synonyms.md).
 
-### Discussion: naming of `implementationType`
+### Discussion: naming of the new field
 
-The name `implementationType` is a proposal and the authors do not feel strongly about it. The key semantic is: "what role does this property play — a physical column, an aggregated measure, or a grouping dimension?" Alternative names worth considering:
+The TSC approved the **concept** on 2026-05-19 but did not settle on the field name. After eliminating weaker candidates (`propertyType`, `role`, `kind`, `propertyRole`, `semanticRole`, `propertyImplementation`, `category` / `propertyCategory`, `type`), the TSC narrowed the choice to six finalists, listed here in no particular order:
 
-- `propertyType` — shorter, but may conflict with the concept of data types
-- `role` — concise, but very generic
-- `kind` — already used at the contract level in ODCS (`kind: DataContract`)
-- `propertyRole` — explicit and unlikely to conflict
-- `semanticType` — emphasizes the semantic layer aspect
-- `semanticRole` — combines clarity with semantic intent
+- `usageType`
+- `interpretationType`
+- `reportingType`
+- `metricType`
+- `semanticType`
+- `implementationType`
 
-Community input on the best name is welcome.
+The key semantic is: "what role does this property play — a physical column, an aggregated measure, or a grouping dimension?" A vote on the final name will be held at the next TSC meeting. Community input is welcome on the dedicated Slack channel.
 
 ## Alternatives
 
@@ -299,14 +290,11 @@ Databricks Metric Views support `source`, `joins`, and `filter` at the metric vi
 
 ## Decision
 
-> The decision made by the TSC.
-
-TBD.
+The **concept** was approved by the TSC on 2026-05-19 for inclusion in ODCS v3.2.0. The **field name** was not settled and will be put to a vote at the next TSC meeting, narrowed to six finalists: `usageType`, `interpretationType`, `reportingType`, `metricType`, `semanticType`, `implementationType` — see "Discussion: naming of the new field" above. The RFC will be promoted to `approved/odcs-v3.2.0/` once the name is ratified.
 
 ## Consequences
 
 - **Non-breaking change**: `implementationType` is an optional field on properties. Existing contracts remain valid — all current properties are implicitly `implementationType: column`.
-- **Synonyms handled separately**: The `synonyms` field formerly defined in this RFC is now covered by [RFC-0041](0041-synonyms.md), which broadens its scope beyond measures and dimensions.
 - **No schema duplication**: Measures and dimensions reuse the full property schema (name, logicalType, logicalTypeOptions, businessName, description, transformLogic, customProperties, authoritativeDefinitions, etc.).
 - **Tool interoperability**: Tools supporting Databricks Metric Views, dbt Semantic Layer, or similar can import/export measures and dimensions via ODCS.
 - **Schema evolution**: Future RFCs may extend this with joins across schemas, filter expressions, or grain definitions, building on this foundation.
@@ -321,8 +309,8 @@ TBD.
 - [dbt Semantic Layer / MetricFlow](https://docs.getdbt.com/docs/build/about-metricflow) — dbt's semantic layer for defining metrics alongside data models.
 - [Open Semantic Interchange (OSI)](https://opensemanticinterchange.org/) — Open standard for sharing semantic models across tools and platforms.
 - [AtScale SML](https://www.atscale.com/blog/introduction-to-sml-a-standard-semantic-modeling-language/) — Open-source Semantic Modeling Language for portable metric definitions.
-- [RFC-0002 Data Types](rfcs/approved/odcs-v3.0.0/0002-types.md) — ODCS logical/physical types.
-- [RFC-0013 Relationships](rfcs/approved/odcs-v3.1.0/0013-relationships-between-properties.md) — Relationships between properties.
+- [RFC-0002 Data Types](approved/odcs-v3.0.0/0002-types.md) — ODCS logical/physical types.
+- [RFC-0013 Relationships](approved/odcs-v3.1.0/0013-relationships-between-properties.md) — Relationships between properties.
 
 ## Appendix: Vendor Landscape for Measures and Dimensions
 
@@ -367,6 +355,7 @@ All notable changes to this RFC are recorded here. Dates are `YYYY-MM-DD`. Entri
 
 | Date       | Author                                                                | Change                                                                                                                                                                                                                                                                                                                                                                |
 | ---------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-19 | Jean-Georges Perrin                                                   | TSC approved the **concept** for ODCS v3.2.0; the **field name** was not ratified. Narrowed naming candidates to six finalists (`usageType`, `interpretationType`, `reportingType`, `metricType`, `semanticType`, `implementationType`) for a vote at the next TSC meeting. RFC stays in `tsc/rfcs/` until the name is settled. Deduplicated RFC-0041 pointers and trimmed Example 1. |
 | 2026-04-21 | Jean-Georges Perrin                                                   | Split `synonyms` out of this RFC into [RFC-0041](0041-synonyms.md) following the TSC meeting on 2026-04-21. Removed the `synonyms` field definition and its discussion item; kept `synonyms` in Example 2 with a pointer to RFC-0041 to show how measures/dimensions compose with synonyms. Updated Summary, Use cases, Alignment-with-guiding-values, RFC-0038 note, Databricks compatibility table, and Consequences. No change to `implementationType` or its values.                                                                                                             |
 | 2026-04-17 | Jean-Georges Perrin                                                   | Reframed `synonyms` as a **single-form** field (not dual-form). Two candidate shapes — array of strings vs. array of objects — are now presented as a TSC discussion item. The WG recommends the object form (with fields `id`, `name`, `description`, `locale`, `source`, `status`, `customProperties`); the rest of the RFC assumes that recommendation is adopted. |
 |            |                                                                       | Bumped example `apiVersion` from `v3.1.0` to `v3.2.0` to reflect that this RFC targets the next ODCS minor release.                                                                                                                                                                                                                                                   |
