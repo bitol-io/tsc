@@ -512,7 +512,7 @@ slaProperties:
 
 3. **`businessDefinition` vs. `authoritativeDefinitions`**: ODCS already has an `authoritativeDefinitions` field on properties. If Option B is adopted, should `businessDefinition` in relationships supersede or coexist with `authoritativeDefinitions`? (Related: RFC-0015)
 
-4. **Naming**: Is `lineage` the right name, or does `derivedFrom` / `sourceOf` better reflect directionality? Is `governedBy` clear, or does `ownedBy` / `managedBy` fit better?
+4. **Naming**: Is `lineage` the right name, or does `derivedFrom` / `sourceOf` better reflect directionality? Is `governedBy` clear, or does `ownedBy` / `managedBy` fit better? Or 'logical' to point out that these kind of data governance relationship could be regarded as enterprise logical data models.
 
 ---
 
