@@ -97,7 +97,7 @@ properties:
 ```yaml
 properties:
   - name: total_turnover_euros
-    implementationType: measure
+    semanticType: measure
     logicalType: number
     transformLogic: SUM(turnover_euros)
     businessName: TurnOver (Euros)
@@ -151,7 +151,7 @@ OSI's `ai_context.synonyms` and glossary-term references from enterprise catalog
 
 ### Relationship to other RFCs
 
-- **RFC-0034 (Measures and Dimensions)**: This RFC was factored out of RFC-0034. RFC-0034 defines `implementationType` on properties; RFC-0041 defines `synonyms` on any named object, including the measures and dimensions introduced by RFC-0034.
+- **RFC-0034 (Measures and Dimensions)**: This RFC was factored out of RFC-0034. RFC-0034 defines `semanticType` on properties; RFC-0041 defines `synonyms` on any named object, including the measures and dimensions introduced by RFC-0034.
 - **RFC-0038 (Context block)**: `synonyms` lives at the schema level (on the object itself), not inside the `context` block. RFC-0038 explicitly delegates synonym definition to this RFC. Tools needing synonym-based disambiguation MUST read `synonyms` from the named object, not from `context`.
 
 ## Alternatives
