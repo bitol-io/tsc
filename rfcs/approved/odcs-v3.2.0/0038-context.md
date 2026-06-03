@@ -823,7 +823,7 @@ dimensions:
 **Relationship context:** Databricks Metric Views defines joins but has no AI context
 field on relationships.
 
-**Note:** RFC-0034's `implementationType` and RFC-0038's `context.synonyms` are directly
+**Note:** RFC-0034's `semanticType` and RFC-0038's `context.synonyms` are directly
 inspired by the Databricks Metric Views structure.
 
 ---
