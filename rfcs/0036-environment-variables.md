@@ -1,6 +1,6 @@
 # RFC-0036: Environment Variables in Servers
 
-Champion: Jean-Georges Perrin
+Champion: Jean-Georges Perrin 
 
 Authors: Jean-Georges Perrin, Guillaume Bodet
 
