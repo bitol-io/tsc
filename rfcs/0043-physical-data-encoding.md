@@ -51,7 +51,7 @@ Add an optional `encoding` field to server definitions that describe serialized 
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `encoding` | string | No | Expected character encoding for data payloads exposed through this server. Examples: `UTF-8`, `ISO-8859-1`, `ASCII`, `UTF-16`. |
+| `encoding` | string | No | Expected character encoding for data payloads exposed through this server. Examples: `UTF-8`, `ISO-8859-1`, `ASCII`, `UTF-16`. The default is UTF-8. |
 
 The field is intentionally free-form rather than an enum. This keeps the standard flexible for platform-specific or less common encodings while still documenting common values in examples.
 
