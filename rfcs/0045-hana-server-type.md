@@ -2,6 +2,9 @@
 
 Champion: Simon Harrer
 
+Contributors:
+* [Toni Lippmann](https://www.linkedin.com/in/toni-lippmann-3b5b08187/)
+
 Applies to:
 * [x] ODCS - Open Data Contract Standard
 * [ ] ODPS - Open Data Product Standard
