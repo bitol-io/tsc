@@ -16,7 +16,7 @@ Add `hana` as a server `type` to describe data served from SAP HANA.
 
 ## Motivation
 
-SAP HANA is widely used as an enterprise data platform, but ODCS has no dedicated server type for it. Today users fall back to generic `jdbc`, losing structured, validatable connection metadata. A first-class `hana` type lets tooling connect, document, and validate HANA-backed contracts consistently.
+SAP HANA is widely used as an enterprise data platform, but ODCS has no dedicated server type for it. Today users fall back to the `custom` server type, losing structured, validatable connection metadata. A first-class `hana` type lets tooling connect, document, and validate HANA-backed contracts consistently.
 
 ## Design and examples
 
@@ -53,7 +53,7 @@ servers:
 
 ## Alternatives
 
-Keep using the generic `jdbc` server type. Rejected: it hides connection details in an opaque string, preventing structured validation and tooling support.
+Keep using the `custom` server type. Rejected: it hides connection details in unstructured fields, preventing structured validation and tooling support.
 
 ## Decision
 
