@@ -1,6 +1,10 @@
 # Apache Iceberg server type
 
-Champion: Sander Bylemans
+Champion: *TBD (TSC member)*.
+
+Authors: Sander Bylemans
+
+Slack: *TBD*.
 
 Applies to:
 * [x] ODCS - Open Data Contract Standard
