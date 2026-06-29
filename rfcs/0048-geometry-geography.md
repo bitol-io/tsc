@@ -19,7 +19,7 @@ Applies to:
 
 ## Summary
 
-This RFC introduces two new values for `logicalType` in ODCS — `geometry` and `geography` — together with a dedicated set of `logicalTypeOptions` (`subType`, `crs`, `dimensions`, and `algorithm`). `geometry` represents shapes in a flat-earth (planar/Euclidean) coordinate system; `geography` represents coordinates on a round-earth (spherical/ellipsoidal) model. Both align with ISO 19125-1 (Simple Features for SQL), Apache Iceberg v3, GeoArrow, and GeoParquet. The physical encoding is captured by the existing `physicalType` field using well-established formats such as WKT and WKB.
+This RFC introduces two new values for `logicalType` in ODCS — `geometry` and `geography` — together with a dedicated set of `logicalTypeOptions` (`subType`, `crs`, `dimensions`, `algorithm`, and `encoding`). `geometry` represents shapes in a flat-earth (planar/Euclidean) coordinate system; `geography` represents coordinates on a round-earth (spherical/ellipsoidal) model. Both align with ISO 19125-1 (Simple Features for SQL), Apache Iceberg v3, GeoArrow, and GeoParquet. The physical encoding format (WKT, WKB, GeoJSON, etc.) is captured by the `encoding` option in `logicalTypeOptions`, while `physicalType` carries the target system's native column type.
 
 ## Motivation
 
@@ -45,7 +45,7 @@ Adding `geometry` and `geography` as first-class logical types matches the prece
 
 ### Alignment with guiding values
 
-- **Small standard over large**: This RFC adds two `logicalType` values and four optional `logicalTypeOptions`. No new top-level structures.
+- **Small standard over large**: This RFC adds two `logicalType` values and five optional `logicalTypeOptions`. No new top-level structures.
 - **Interoperability over readability**: The shape maps onto PostGIS, BigQuery, Snowflake, Databricks, DuckDB, Apache Sedona, GeoParquet, GeoArrow, and Apache Iceberg v3.
 - **Non-breaking**: `geometry` and `geography` are new optional `logicalType` values. Existing contracts are unaffected.
 
@@ -58,15 +58,17 @@ Geospatial data comes in two flavours:
 - **`geometry`** — uses a flat-earth (Euclidean/planar) coordinate system. Coordinates are interpreted as points on a plane using straight-line arithmetic. Fast and suitable for local or projected coordinate systems (e.g., engineering drawings, city-scale maps).
 - **`geography`** — uses a round-earth (geodetic/spherical or ellipsoidal) model. Coordinates are longitude/latitude on Earth's surface. Distance and area calculations account for the Earth's curvature. Preferred for global or cross-regional data.
 
-The physical encoding (how the bytes are laid out on disk) is separate from the logical type and is captured by `physicalType`:
+The physical encoding (how the bytes are laid out on disk) is separate from both the logical type and the target system's column type. It is captured by the `encoding` option in `logicalTypeOptions`:
 
-| `physicalType` value | Description                                                          |
-| -------------------- | -------------------------------------------------------------------- |
-| `wkt`                | Well-Known Text — human-readable string, e.g. `POINT (4.9 52.4)`   |
-| `wkb`                | Well-Known Binary — compact binary encoding defined by OGC           |
-| `geojson`            | GeoJSON encoding (JSON object with `type` and `coordinates`)         |
-| `ewkt`               | Extended WKT — PostGIS extension that embeds the SRID in the string  |
-| `ewkb`               | Extended WKB — PostGIS extension that embeds the SRID in binary form |
+| `encoding` value | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `wkt`            | Well-Known Text — human-readable string, e.g. `POINT (4.9 52.4)`   |
+| `wkb`            | Well-Known Binary — compact binary encoding defined by OGC           |
+| `geojson`        | GeoJSON encoding (JSON object with `type` and `coordinates`)         |
+| `ewkt`           | Extended WKT — PostGIS extension that embeds the SRID in the string  |
+| `ewkb`           | Extended WKB — PostGIS extension that embeds the SRID in binary form |
+
+`physicalType` carries the target system's native column type (e.g. `GEOMETRY` in PostGIS, `GEOGRAPHY` in BigQuery, `STRING` in Databricks). See the [Physical type mapping](#physical-type-mapping) section below.
 
 ### New `logicalType` values
 
@@ -83,6 +85,7 @@ The physical encoding (how the bytes are laid out on disk) is separate from the 
 | `crs`        | geometry, geography   | No       | string  | The Coordinate Reference System in OGC URN format, e.g. `urn:ogc:def:crs:EPSG::4326`. Short-form EPSG codes (e.g. `EPSG:4326`) are also accepted. When omitted, the default is `urn:ogc:def:crs:EPSG::4326` (WGS 84 longitude/latitude).         |
 | `dimensions` | geometry, geography   | No       | integer | Number of coordinate dimensions: `2` (XY, default), `3` (XYZ or XYM), `4` (XYZM).                                                                                                                                                                |
 | `algorithm`  | geography only        | No       | string  | Interpretation of edges between vertices. One of `spherical` (great-circle arcs on the unit sphere, default) or `vincenty` (geodesic on a reference ellipsoid). Ignored for `geometry`.                                                           |
+| `encoding`   | geometry, geography   | No       | string  | The physical serialisation format of the geometry value. One of `wkt`, `wkb`, `geojson`, `ewkt`, `ewkb`. When omitted, the encoding is system-defined or unspecified.                                                                             |
 
 ### Example 1: Minimal — a GPS coordinate column
 
@@ -102,8 +105,9 @@ schema:
         required: true
       - name: location
         logicalType: geography
-        physicalType: wkt
         required: true
+        logicalTypeOptions:
+          encoding: wkt
 ```
 
 ### Example 2: Structured — a cadastral parcel table with polygons
@@ -128,20 +132,20 @@ schema:
         required: true
       - name: boundary
         logicalType: geometry
-        physicalType: wkb
         required: true
         description: "Parcel boundary polygon in the Dutch RD New projection."
         logicalTypeOptions:
           subType: Polygon
           crs: urn:ogc:def:crs:EPSG::28992
           dimensions: 2
+          encoding: wkb
       - name: centroid
         logicalType: geometry
-        physicalType: wkt
         logicalTypeOptions:
           subType: Point
           crs: urn:ogc:def:crs:EPSG::28992
           dimensions: 2
+          encoding: wkt
 ```
 
 ### Example 3: 3D trajectory with geography
@@ -157,7 +161,6 @@ schema:
         required: true
       - name: trajectory
         logicalType: geography
-        physicalType: wkb
         required: true
         description: "Full 3D flight path (longitude, latitude, altitude in metres)."
         logicalTypeOptions:
@@ -165,6 +168,7 @@ schema:
           crs: urn:ogc:def:crs:EPSG::4326
           dimensions: 3
           algorithm: vincenty
+          encoding: wkb
 ```
 
 ### Physical type mapping
@@ -219,7 +223,7 @@ The `subType` option maps directly to the ISO 19125-1 Simple Features geometry h
 - The binary / WKB encoding carries no standard metadata channel for CRS or subtype.
 - Native geospatial types in target systems (PostGIS, BigQuery, Snowflake, Iceberg) are distinct from generic strings and binaries; the logical type should reflect that.
 
-`physicalType` continues to carry the target-system column syntax and encoding format, keeping the logical/physical separation consistent with the rest of ODCS.
+`physicalType` continues to carry the target-system column syntax, keeping the logical/physical separation consistent with the rest of ODCS. The serialisation format (WKT, WKB, etc.) is expressed via `logicalTypeOptions.encoding` because it describes how the geometry value is encoded, not which storage system holds it.
 
 ## Alternatives
 
@@ -258,8 +262,8 @@ TBD.
 - **Non-breaking**: `geometry` and `geography` are new optional `logicalType` values; no existing contract is affected.
 - **Interoperable**: Maps cleanly onto PostGIS, BigQuery, Snowflake, Databricks/Iceberg v3, DuckDB, GeoParquet, and GeoArrow.
 - **Composable with other RFCs**: Works with [RFC-0034](0034-measures-and-dimensions.md) (geospatial columns can coexist with measures and dimensions) and [RFC-0041](0041-synonyms.md) (synonyms on geospatial columns aid discovery).
-- **Validator impact**: Contract validators SHOULD warn when `logicalType` is `geometry` or `geography` and `physicalType` is a plain `string` without a note that WKT encoding is intended.
-- **Binary support**: The original issue request for a binary logical type is addressed by combining `logicalType: geometry` (or `geography`) with `physicalType: wkb`.
+- **Validator impact**: Contract validators SHOULD warn when `logicalType` is `geometry` or `geography` and `logicalTypeOptions.encoding` is absent, as omitting it leaves the serialisation format ambiguous for consumers.
+- **Binary support**: The original issue request for a binary logical type is addressed by combining `logicalType: geometry` (or `geography`) with `logicalTypeOptions.encoding: wkb`.
 
 ## References
 
