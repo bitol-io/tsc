@@ -18,35 +18,33 @@ Applies to:
 
 ## Summary
 
-This RFC introduces a first-class contract mechanism for declaring, documenting, and enforcing file-storage policies on any object store or file server — including Azure Blob Storage, ADLS Gen2, AWS S3, SFTP servers, and local filesystems. When a schema object declares `logicalType: blob`, its `properties` array is interpreted as file-metadata attributes rather than data columns. This lets data teams specify naming patterns, size limits, content-type constraints, tiering requirements, freshness thresholds, and prefix-based directory hierarchies directly inside the data contract — regardless of the underlying storage technology — turning ad-hoc file audits into automated, contract-driven validation.
+This RFC introduces `logicalType: blob` as a schema-level marker that activates file-properties mode on any ODCS schema object. When set, the `properties` array describes file-metadata attributes (naming patterns, size limits, content types, tiering, freshness) rather than data columns — replacing ad hoc storage audits with contract-driven, CI/CD-ready validation across Azure Blob Storage, ADLS Gen2, AWS S3, SFTP, and local filesystems.
 
 ## Motivation
 
-As organisations increasingly store raw and processed assets — JSON exports, Parquet snapshots, CSV feeds, ML artefacts — in object stores such as Azure Blob Storage, ADLS Gen2, AWS S3, or on SFTP and local filesystems, a governance gap emerges: these files are neither tables nor streams, yet they carry the same data-quality obligations as any structured dataset. Introducing `logicalType: blob` as a first-class citizen of the Open Data Contract Standard fills that gap by letting data teams declare, document, and enforce a file-storage policy directly inside the data contract.
+Raw and processed assets (JSON exports, Parquet snapshots, CSV feeds, ML artifacts, ingestion logs) stored in object stores carry the same data-quality obligations as structured datasets, yet no ODCS mechanism covers them. `logicalType: blob` closes that gap by reusing existing ODCS constructs (`logicalType`, `quality`, `properties`) with a thin layer of file-specific semantics — no new top-level keys, no server-type constraints.
 
-Each schema property maps to a standard file-metadata attribute — `size`, `lastModified`, `contentType`, `etag`, and more — giving platform engineers a single, version-controlled source of truth to assert that no file in a prefix is oversized, expired, incorrectly typed, or missing altogether. The result is a shift from ad-hoc storage audits to automated, contract-driven validation that runs in CI/CD pipelines alongside structural schema checks, bringing the same observability and accountability to the file layer that data contracts already provide for tables and event streams.
+Alignment with ODCS guiding values:
 
-This aligns with the guiding values of the standard:
-
-- **We favour interoperability over readability** — the file-properties mapping table is designed to be consumed by tooling, not only humans.
-- **We favour a small standard over a large one** — the RFC reuses existing ODCS constructs (`logicalType`, `quality`) and adds only a thin layer of file-specific semantics without any dependency on server type.
-- **Everything-as-code** — file-layout policies become version-controlled, reviewable artefacts in the same repository as the data contract.
+- **Interoperability over readability** — the file-properties mapping targets tooling, not just humans.
+- **Small standard** — reuses `logicalType` and `quality`; zero new structural keys.
+- **Everything-as-code** — file-layout policies ship as version-controlled, reviewable artifacts.
 
 ## Design and examples
 
 ### Activation condition
 
-The file-schema mode is activated by a single condition:
+File-schema mode is activated by a single schema-level condition, independent of server type:
 
 | Condition | Location in ODCS | Value |
 | --------- | ---------------- | ----- |
 | Schema object represents a file set | `schema[*].logicalType` | `blob` |
 
-When this condition is satisfied, the `properties` array of the schema object is interpreted as a **file-properties schema** rather than a data-column schema. The condition is **independent of the server type**: it applies equally to `azure`, `s3`, `sftp`, `local`, and any other server type defined in the contract. Every other ODCS feature (quality rules, SLA, lineage, etc.) continues to work as normal.
+When set, `properties` is interpreted as a **file-properties schema** instead of a data-column schema. All other ODCS features (quality rules, SLA, lineage) remain unchanged.
 
 ### File-properties mapping
 
-Each property `name` in a `logicalType: blob` schema maps to a standard file-metadata attribute. The table below is the normative mapping. Attributes marked with ⚡ are universally available across all supported storage backends; attributes marked with ☁ are specific to object-store platforms (Azure Blob, ADLS Gen2, AWS S3) and MAY be omitted for SFTP or local servers.
+Each property `name` maps to a standard file-metadata attribute. ⚡ = available on all backends; ☁ = object-store platforms only (Azure Blob, ADLS Gen2, AWS S3).
 
 | ODCS property `name` | Underlying attribute | Logical type | Availability | Description |
 | -------------------- | -------------------- | ------------ | ------------ | ----------- |
@@ -64,20 +62,15 @@ Each property `name` in a `logicalType: blob` schema maps to a standard file-met
 | `leaseState` | Lease / lock state | `string` | ☁ Azure only | Azure lease state: `available`, `leased`, `expired`, `breaking`, `broken`. |
 | `metadata` | User-defined key-value metadata | `object` | ☁ Object stores | Platform metadata tags attached to the file or blob. |
 
-Implementations MAY support additional platform-specific attributes by using ODCS `customProperties` on the property definition.
+Implementations MAY support additional platform-specific attributes via ODCS `customProperties`.
 
 ### Directory hierarchy (`prefix` property)
 
-The `prefix` property is the primary tool for specifying the expected virtual directory layout. Its `pattern` option (a regular expression) documents and enforces the naming convention of the directory tree. This enables:
-
-- **Hive-style partitioning** (`year=YYYY/month=MM/day=DD/`)
-- **Environment segregation** (`raw/`, `processed/`, `curated/`)
-- **Team or domain namespacing** (`finance/fx-rates/`)
-- **Version tagging** (`v1/`, `v2/`)
+The `prefix` property documents and enforces the virtual directory layout via its `pattern` option (regex). Common use cases: Hive-style partitioning (`year=YYYY/month=MM/`), environment segregation (`raw/`, `processed/`), team namespacing, or version tagging.
 
 ### Quality rules on file properties
 
-Standard ODCS quality rules apply to every file-properties property. The most common patterns are:
+Standard ODCS quality rules apply to every file-property. Common patterns:
 
 | Goal | Quality rule |
 | ---- | ------------ |
@@ -88,12 +81,13 @@ Standard ODCS quality rules apply to every file-properties property. The most co
 | Required access tier | `mustBeIn: [Hot, Cool]` on `tier` |
 | Naming pattern | `pattern: <regex>` on `name` or `prefix` |
 | Integrity check | `mustNotBeNull: true` on `contentMD5` |
+| Empty directory (no stray files) | `mustBe: 0` on a count quality rule |
 
 ---
 
 ### Example 1 — Minimal: JSON export landing zone on AWS S3
 
-A contract for a nightly JSON export dropped in an S3 bucket prefix. Only the essential properties are declared. Note that `logicalType: blob` is the sole activation condition; the server type (`s3`) imposes no constraint on the schema mode.
+Nightly JSON export on S3. `logicalType: blob` is the sole activation condition; the server `type` has no effect on schema mode.
 
 ```yaml
 apiVersion: v3.1.0
@@ -112,7 +106,6 @@ schema:
     properties:
       - name: name
         logicalType: string
-        description: Object key within the bucket.
         quality:
           - type: text
             rule: pattern
@@ -120,7 +113,6 @@ schema:
 
       - name: contentType
         logicalType: string
-        description: MIME type must be application/json.
         quality:
           - type: text
             rule: mustBe
@@ -128,7 +120,7 @@ schema:
 
       - name: size
         logicalType: integer
-        description: File size in bytes. Must not exceed 500 MB.
+        description: Must not exceed 500 MB.
         quality:
           - type: library
             rule: mustBeLessThan
@@ -137,43 +129,27 @@ schema:
 
 ---
 
-### Example 2 — Structured: ML artefact store on Azure ADLS Gen2 with tiering and freshness
+### Example 2 — Structured: ML artifact store on Azure ADLS Gen2
 
-A detailed contract for a machine-learning artefact store that enforces prefix hierarchy, blob type, access tier, content type, maximum age, and file-naming conventions. The contract covers raw training checkpoints and PNG images rendered by the pipeline. The server uses `type: azure`; `logicalType: blob` on the schema objects activates file-property mode independently of any server-level field.
+Enforces prefix hierarchy, blob type, access tier, content type, max age, and naming conventions for ML training checkpoints and rendered images.
 
 ```yaml
 apiVersion: v3.1.0
 kind: DataContract
-name: ml_artefact_store
-
-info:
-  title: ML Artefact Store Contract
-  version: 1.2.0
-  description: >
-    Governs all ML model artefacts persisted on ADLS Gen2.
-    Covers raw training checkpoints and PNG images rendered by the pipeline.
+name: ml_artifact_store
 
 servers:
   production:
     type: azure
-    location: az://ml-storage-account/ml-artefacts/
-    encoding: UTF-8
-
-  staging:
-    type: azure
-    location: az://ml-storage-account-staging/ml-artefacts/
-    encoding: UTF-8
+    location: az://ml-storage-account/ml-artifacts/
 
 schema:
   - name: model_checkpoints
     logicalType: blob
-    description: >
-      Intermediate model checkpoints written during training.
-      Stored under the raw/ prefix, partitioned by project and run ID.
+    description: Training checkpoints under raw/<project>/<run-id>/.
     properties:
       - name: prefix
         logicalType: string
-        description: Virtual directory. Must follow raw/<project>/<run-id>/ convention.
         required: true
         quality:
           - type: text
@@ -182,7 +158,6 @@ schema:
 
       - name: name
         logicalType: string
-        description: Blob name, including prefix. Must end with .ckpt or .pt.
         required: true
         quality:
           - type: text
@@ -191,7 +166,7 @@ schema:
 
       - name: size
         logicalType: integer
-        description: Checkpoint size. Individual files must not exceed 2 GB.
+        description: Must not exceed 2 GB.
         quality:
           - type: library
             rule: mustBeLessThan
@@ -199,7 +174,6 @@ schema:
 
       - name: contentType
         logicalType: string
-        description: Blob MIME type must be application/octet-stream.
         quality:
           - type: text
             rule: mustBe
@@ -207,7 +181,6 @@ schema:
 
       - name: blobType
         logicalType: string
-        description: Must be stored as a BlockBlob.
         quality:
           - type: text
             rule: mustBe
@@ -215,7 +188,6 @@ schema:
 
       - name: tier
         logicalType: string
-        description: Checkpoints may sit in Cool tier to reduce storage costs.
         quality:
           - type: text
             rule: mustBeIn
@@ -223,7 +195,7 @@ schema:
 
       - name: lastModified
         logicalType: date
-        description: Checkpoint must have been written within the last 90 days.
+        description: Must have been written within the last 90 days.
         quality:
           - type: library
             rule: mustBeGreaterThan
@@ -231,7 +203,6 @@ schema:
 
       - name: contentMD5
         logicalType: string
-        description: MD5 hash must be present to guarantee upload integrity.
         required: true
         quality:
           - type: library
@@ -239,7 +210,7 @@ schema:
 
       - name: metadata
         logicalType: object
-        description: User metadata must include project and runId keys.
+        description: Must include project and runId keys.
         properties:
           - name: project
             logicalType: string
@@ -250,22 +221,10 @@ schema:
 
   - name: rendered_images
     logicalType: blob
-    description: >
-      PNG images rendered by the ML pipeline and stored under the images/ prefix,
-      partitioned by model version and run ID.
+    description: PNG images under images/<model-version>/<run-id>/.
     properties:
-      - name: prefix
-        logicalType: string
-        description: Virtual directory. Must follow images/<model-version>/<run-id>/ convention.
-        required: true
-        quality:
-          - type: text
-            rule: pattern
-            pattern: "^images/v[0-9]+/[a-f0-9-]{36}/$"
-
       - name: name
         logicalType: string
-        description: Blob name must end with .png.
         required: true
         quality:
           - type: text
@@ -274,7 +233,6 @@ schema:
 
       - name: contentType
         logicalType: string
-        description: MIME type must be image/png.
         quality:
           - type: text
             rule: mustBe
@@ -282,23 +240,15 @@ schema:
 
       - name: size
         logicalType: integer
-        description: Each PNG file must not exceed 10 MB.
+        description: Must not exceed 10 MB.
         quality:
           - type: library
             rule: mustBeLessThan
             mustBeLessThan: 10485760
 
-      - name: tier
-        logicalType: string
-        description: Rendered images may be stored in Hot or Cool tier.
-        quality:
-          - type: text
-            rule: mustBeIn
-            mustBeIn: ["Hot", "Cool"]
-
       - name: lastModified
         logicalType: date
-        description: Images must have been produced within the last 7 days.
+        description: Must have been produced within the last 7 days.
         quality:
           - type: library
             rule: mustBeGreaterThan
@@ -306,81 +256,94 @@ schema:
 
 quality:
   - type: text
-    description: >
-      No blob in the ml-artefacts/ container root is allowed outside
-      the raw/ or images/ prefixes.
+    description: No blob outside the raw/ or images/ prefixes is allowed.
     rule: pattern
     mustMatch: "^(raw|images)/"
 ```
 
 ---
 
-### Example 3 — Prefix hierarchy only: CSV feed directory tree on a local filesystem
+### Example 3 — Data quality gate: quarantine log detection in an ingestion pipeline
 
-A contract that focuses exclusively on enforcing a multi-level directory tree for CSV feeds stored on a local server, without object-store-specific attributes.
+In a data ingestion pipeline, files that fail validation are moved to a `quarantine/` folder and a `.log` file is written alongside them. A healthy pipeline produces **no quarantine files**. The contract below enforces that invariant: any `.log` file found under `quarantine/` is a contract violation that fails the CI/CD quality gate.
+
+```
+ingestion pipeline
+  ├── landing/          ← raw inbound files
+  ├── processed/        ← successfully validated files
+  └── quarantine/       ← rejected files + error logs  ← monitored here
+        ├── 2024-06-30_crm_feed_REJECTED.csv
+        └── 2024-06-30_crm_feed_REJECTED.log   ← must NOT exist
+```
 
 ```yaml
 apiVersion: v3.1.0
 kind: DataContract
-name: csv_feed_directory
+name: crm_ingestion_pipeline
 
 servers:
   production:
-    type: local
-    location: /data/feeds/
+    type: azure
+    location: az://ingestion-storage/crm/
 
 schema:
-  - name: csv_feeds
+  - name: quarantine_logs
     logicalType: blob
     description: >
-      Daily CSV feeds partitioned by source system and date.
-      Layout: feeds/<source>/<YYYY>/<MM>/<DD>/<filename>.csv
+      Quarantine error logs written by the CRM ingestion pipeline.
+      Any file matching this schema signals an upstream validation failure.
+      The quality rule below asserts the quarantine folder must stay empty.
     properties:
       - name: prefix
         logicalType: string
+        description: All quarantine files live under the quarantine/ prefix.
         required: true
         quality:
           - type: text
             rule: pattern
-            pattern: "^feeds/[a-z_]+/[0-9]{4}/[0-9]{2}/[0-9]{2}/$"
+            pattern: "^quarantine/$"
 
       - name: name
         logicalType: string
-        required: true
+        description: Log file name written by the ingestion engine.
         quality:
           - type: text
             rule: pattern
-            pattern: "^feeds/[a-z_]+/[0-9]{4}/[0-9]{2}/[0-9]{2}/[a-z0-9_-]+\\.csv$"
+            pattern: "^quarantine/[0-9]{4}-[0-9]{2}-[0-9]{2}_.*\\.log$"
 
-      - name: contentType
-        logicalType: string
-        quality:
-          - type: text
-            rule: mustBeIn
-            mustBeIn: ["text/csv", "text/plain"]
+      - name: size
+        logicalType: integer
+        description: Log file size in bytes.
 
       - name: lastModified
         logicalType: date
-        description: Each partition must be refreshed within the last 25 hours.
-        quality:
-          - type: library
-            rule: mustBeGreaterThan
-            mustBeGreaterThan: "$now-25h"
+        description: Last write timestamp — used for incident age tracking.
+
+    quality:
+      - type: library
+        description: >
+          CRITICAL — The quarantine folder must contain zero log files.
+          A non-zero count means records were rejected during ingestion
+          and need immediate review before downstream consumers proceed.
+        rule: mustBe
+        mustBe: 0
+        dimension: completeness
+        severity: error
 ```
+
+**How it works at runtime:** The contract engine counts all objects under `quarantine/` that match the `*.log` pattern. Any count above `0` fails the rule with severity `error`, blocking promotion to the `processed/` layer and giving operators a clear, contract-driven signal — no custom monitoring scripts required.
 
 ---
 
 ### Interaction with existing server fields
 
-`logicalType: blob` is a schema-level declaration that is fully independent of server-level fields. The table below clarifies how it coexists with common ODCS server fields:
-
 | Field | Interaction |
 | ----- | ----------- |
-| `type` | Any server type is supported: `azure`, `s3`, `sftp`, `local`, etc. No restriction is imposed. |
-| `format` | The server `format` field (e.g. `csv`, `parquet`) retains its meaning as a hint about the payload format. It does **not** activate or deactivate blob-schema mode; `logicalType: blob` on the schema object is the sole trigger. |
-| `encoding` (RFC-0043) | Still applicable when files contain text payloads. May be omitted for opaque binary files. |
-| `location` | Specifies the storage root URL or path. The `prefix` property within the schema refines the sub-directory layout inside that root. |
-| `delimiter` | Not meaningful for file-property schemas; MAY be present on the server if the files are also described as tabular data in a separate schema object. |
+| `type` | Any server type is supported (`azure`, `s3`, `sftp`, `local`). No restriction. |
+| `format` | Retains its payload-format meaning; does **not** activate blob-schema mode. |
+| `encoding` (RFC-0043) | Applicable for text payloads; may be omitted for opaque binary files. |
+| `location` | Defines the storage root. `prefix` refines the sub-directory layout inside that root. |
+| `delimiter` | Not meaningful in file-property schemas. |
 
 ### JSON Schema impact
 
@@ -400,29 +363,11 @@ No change is required to any server definition. The blob-schema mode is activate
 
 ## Alternatives
 
-### Dedicated top-level `blobPolicy` section
-
-A separate `blobPolicy:` top-level section dedicated to blob-storage governance was considered. This would isolate file-layout rules from the schema section entirely.
-
-Rejected because it introduces a new top-level key with overlapping concerns with `schema` and `quality`. Reusing the schema model is consistent with how ODCS already extends to new data paradigms (cf. RFC-0042 for vector types) and keeps the learning surface small.
-
-### Extending the `servers` section only
-
-Placing all file constraints (naming, size, type) directly on the server definition was also evaluated, alongside RFC-0043's approach for encoding.
-
-Rejected because the server section describes a single physical access point, not a dataset with multiple objects and properties. The schema section is the right home for describing the shape of data — even when that shape is a file tree.
-
-### `logicalType: file` instead of `logicalType: blob`
-
-`file` is already recognised in OpenAPI 2.0 and in the original ODCS type table (RFC-0002), which makes it a natural candidate. However, `file` in both OpenAPI and ODCS has historically referred to a scalar property that holds a file upload, not to a schema object that describes a set of stored files. Using `blob` avoids this ambiguity: it signals an object-store or binary-large-object paradigm without colliding with the existing scalar `file` type. Teams targeting non-Azure platforms (S3, SFTP, local) can still use `logicalType: blob` because the name refers to the storage pattern, not to the Azure-specific "blob" concept.
-
-### New `fileProperties` sub-object on schema
-
-Rather than using ODCS property names to mirror BlobProperties attributes, a new sub-object `fileProperties:` could have been added alongside `properties:`. This would have been more explicit but would have required a new structural extension, while the existing `properties` model already supports all necessary semantics.
-
-### Requiring server-type or server-format conditions in addition to `logicalType: blob`
-
-An earlier draft of this RFC required the server to carry `type: azure` and `format: binary` as additional activation conditions. This was rejected for three reasons. First, file-layout governance is equally valuable for AWS S3, SFTP, and local filesystems, and tying the feature to a single server type would artificially limit adoption. Second, `format` is a description of the payload (CSV, Parquet, etc.) and conflating it with a schema-mode switch introduces an overloaded meaning. Third, requiring multiple conditions across separate ODCS sections increases the cognitive burden for contract authors. A single schema-side marker — `logicalType: blob` — is sufficient, explicit, and cross-platform.
+- **Dedicated `blobPolicy:` top-level section** — rejected: overlaps with `schema`/`quality`; increases the learning surface without added expressiveness.
+- **Constraints on the `servers` section only** — rejected: the server section describes an access point, not a dataset shape. `schema` is the right home for data-shape declarations.
+- **`logicalType: file` instead of `blob`** — rejected: `file` already refers to a scalar upload property in OpenAPI 2.0 and original ODCS (RFC-0002). Using `blob` avoids the collision while remaining readable across all backends.
+- **New `fileProperties:` sub-object on schema** — rejected: the existing `properties` model covers all necessary semantics without a structural extension.
+- **Multiple activation conditions (server type + format)** — rejected: tying the feature to a single server type limits adoption; overloading `format` with a schema-mode switch conflates unrelated concerns. A single schema-side marker is sufficient.
 
 ## Decision
 
@@ -432,19 +377,19 @@ TBD by TSC.
 
 ### Positive
 
-- Brings file-layer governance into the data contract, eliminating the need for out-of-band blob audit scripts.
+- Brings file-layer governance into the data contract, removing the need for out-of-band blob audit scripts.
 - Reuses existing ODCS constructs: no new top-level keys, no new quality rule syntax.
-- Backward-compatible: existing contracts without `logicalType: blob` are unaffected.
-- The file-properties mapping table provides a stable, documented interface for tooling authors.
+- Fully backward-compatible: contracts without `logicalType: blob` are unaffected.
+- The file-properties mapping table gives tooling authors a stable, documented interface.
 - Enables CI/CD validation of file layouts alongside schema and data-quality checks.
-- `logicalType: blob` works across all server types (Azure, S3, SFTP, local) with a single, uniform declaration.
+- Works across all server types (Azure, S3, SFTP, local) with a single, uniform declaration.
 
 ### Trade-offs
 
 - Tooling must detect `logicalType: blob` at the schema level and switch interpretation mode accordingly.
-- The `$now-Nd` / `$now-Nh` shorthand used in freshness quality rules is informal; a future RFC may wish to standardise relative time expressions in quality rules.
-- Property names in the file-properties mapping table are opinionated: teams with different naming conventions will need to use `customProperties` for non-standard attributes.
-- Some attributes (e.g. `blobType`, `leaseState`, `tier`) are platform-specific and have no equivalent on SFTP or local servers; contracts targeting those backends SHOULD omit such properties.
+- The `$now-Nd` / `$now-Nh` shorthand for freshness rules is informal; a future RFC should standardize relative time expressions.
+- Property names in the mapping table are opinionated: teams with different conventions should use `customProperties` for non-standard attributes.
+- Some attributes (e.g., `blobType`, `leaseState`, `tier`) are platform-specific; contracts targeting SFTP or local servers SHOULD omit them.
 
 ## References
 
