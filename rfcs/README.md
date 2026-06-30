@@ -33,6 +33,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0048](0048-geometry-geography.md) | Geometry and Geography Data Types |
 | [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
 | [0050](0050-variables.md) | Variables |
+| [0052](0052-blob-storage-file-logical-type) | Schema's Blob logicalType |
 
 ## Approved RFCs
 
