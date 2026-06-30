@@ -1,7 +1,7 @@
 # RFC-0036: Environment Variables in Servers
 
 > [!WARNING]
-> **Superseded — likely to be deprecated.** This RFC is being replaced by [RFC-0050: Variables](0050-variables.md), a deliberately simplified proposal that keeps only `${VAR_NAME}` interpolation and extends it to any string value in the contract (not just `servers`). The `$var` annotation alternative, the deferred `variables` declaration block, and the parameterized-`$import` future considerations explored below are **not** carried forward. New discussion should happen on RFC-0050.
+> **Superseded — likely to be deprecated.** This RFC is being replaced by [RFC-0050: Variables](../0050-variables.md), a deliberately simplified proposal that keeps only `${VAR_NAME}` interpolation and extends it to any string value in the contract (not just `servers`). The `$var` annotation alternative, the deferred `variables` declaration block, and the parameterized-`$import` future considerations explored below are **not** carried forward. New discussion should happen on RFC-0050.
 
 Champion: Jean-Georges Perrin 
 
@@ -370,7 +370,7 @@ The WG recommends the `${VAR_NAME}` form. This item will be put to a vote at the
 
 ## References
 
-- [RFC-0001: Servers](approved/odcs-v3.0.0/0001-servers.md) — establishes the `servers` section this RFC extends
+- [RFC-0001: Servers](../approved/odcs-v3.0.0/0001-servers.md) — establishes the `servers` section this RFC extends
 - [Docker Compose variable substitution](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/) — prior art for `${VAR}` syntax in infrastructure configuration files
 - [Kubernetes ConfigMaps and Secrets](https://kubernetes.io/docs/concepts/configuration/) — precedent for separating configuration declaration from runtime injection
 - [The Twelve-Factor App — Config](https://12factor.net/config) — established principle of storing config in the environment, not in code

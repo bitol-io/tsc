@@ -2,7 +2,7 @@
 
 Champion: Jean-Georges Perrin
 
-Authors: Jean-Georges Perrin, Guillaume Bodet
+Authors: Jean-Georges Perrin, Guillaume Bodet, Jochen Christ, Patrick Beitsma, Tom De Wolf, Diego Carvallo, Simon Harrer
 
 Slack: [#bitol-wg](https://data-mesh-learning.slack.com/archives/C089S376YGM)
 
@@ -17,7 +17,7 @@ Applies to:
 * [x] OMDS - Open Metadata Difference Standard
 
 > [!NOTE]
-> This RFC supersedes [RFC-0036: Environment Variables in Servers](0036-environment-variables.md). It keeps a single idea — `${VAR_NAME}` interpolation — and drops everything else RFC-0036 explored (the `$var` annotation alternative, a `variables` declaration block, and parameterized `$import`).
+> This RFC supersedes [RFC-0036: Environment Variables in Servers](archive/0036-environment-variables.md). It keeps a single idea — `${VAR_NAME}` interpolation — and drops everything else RFC-0036 explored (the `$var` annotation alternative, a `variables` declaration block, and parameterized `$import`).
 
 ## Summary
 
@@ -151,7 +151,7 @@ TBD — to be put to a vote at a TSC meeting. The TSC must choose **Option A** (
 
 ## References
 
-- [RFC-0036: Environment Variables in Servers](0036-environment-variables.md) — the superseded, broader proposal this RFC simplifies
+- [RFC-0036: Environment Variables in Servers](archive/0036-environment-variables.md) — the superseded, broader proposal this RFC simplifies
 - [RFC-0001: Servers](approved/odcs-v3.0.0/0001-servers.md) — establishes the `servers` section
 - [Docker Compose variable substitution](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/) — prior art for `${VAR}` syntax
 - [The Twelve-Factor App — Config](https://12factor.net/config) — storing config in the environment, not in code
