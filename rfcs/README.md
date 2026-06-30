@@ -29,7 +29,6 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0039](0039-omds.md) | OMDS: Open Metadata Difference Standard |
 | [0040](0040-oocs.md) | OOCS: Open Orchestration and Control Standard |
 | [0044](0044-osds.md) | OSDS: Open Semantic Definition Standard |
-| [0046](0046-sla-custom-properties-and-authoritative-definitions.md) | Custom properties and authoritative definitions for SLAs |
 | [0047](0047-relationship-id.md) | Adding `id` to Relationship Objects |
 | [0048](0048-geometry-geography.md) | Geometry and Geography Data Types |
 | [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
@@ -83,6 +82,7 @@ Accepted by the TSC and shipped in the standard/version shown. Each links to its
 | [0042](0042-vector-type.md) | Vector Type |
 | [0043](0043-physical-data-encoding.md) | Physical Data Encoding |
 | [0045](0045-hana-server-type.md) | HANA server type |
+| [0046](0046-sla-custom-properties-and-authoritative-definitions.md) | Custom properties and authoritative definitions for SLAs |
 | [0051](0051-deprecated-flag.md) | Deprecated flag for schema and properties |
 
 ### ODPS v0.9.0
