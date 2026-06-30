@@ -26,9 +26,9 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0031](0031-relatesTo.md) | Informational Relationship Types |
 | [0032](0032-imports.md) | Imports — Reusing Definitions Across Contracts |
 | [0037](0037-omms.md) | Open Maturity Model Standard (OMMS) |
-| [0039](0039-omds.md) | OMDS: Open Metadata Difference Standard |
-| [0040](0040-oocs.md) | OOCS: Open Orchestration and Control Standard |
-| [0044](0044-osds.md) | OSDS: Open Semantic Definition Standard |
+| [0039](0039-omds.md) | Open Metadata Difference Standard (OMDS) |
+| [0040](0040-oocs.md) | Open Orchestration and Control Standard (OOCS) |
+| [0044](0044-osds.md) | Open Semantic Definition Standard (OSDS) |
 | [0047](0047-relationship-id.md) | Adding `id` to Relationship Objects |
 | [0048](0048-geometry-geography.md) | Geometry and Geography Data Types |
 | [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
