@@ -1,5 +1,7 @@
 # RFC-0042: Vector Type
 
-**Approved by the TSC on 2026-06-30.**
+**Approved by the TSC.** Part of ODCS v3.2.0.
 
-This RFC has moved to [`approved/odcs-v3.2.0/0042-vector-type.md`](approved/odcs-v3.2.0/0042-vector-type.md).
+The full specification lives in:
+
+- [`approved/odcs-v3.2.0/0042-vector-type.md`](approved/odcs-v3.2.0/0042-vector-type.md) — ODCS v3.2.0
