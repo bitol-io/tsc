@@ -51,7 +51,7 @@ Each property `name` maps to a standard file-metadata attribute. ⚡ = available
 | `name` | File / blob name (relative to root) | `string` | ⚡ All | Full path of the file within its storage root, including any virtual directory or folder prefix. |
 | `prefix` | Path prefix / virtual directory | `string` | ⚡ All | Directory path or object-store prefix (e.g. `year=2024/month=01/`). Used to declare the expected hierarchy. |
 | `size` | `Content-Length` / file size | `integer` | ⚡ All | Size of the file in bytes. |
-| `contentType` | `Content-Type` / MIME type | `string` | ⚡ All | MIME type (e.g. `application/json`, `application/octet-stream`). |
+| `contentType` | `Content-Type` / MIME type | `string` | ⚡ All | MIME type (e.g. `image/png`, `application/json`, `application/octet-stream`). |
 | `lastModified` | Last-modified timestamp | `date` | ⚡ All | UTC timestamp of the last write operation. Used for freshness constraints. |
 | `createdOn` | Creation timestamp | `date` | ⚡ All | UTC timestamp of file creation. |
 | `etag` | Entity tag | `string` | ☁ Object stores | Opaque string for optimistic concurrency and integrity checks. |
@@ -85,14 +85,14 @@ Standard ODCS quality rules apply to every file-property. Common patterns:
 
 ---
 
-### Example 1 — Minimal: JSON export landing zone on AWS S3
+### Example 1 — Minimal: Image export landing zone on AWS S3
 
-Nightly JSON export on S3. `logicalType: blob` is the sole activation condition; the server `type` has no effect on schema mode.
+Nightly Image export on S3. `logicalType: blob` is the sole activation condition; the server `type` has no effect on schema mode.
 
 ```yaml
 apiVersion: v3.1.0
 kind: DataContract
-name: nightly_json_export
+name: nightly_png_export
 
 servers:
   production:
@@ -102,29 +102,29 @@ servers:
 schema:
   - name: nightly_export_files
     logicalType: blob
-    description: Nightly JSON export files for downstream consumers.
+    description: Nightly PNG export files for downstream consumers.
     properties:
       - name: name
         logicalType: string
         quality:
           - type: text
             rule: pattern
-            pattern: "^exports/nightly/[0-9]{4}-[0-9]{2}-[0-9]{2}/.*\\.json$"
+            pattern: "^exports/nightly/[0-9]{4}-[0-9]{2}-[0-9]{2}/.*\\.png$"
 
       - name: contentType
         logicalType: string
         quality:
           - type: text
             rule: mustBe
-            mustBe: "application/json"
+            mustBe: "image/png"
 
       - name: size
         logicalType: integer
-        description: Must not exceed 500 MB.
+        description: Must not exceed 5 MB.
         quality:
           - type: library
             rule: mustBeLessThan
-            mustBeLessThan: 524288000
+            mustBeLessThan: 52428
 ```
 
 ---
