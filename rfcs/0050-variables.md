@@ -21,7 +21,7 @@ Applies to:
 
 ## Summary
 
-This RFC standardizes a single, minimal mechanism: any string value in an ODCS data contract MAY contain `${VAR_NAME}` references that are resolved at runtime by tooling. This lets contract authors keep secrets and environment-specific values out of the contract itself, without adding any new section or field to the standard.
+This RFC standardizes a single, minimal mechanism: any string value in a Bitol standard document — ODCS, ODPS, OORS, OOCS, OMMS, or OMDS — MAY contain `${VAR_NAME}` references that are resolved at runtime by tooling. This lets authors keep secrets and environment-specific values out of the document itself, without adding any new section or field to any standard.
 
 ## Motivation
 
@@ -47,7 +47,7 @@ A standard interpolation syntax lets every tool resolve these values the same wa
 
 ## Design and examples
 
-Any string value anywhere in a data contract MAY contain one or more variable references of the form `${VAR_NAME}`. References MAY appear as a whole value or as a substring (for example, `jdbc:postgresql://${DB_HOST}:${DB_PORT}/orders`).
+Any string value anywhere in a Bitol document (data contract, data product, observability results, and the other standards) MAY contain one or more variable references of the form `${VAR_NAME}`. References MAY appear as a whole value or as a substring (for example, `jdbc:postgresql://${DB_HOST}:${DB_PORT}/orders`).
 
 `VAR_NAME` is an identifier chosen by the contract author. This RFC does not constrain the naming convention beyond requiring that it be a valid string within `${...}`.
 
