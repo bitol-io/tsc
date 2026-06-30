@@ -99,9 +99,37 @@ quality:
 - Tools MUST preserve unresolved `${VAR_NAME}` tokens verbatim when serializing a contract back to YAML (round-trip safety).
 - Tools MAY define their own resolution order across sources (for example, OS environment variable before `.env` file).
 
+## Open decision: default values
+
+A reference can optionally carry an inline default, so that a value is used when the variable is unset or empty. This avoids re-introducing a separate declaration block just to express defaults. The TSC must choose between two options:
+
+**Option A — no default (bare references only).** A reference is exactly `${VAR_NAME}`. If the variable cannot be resolved, tooling errors (per the normative rules above). Smallest possible surface.
+
+**Option B — adopt `${VAR_NAME:-default}`.** In addition to bare references, a reference MAY supply a default after `:-`. The text between `:-` and the closing `}` is the default value, used verbatim when the variable is unset or empty.
+
+```yaml
+servers:
+  - server: prod_db
+    environment: prod
+    type: postgresql
+    host: ${DB_HOST:-localhost}
+    port: ${DB_PORT:-5432}
+    database: orders_prod
+    password: ${DB_PASSWORD}
+```
+
+The `${VAR:-default}` form is not invented here: it is POSIX shell parameter expansion (IEEE Std 1003.1, Shell Command Language, §2.6.2 "Parameter Expansion"), and is implemented identically by Docker Compose variable interpolation. This RFC would adopt **only** the `:-` form; the other POSIX operators (`-`, `:?`, `:+`) are out of scope.
+
+If Option B is adopted, two normative points apply:
+
+- A reference with a resolvable default MUST NOT error when the variable is unset; the default is used instead.
+- The round-trip rule still holds: a tool that has not resolved a reference MUST preserve the full `${VAR_NAME:-default}` token verbatim, including the default.
+
+Source: [The Open Group Base Specifications Issue 7, IEEE Std 1003.1-2017, §2.6.2 Parameter Expansion](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_02).
+
 ## Decision
 
-TBD — to be put to a vote at a TSC meeting.
+TBD — to be put to a vote at a TSC meeting. The TSC must choose **Option A** (bare `${VAR_NAME}` only) or **Option B** (also adopt the POSIX `${VAR_NAME:-default}` form) from [Open decision: default values](#open-decision-default-values).
 
 ## Consequences
 
