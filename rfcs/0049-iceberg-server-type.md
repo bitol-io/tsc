@@ -1,6 +1,6 @@
 # Apache Iceberg server type
 
-Champion: *TBD (TSC member)*.
+Champion: Patrick Beitsma
 
 Authors: Sander Bylemans
 
