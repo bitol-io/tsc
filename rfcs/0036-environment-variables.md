@@ -1,5 +1,8 @@
 # RFC-0036: Environment Variables in Servers
 
+> [!WARNING]
+> **Superseded — likely to be deprecated.** This RFC is being replaced by [RFC-0050: Variables](0050-variables.md), a deliberately simplified proposal that keeps only `${VAR_NAME}` interpolation and extends it to any string value in the contract (not just `servers`). The `$var` annotation alternative, the deferred `variables` declaration block, and the parameterized-`$import` future considerations explored below are **not** carried forward. New discussion should happen on RFC-0050.
+
 Champion: Jean-Georges Perrin 
 
 Authors: Jean-Georges Perrin, Guillaume Bodet
