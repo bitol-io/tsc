@@ -139,7 +139,7 @@ schema:
 
 ## Decision
 
-> The decision made by the TSC.
+**Approved by the TSC on 2026-06-30** for inclusion in ODCS v3.2.0 and ODPS v1.1.0.
 
 ## Consequences
 

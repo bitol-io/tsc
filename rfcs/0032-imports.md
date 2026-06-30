@@ -1002,9 +1002,9 @@ Key observations:
 
 Import sources do not have to be data contracts. Organizations can maintain shared definition files with a different `kind` — a centralized library of reusable structures, quality rules, and templates that any contract can import from.
 
-This example uses the companion file [`0032-shared-definitions.yaml`](0032-shared-definitions.yaml), which has `kind: DefinitionStore` — not `kind: DataContract`. It contains reusable address structures with quality rules and common quality rules (email validation, phone format, amount checks).
+This example uses a companion file `0032-shared-definitions.yaml`, which has `kind: DefinitionStore` — not `kind: DataContract`. It contains reusable address structures with quality rules and common quality rules (email validation, phone format, amount checks).
 
-**0032-shared-definitions.yaml** (excerpt — see full file alongside this RFC):
+**0032-shared-definitions.yaml** (excerpt):
 ```yaml
 apiVersion: v3.2.0
 kind: DefinitionStore
@@ -1256,7 +1256,7 @@ Key observations:
 - The `DefinitionStore` organizes definitions by purpose (`address`, `quality`) rather than by the data contract schema structure. This makes it a natural fit for organization-wide libraries referenced from the declaration side.
 - The declaration side mixes imports from different sections of the same source: `#address/street_line_1` for properties, `#quality/email_validation` for quality rules.
 - On the use side, both **structural imports** (address fields with their quality rules) and **quality-only imports** (email validation, amount checks) are materialized inline with `$import` provenance.
-- The companion file [`0032-shared-definitions.yaml`](0032-shared-definitions.yaml) is provided alongside this RFC as a concrete reference.
+- The companion file `0032-shared-definitions.yaml` is shown as an excerpt above as a concrete reference.
 
 ### Applicability to ODPS
 

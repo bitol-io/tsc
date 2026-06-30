@@ -17,7 +17,8 @@ Applies to:
 * [ ] OOCS - Open Orchestration and Control Standard
 * [ ] OMMS - Open Maturity Model Standard
 * [ ] OMDS - Open Metadata Difference Standard
- 
+* [ ] OSDS - Open Semantic Definition Standard
+
 ## Summary
 
 > One paragraph explanation of the RFC.
