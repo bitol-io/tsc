@@ -1,10 +1,10 @@
 # File Object Storage Layout via `logicalType: blob`
 
-Champion: TBD (TSC member needed).
+Champion:  Patrick Beitsma.
 
-Authors: Damien Maresma
+Authors: Damien Maresma.
 
-Slack: Damien Maresma
+Slack: [rfc chan](https://data-mesh-learning.slack.com/archives/C0BFB5C28M6)
 
 GitHub issue: https://github.com/bitol-io/open-data-contract-standard/issues/276
 
