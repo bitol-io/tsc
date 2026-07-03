@@ -2,7 +2,7 @@
 
 Champion: Diego Carvallo.
 
-Authors: Jean-Georges Perrin.
+Authors: Jean-Georges Perrin, Diego Carvallo.
 
 Slack: *TBD*.
 
