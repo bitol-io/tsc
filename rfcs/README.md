@@ -34,6 +34,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
 | [0050](0050-variables.md) | Variables |
 | [0052](0052-blob-storage-file-logical-type.md) | Schema's Blob logicalType |
+| [0053](0053-classification-sensitivity.md) | Data category as a distinct dimension |
 
 ## Approved RFCs
 
