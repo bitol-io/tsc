@@ -16,19 +16,19 @@ Applies to:
 
 ## Summary
 
-Add `iceberg_rest` as a server `type` to describe access to Apache Iceberg catalogs (and Iceberg-managed tables) through the standardized Iceberg REST API.
+Add `iceberg` as a server `type` to describe access to Apache Iceberg catalogs (and Iceberg-managed tables) through the standardized Iceberg REST API.
 
 ## Motivation
 
-Apache Iceberg is a widely adopted open table format and catalog specification for large analytic datasets, used on top of object storage (S3, GCS, ADLS) and accessible through query engines such as Spark, Trino, Flink, and Dremio. ODCS currently has no dedicated server type for it. Users today fall back to the `custom` server type, losing structured, validatable connection metadata. A first-class `iceberg_rest` type lets tooling connect, document, and validate Iceberg-backed contracts consistently and enables catalog-aware integrations.
+Apache Iceberg is a widely adopted open table format and catalog specification for large analytic datasets, used on top of object storage (S3, GCS, ADLS) and accessible through query engines such as Spark, Trino, Flink, and Dremio. ODCS currently has no dedicated server type for it. Users today fall back to the `custom` server type, losing structured, validatable connection metadata. A first-class `iceberg` type lets tooling connect, document, and validate Iceberg-backed contracts consistently and enables catalog-aware integrations.
 
 ## Design and examples
 
-Add `iceberg_rest` to the list of allowed server `type` values, with the following fields:
+Add `iceberg` to the list of allowed server `type` values, with the following fields:
 
 | Field            | Type   | Required | Description                                                                                                     |
 | ---------------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------- |
-| `type`           | string | Yes      | `iceberg_rest`                                                                                                  |
+| `type`           | string | Yes      | `iceberg`                                                                                                      |
 | `catalog`        | string | Yes      | Catalog name as registered in the query engine or catalog service (e.g. `my_catalog`).                          |
 | `catalogUrl`     | string | Yes      | URL of the Iceberg compatible REST catalog service (Polaris, S3 Tables, Nessie, Unity Catalog, Glue, etc.)      |
 | `namespace`      | string | No       | Dot-separated namespace path within the catalog (e.g. `db.schema` or just `db`).                                |
@@ -39,7 +39,7 @@ Add `iceberg_rest` to the list of allowed server `type` values, with the followi
 ```yaml
 servers:
   - server: prod
-    type: iceberg_rest
+    type: iceberg
     catalog: prod_catalog
     catalogUrl: https://catalog.acme.com
 ```
@@ -49,7 +49,7 @@ servers:
 ```yaml
 servers:
   - server: prod
-    type: iceberg_rest
+    type: iceberg
     catalog: prod_catalog
     catalogUrl: https://catalog.acme.com
     namespace: acme_db.sales
@@ -67,7 +67,7 @@ servers:
     location: s3://acme-warehouse/sales/
 ```
 
-When using Glue to expose an Iceberg compatible REST API, the `iceberg_rest` type should be used.
+When using Glue to expose an Iceberg compatible REST API, the `iceberg` type should be used.
 
 ### Example 4: Nessie catalog
 
@@ -81,7 +81,67 @@ servers:
     warehouse: s3://acme-warehouse/sales/
 ```
 
-Above is just an example and is not supported as no 'nessie' server type exists yet. If Nessie is used as an Iceberg compatible REST catalog, the `iceberg_rest` type should be used.
+Above is just an example and is not supported as no 'nessie' server type exists yet. If Nessie is used as an Iceberg compatible REST catalog, the `iceberg` type should be used.
+
+## Proposed schema changes
+
+The following changes to the ODCS JSON Schema are proposed as part of this RFC. They are **not** yet applied to the standard; they will be applied to the target schema(s) if and when the TSC approves this RFC.
+
+1. Add `iceberg` to the server `type` enum:
+
+```json
+"enum": [
+  "api", "athena", "azure", "bigquery", "clickhouse", "databricks", "denodo", "dremio",
+  "duckdb", "glue", "cloudsql", "db2", "hive", "iceberg", "impala", "informix", "kafka", "kinesis", "local",
+  "mysql", "oracle", "postgresql", "postgres", "presto", "pubsub",
+  "redshift", "s3", "sftp", "snowflake", "sqlserver", "synapse", "trino", "vertica", "zen", "custom"
+]
+```
+
+2. Add a conditional dispatch in the server `allOf` list:
+
+```json
+{
+  "if": {
+    "properties": { "type": { "const": "iceberg" } },
+    "required": ["type"]
+  },
+  "then": {
+    "$ref": "#/$defs/ServerSource/IcebergServer"
+  }
+}
+```
+
+3. Add the `IcebergServer` definition under `$defs/ServerSource`:
+
+```json
+"IcebergServer": {
+  "type": "object",
+  "title": "IcebergServer",
+  "properties": {
+    "catalog": {
+      "type": "string",
+      "description": "Catalog name as registered in the query engine or catalog service.",
+      "examples": ["my_catalog"]
+    },
+    "catalogUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the Iceberg compatible REST catalog service (Polaris, S3 Tables, Nessie, Unity Catalog, Glue, etc.)",
+      "examples": ["https://my-catalog-service.com"]
+    },
+    "namespace": {
+      "type": "string",
+      "description": "Dot-separated namespace/schema path within the catalog (e.g. db.schema or just db)."
+    },
+    "warehouse": {
+      "type": "string",
+      "description": "Logical catalog or base location for the catalog to use.",
+      "examples": ["s3://my-bucket/warehouse/sales/", "production", "development"]
+    }
+  }
+}
+```
 
 ## Alternatives
 
