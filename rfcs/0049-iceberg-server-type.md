@@ -67,7 +67,7 @@ servers:
     location: s3://acme-warehouse/sales/
 ```
 
-When using Glue to expose an Iceberg compatible REST API, the `iceberg` type should be used.
+When using Glue to expose an Iceberg REST API compatible catalog, the `iceberg` type should be used.
 
 ### Example 4: Nessie catalog
 
@@ -149,7 +149,7 @@ Keep using the `custom` server type. Rejected: it hides connection details in un
 
 Use the existing `s3` server type. Rejected: S3 describes raw object storage, not the Iceberg table format layer. An Iceberg table carries catalog metadata and schema evolution semantics beyond a plain S3 path.
 
-Add multiple new server types for each Iceberg catalog implementation (e.g. `glue`, `nessie`, `polaris`). Rejected: as the Iceberg REST API is a stable, standardized interface that can be used across multiple catalogs, a single `iceberg_rest` type is sufficient to support multiple catalog implementations. Those catalogs that do not support the Iceberg REST API (e.g. Hadoop, Nessies old API) can be supported by using the `custom` type or a separate server type if needed.
+Add multiple new server types for each Iceberg catalog implementation (e.g. `glue`, `nessie`, `polaris`). Rejected: as the Iceberg REST API is a stable, standardized interface that can be used across multiple catalogs, a single `iceberg` type is sufficient to support multiple catalog implementations. Those catalogs that do not support the Iceberg REST API (e.g. Hadoop, Nessies old API) can be supported by using the `custom` type or a separate server type if needed.
 
 ## Decision
 
