@@ -2,7 +2,7 @@
 
 Champion: Patrick Beitsma
 
-Authors: Sander Bylemans
+Authors: Sander Bylemans, Patrick Beitsma, Simon Harrer, Diego C. and Jean-Georges Perrin.
 
 Slack: https://app.slack.com/client/T01MWBFKW7K/C0BDZRK06GH
 
