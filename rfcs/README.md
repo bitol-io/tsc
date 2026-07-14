@@ -30,7 +30,6 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0040](0040-oocs.md) | Open Orchestration and Control Standard (OOCS) |
 | [0044](0044-osds.md) | Open Semantic Definition Standard (OSDS) |
 | [0048](0048-geometry-geography.md) | Geometry and Geography Data Types |
-| [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
 | [0052](0052-blob-storage-file-logical-type.md) | Schema's Blob logicalType |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
 
@@ -84,6 +83,7 @@ Accepted by the TSC and shipped in the standard/version shown. Each links to its
 | [0045](0045-hana-server-type.md) | HANA server type |
 | [0046](0046-sla-custom-properties-and-authoritative-definitions.md) | Custom properties and authoritative definitions for SLAs |
 | [0047](0047-relationship-id.md) | Adding `id` to Relationship Objects |
+| [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
 | [0050](0050-variables.md) | Variables |
 | [0051](0051-deprecated-flag.md) | Deprecated flag for schema and properties |
 
