@@ -33,6 +33,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0052](0052-blob-storage-file-logical-type.md) | Schema's Blob logicalType |
 | [0053](0053-classification-sensitivity.md) | Data category as a distinct dimension |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
+| [0057](0057-teradata-server-type.md) | Teradata server type |
 
 ## Approved RFCs
 
