@@ -17,7 +17,7 @@ Applies to:
 
 ## Summary
 
-Add two server `type` values to ODCS: `ingres`, to describe data served from Actian Ingres, and `analytics`, to describe data served from the Actian Analytics Engine (formerly Actian Vector / Vectorwise).
+Add two server `type` values to ODCS: `ingres`, to describe data served from Actian Ingres, and `vectorwise`, to describe data served from the Actian Analytics Engine (created as VectorWise, later Actian Vector).
 
 ## Motivation
 
@@ -31,23 +31,37 @@ This aligns with the guiding value of describing the real world as practitioners
 
 ## Design and examples
 
+### Naming convention for server `type` values
+
+This RFC proposes, and applies, a convention for naming server `type` values:
+
+> **A server `type` value uses the name the product carried when it was created, in lowercase.**
+
+An enum value is a permanent API: once shipped it cannot be renamed without a breaking change. Product marketing names, by contrast, churn — often several times, and often as a result of acquisitions. The creation name is the one point in a product's branding history that never changes afterwards, so it is the only name that can be committed to an enum without betting on a vendor's future marketing.
+
+The Analytics Engine is exactly this case. It was created as **VectorWise** (2010, out of the CWI X100 research line), was renamed **Actian Vector**, and is today the **Actian Analytics Engine** — three names for one engine, in a product whose connection model never changed. Pinning the enum to `vectorwise` costs nothing and survives the next rename.
+
+Applied to this RFC: `ingres` (created as Ingres, at UC Berkeley) and `vectorwise` (created as VectorWise).
+
+Most of the existing enum already follows this convention — `exasol`, `hana`, `vertica`, `informix`, `db2`, `snowflake`, `databricks`. Two entries do not, and are worth naming honestly rather than glossing: `zen` (Actian Zen was created as **Btrieve**, then Pervasive PSQL) and `synapse` (created as Azure SQL Data Warehouse, and since renamed again under Microsoft Fabric). Both predate this convention; this RFC does **not** propose renaming them, since that would be a breaking change for no functional gain. They are precisely the pattern the convention exists to stop repeating.
+
 ### `ingres`
 
-| Field      | Type    | Required | Description                                                                                                        |
-| ---------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| `type`     | string  | Yes      | `ingres`                                                                                                            |
-| `database` | string  | Yes      | Database name to connect to on the Ingres instance.                                                                 |
-| `host`     | string  | Yes      | Hostname or IP address of the Ingres server.                                                                        |
+| Field      | Type    | Required | Description                                                                                                             |
+| ---------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `type`     | string  | Yes      | `ingres`                                                                                                                |
+| `database` | string  | Yes      | Database name to connect to on the Ingres instance.                                                                     |
+| `host`     | string  | Yes      | Hostname or IP address of the Ingres server.                                                                            |
 | `port`     | integer | No       | Connection port for the Ingres Data Access Server (DAS) / SQL connections. Defaults to `21064` (installation ID `II7`). |
 
-### `analytics`
+### `vectorwise`
 
-| Field      | Type    | Required | Description                                                                                     |
-| ---------- | ------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `type`     | string  | Yes      | `analytics`                                                                                      |
-| `database` | string  | Yes      | Database name to connect to on the Analytics Engine server.                                      |
-| `host`     | string  | Yes      | Hostname or IP address of the Analytics Engine server.                                           |
-| `port`     | integer | No       | Connection port for the Data Access Server (DAS) / SQL connections. Defaults to `21064`.          |
+| Field      | Type    | Required | Description                                                                              |
+| ---------- | ------- | -------- | ---------------------------------------------------------------------------------------- |
+| `type`     | string  | Yes      | `vectorwise`                                                                             |
+| `database` | string  | Yes      | Database name to connect to on the Analytics Engine server.                              |
+| `host`     | string  | Yes      | Hostname or IP address of the Analytics Engine server.                                   |
+| `port`     | integer | No       | Connection port for the Data Access Server (DAS) / SQL connections. Defaults to `21064`. |
 
 Notes applying to both types:
 
@@ -89,7 +103,7 @@ servers:
 ```yaml
 servers:
   - server: prod
-    type: analytics
+    type: vectorwise
     host: analytics.acme.com
     database: warehouse
 ```
@@ -99,7 +113,7 @@ servers:
 ```yaml
 servers:
   - server: preprod
-    type: analytics
+    type: vectorwise
     description: Columnar serving layer for the sales data product
     environment: preprod
     host: vector02.acme.com
@@ -111,14 +125,15 @@ servers:
 
 The following changes to the ODCS JSON Schema are proposed as part of this RFC. They are **not** yet applied to the standard; they will be applied to the target schema(s) if and when the TSC approves this RFC.
 
-1. Add `analytics` and `ingres` to the server `type` enum:
+1. Add `ingres` and `vectorwise` to the server `type` enum:
 
 ```json
 "enum": [
-  "analytics", "api", "athena", "azure", "bigquery", "clickhouse", "databricks", "denodo", "dremio",
+  "api", "athena", "azure", "bigquery", "clickhouse", "databricks", "denodo", "dremio",
   "duckdb", "exasol", "glue", "hana", "cloudsql", "db2", "hive", "iceberg", "impala", "informix",
   "ingres", "kafka", "kinesis", "local",
   ...
+  "redshift", "s3", "sftp", "snowflake", "sqlserver", "synapse", "trino", "vectorwise", "vertica", "zen", "custom"
 ]
 ```
 
@@ -136,16 +151,16 @@ The following changes to the ODCS JSON Schema are proposed as part of this RFC. 
 },
 {
   "if": {
-    "properties": { "type": { "const": "analytics" } },
+    "properties": { "type": { "const": "vectorwise" } },
     "required": ["type"]
   },
   "then": {
-    "$ref": "#/$defs/ServerSource/AnalyticsServer"
+    "$ref": "#/$defs/ServerSource/VectorwiseServer"
   }
 }
 ```
 
-3. Add the `IngresServer` and `AnalyticsServer` definitions under `$defs/ServerSource`:
+3. Add the `IngresServer` and `VectorwiseServer` definitions under `$defs/ServerSource`:
 
 ```json
 "IngresServer": {
@@ -171,9 +186,9 @@ The following changes to the ODCS JSON Schema are proposed as part of this RFC. 
   },
   "required": ["database", "host"]
 },
-"AnalyticsServer": {
+"VectorwiseServer": {
   "type": "object",
-  "title": "AnalyticsServer",
+  "title": "VectorwiseServer",
   "properties": {
     "database": {
       "type": "string",
@@ -198,16 +213,23 @@ The following changes to the ODCS JSON Schema are proposed as part of this RFC. 
 
 ## Open questions
 
-1. **Is `analytics` the right value?** It is the shortest name that matches the product name (Actian Analytics Engine), but it is also a very generic word for an enum whose other entries name a concrete engine or service. Candidates, with the trade-offs:
-   - `analytics` — matches the current product name; risk of being read as a generic category rather than a product, and of colliding with a future generic concept.
-   - `vector` — the historical product name, still widely recognised; collides conceptually with the `vector` logical type introduced by RFC 0042, which is a different thing entirely.
-   - `actian` — unambiguous vendor name, but Actian ships more than one engine (Ingres, Analytics Engine, Zen — and `zen` is already in the enum), so it is ambiguous in the other direction.
-
-   This RFC proposes `analytics` as specified, and asks the TSC to confirm or substitute.
-2. **Should an optional `schema` field be added to both types?** See the note above.
-3. Should the two types ship as one RFC (as proposed) or be split into two, given the different products?
+1. **Should an optional `schema` field be added to both types?** See the note above.
+2. **Should the two types ship as one RFC (as proposed) or be split into two, given the different products?**
+3. **Should the naming convention be recorded outside this RFC?** If the TSC adopts it, it belongs in contributor guidance (`CONTRIBUTING.md` or the schema documentation) rather than only in the RFC that first applied it, so the next server-type RFC inherits it.
 
 ## Alternatives
+
+### Naming of the Analytics Engine type
+
+`analytics`. Rejected: too vague. It is a category word, not a product, in an enum whose every other entry names a concrete engine or service — and it would age badly the moment the enum needs a genuinely generic concept.
+
+`vector`. Rejected: it is a mid-life marketing name rather than the creation name, so it fails the convention above, and it shares a word with the `vector` logical type introduced by RFC 0042. There is no technical collision (different field, different enum), but the overlap is a needless source of reader confusion.
+
+`actian`. Rejected: Actian ships more than one engine — Ingres, the Analytics Engine, and Zen, and `zen` is already in the enum — so a vendor name is ambiguous in the other direction. No other value in the enum is a bare vendor name.
+
+`actian-analytics` / `actianvector`. Rejected: both track current or recent marketing rather than the creation name, and `actian-analytics` would introduce the first hyphen into an enum that is otherwise all single lowercase words.
+
+### Structural alternatives
 
 Keep using `custom` for both. Rejected: hides connection details in unstructured fields, so nothing can be validated or generated from the contract.
 
@@ -223,11 +245,13 @@ Add a single `actian` server type with a discriminator field for the engine. Rej
 
 - Nonbreaking change: adds two new optional server types.
 - Tooling that parses the `servers` list can detect Ingres- and Analytics-Engine-backed contracts and generate the appropriate JDBC/ODBC connection strings, instead of treating them as opaque `custom` servers.
-- The `analytics` value, once shipped, is part of the public enum and cannot be renamed without a breaking change — hence the naming question above should be settled before approval, not after.
+- `vectorwise` does not match the product's current marketing name. This is deliberate and is the point of the convention: the value is stable across renames, and the documentation carries the current name. Tooling and documentation should present the Analytics Engine label to users while writing `vectorwise` to the contract.
+- Adopting the naming convention sets a precedent that binds future server-type RFCs. It does not change any existing value: `zen` and `synapse` stay as they are, since renaming them would be breaking.
 
 ## References
 
 - [Actian Ingres](https://www.actian.com/databases/ingres/)
 - [Actian Analytics Engine](https://www.actian.com/databases/analytics-engine/)
 - RFC 0045 (HANA server type), RFC 0057 (Teradata server type), RFC 0058 (Exasol server type) — structural templates for a single-engine server type.
+- RFC 0042 (Vector Type) — the unrelated `vector` logical type, one of the reasons `vector` was rejected as the enum value.
 - Existing server types in ODCS (e.g. `zen`, `informix`, `db2`).
