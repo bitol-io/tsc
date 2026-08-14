@@ -32,6 +32,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0048](0048-geometry-geography.md) | Geometry and Geography Data Types |
 | [0052](0052-blob-storage-file-logical-type.md) | Schema's Blob logicalType |
 | [0053](0053-classification-sensitivity.md) | Data category as a distinct dimension |
+| [0055](0055-delta-server-type.md) | Delta Lake server type |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
 | [0057](0057-teradata-server-type.md) | Teradata server type |
 | [0059](0059-actian-server-types.md) | Actian Ingres and Actian Analytics Engine server types |
