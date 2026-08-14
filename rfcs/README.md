@@ -140,7 +140,7 @@ Although there is no single way to prepare for submitting an RFC, it is generall
 
 - Fork the RFC repository.
   - Copy [`0000-template.md`](0000-template.md) to `xxxx-my-feature.md`, where "my-feature" is descriptive and the number is the next in sequence.
-  - Fill in the RFC.
+  - Fill in the RFC. Be concise: the body says what changes and why, and anything that needs explaining goes in an appendix.
   - Submit a pull request. As a pull request the RFC will receive design feedback from the larger community, and the author should be prepared to revise it in response.
   - Build consensus and integrate feedback. RFCs that have broad support are much more likely to make progress than those that don't receive any comments. Feel free to reach out to the RFC assignee in particular to get help identifying stakeholders and obstacles.
   - RFCs rarely go through this process unchanged, especially as alternatives and drawbacks are shown. You can make edits, big and small, to the RFC to clarify or change the design, but make changes as new commits to the pull request, and leave a comment on the pull request explaining your changes. Specifically, do not squash or rebase commits after they are visible on the pull request.
