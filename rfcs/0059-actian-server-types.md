@@ -17,7 +17,7 @@ Applies to:
 
 ## Summary
 
-Add four server `type` values to ODCS: `ingres` (Actian Ingres), `vectorwise` (Actian Analytics Engine), `versant` (Actian NoSQL Database) and `poet` (Actian NoSQL FastObjects). Add `btrieve` as a synonym of the existing `zen` type.
+Add four server `type` values to ODCS: `ingres` (Actian Ingres), `vectorwise` (Actian Analytics Engine), `versant` (Actian NoSQL Database) and `poet` (Actian NoSQL FastObjects). Add `btrieve` as a synonym of the existing `zen` type, and `fastobjects` as a synonym of `poet`.
 
 ## Motivation
 
@@ -79,11 +79,13 @@ Created as POET, renamed FastObjects, now Actian NoSQL FastObjects.
 
 `LOCAL` is a literal FastObjects sentinel, not a hostname: it selects the in-process embedded engine. One `host` field therefore covers both the embedded and the client/server deployment.
 
+`fastobjects` is added as a synonym of `poet`: same fields, same `PoetServer` definition, both values valid, neither deprecated. The engine has shipped as FastObjects since 2001, so writers who know it by that name should not have to look up its creation name.
+
 For both ODBMS types: no `schema` field is proposed. An object database has no SQL schema namespace; classes are scoped by the database.
 
 ### `btrieve`
 
-Actian Zen was created as Btrieve, then Pervasive PSQL. `btrieve` is added as a synonym of `zen`: same fields, same `ZenServer` definition, both values valid, `zen` not deprecated. Precedent: `postgresql` and `postgres` are already synonyms sharing `PostgresServer`.
+Actian Zen was created as Btrieve, then Pervasive PSQL. `btrieve` is added as a synonym of `zen`: same fields, same `ZenServer` definition, both values valid, `zen` not deprecated. Precedent: `postgresql` and `postgres` are already synonyms sharing `PostgresServer`. Same mechanism as `fastobjects` above.
 
 ### Examples
 
@@ -186,6 +188,16 @@ servers:
     database: parts_catalog
 ```
 
+Synonym, POET addressed as FastObjects:
+
+```yaml
+servers:
+  - server: prod
+    type: fastobjects
+    host: fastobjects.acme.com
+    database: parts_catalog
+```
+
 Synonym, Zen addressed as Btrieve:
 
 ```yaml
@@ -200,12 +212,13 @@ servers:
 
 Proposed, not applied. They land only if the TSC approves.
 
-1. Add `btrieve`, `ingres`, `poet`, `versant` and `vectorwise` to the server `type` enum:
+1. Add `btrieve`, `fastobjects`, `ingres`, `poet`, `versant` and `vectorwise` to the server `type` enum:
 
 ```json
 "enum": [
   "api", "athena", "azure", "bigquery", "btrieve", "clickhouse", "databricks", "denodo", "dremio",
-  "duckdb", "exasol", "glue", "hana", "cloudsql", "db2", "hive", "iceberg", "impala", "informix",
+  "duckdb", "exasol", "fastobjects", "glue", "hana", "cloudsql", "db2", "hive", "iceberg", "impala",
+  "informix",
   "ingres", "kafka", "kinesis", "local",
   ...
   "oracle", "poet", "postgres", "postgresql",
@@ -215,7 +228,7 @@ Proposed, not applied. They land only if the TSC approves.
 ]
 ```
 
-2. Add the conditional dispatches in the server `allOf` list. `btrieve` reuses `ZenServer`:
+2. Add the conditional dispatches in the server `allOf` list. `btrieve` reuses `ZenServer` and `fastobjects` reuses `PoetServer`:
 
 ```json
 {
@@ -248,6 +261,15 @@ Proposed, not applied. They land only if the TSC approves.
 {
   "if": {
     "properties": { "type": { "const": "poet" } },
+    "required": ["type"]
+  },
+  "then": {
+    "$ref": "#/$defs/ServerSource/PoetServer"
+  }
+},
+{
+  "if": {
+    "properties": { "type": { "const": "fastobjects" } },
     "required": ["type"]
   },
   "then": {
@@ -380,11 +402,11 @@ Proposed, not applied. They land only if the TSC approves.
 | `actian-analytics`, `actianvector`     | Track current marketing, and `actian-analytics` would be the first hyphen in the enum.      |
 | `nsql`, `actian-nosql`                 | Post-acquisition branding, applied in 2017; `nsql` also reads as a category, not a product. |
 | `vod`                                  | Initialism. No other enum value is one.                                                     |
-| `fastobjects`                          | The 2001 rebrand of POET, not the creation name.                                            |
 | `custom` for any of them               | Hides connection details in unstructured fields.                                            |
 | Reuse `zen`                            | A different engine with a different connection model. Only the vendor is shared.            |
 | One `actian` type with a discriminator | Puts the engine choice in a secondary field, unlike every other engine in the enum.         |
 | Rename `zen` to `btrieve`              | Breaking. A synonym reaches the same result at no cost.                                     |
+| `fastobjects` as the primary value     | The 2001 rebrand, not the creation name. Kept as a synonym instead.                         |
 
 ## Decision
 
@@ -392,9 +414,9 @@ Proposed, not applied. They land only if the TSC approves.
 
 ## Consequences
 
-- Nonbreaking: four new optional types, one new synonym. No existing value changes meaning.
+- Nonbreaking: four new optional types, two new synonyms. No existing value changes meaning.
 - `vectorwise`, `versant` and `poet` do not match current marketing. Tooling should display the Analytics Engine, Actian NoSQL Database and Actian NoSQL FastObjects labels, and write the enum value.
-- Two enum values now map to `ZenServer`, as with `postgresql` and `postgres`. Writers pick one; readers accept both.
+- Two enum values map to `ZenServer` and two to `PoetServer`, as `postgresql` and `postgres` already map to `PostgresServer`. Writers pick one; readers accept both.
 - The convention binds future server-type RFCs. It renames nothing.
 
 ## References
