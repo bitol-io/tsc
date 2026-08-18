@@ -1,4 +1,4 @@
-# Actian Ingres and Actian Analytics Engine server types
+# Actian server types
 
 Champion: Jean-Georges Perrin
 
@@ -17,11 +17,13 @@ Applies to:
 
 ## Summary
 
-Add two server `type` values to ODCS: `ingres` (Actian Ingres) and `vectorwise` (Actian Analytics Engine). Add `btrieve` as a synonym of the existing `zen` type.
+Add four server `type` values to ODCS: `ingres` (Actian Ingres), `vectorwise` (Actian Analytics Engine), `versant` (Actian NoSQL Database) and `poet` (Actian NoSQL FastObjects). Add `btrieve` as a synonym of the existing `zen` type.
 
 ## Motivation
 
-Actian Ingres is an enterprise RDBMS for transactional processing (OLTP) and hybrid workloads. The Actian Analytics Engine is a columnar analytical DBMS for high-speed SQL and big data processing. ODCS has a type for neither, so users fall back to `custom` and lose validatable connection metadata.
+Actian Ingres is an enterprise RDBMS for transactional processing (OLTP) and hybrid workloads. The Actian Analytics Engine is a columnar analytical DBMS for high-speed SQL and big data processing. Actian NoSQL Database and Actian NoSQL FastObjects are object database management systems (ODBMS): the first for mission-critical OLTP, the second for embedded and client/server applications.
+
+ODCS has a type for none of the four, so users fall back to `custom` and lose validatable connection metadata.
 
 ## Design and examples
 
@@ -51,7 +53,33 @@ Created as VectorWise, renamed Actian Vector, now the Actian Analytics Engine.
 | `host`     | string  | Yes      | Hostname or IP address of the Analytics Engine server.                                   |
 | `port`     | integer | No       | Connection port for the Data Access Server (DAS) / SQL connections. Defaults to `21064`. |
 
-For both: `port` is derived from the Ingres installation identifier, so it is optional but recommended when a host runs more than one installation. No `schema` field is proposed; the namespace inside a database is the table owner, resolved from the connecting user.
+For `ingres` and `vectorwise`: `port` is derived from the Ingres installation identifier, so it is optional but recommended when a host runs more than one installation. No `schema` field is proposed; the namespace inside a database is the table owner, resolved from the connecting user.
+
+### `versant`
+
+Created as the Versant Object Database, now Actian NoSQL Database.
+
+| Field      | Type    | Required | Description                                                                   |
+| ---------- | ------- | -------- | ----------------------------------------------------------------------------- |
+| `type`     | string  | Yes      | `versant`                                                                     |
+| `database` | string  | Yes      | Database name to connect to on the NoSQL Database instance.                   |
+| `host`     | string  | No       | Hostname or IP address of the NoSQL Database server. Defaults to `localhost`. |
+| `port`     | integer | No       | Connection port for Actian NoSQL Database connections. Defaults to `5019`.    |
+
+### `poet`
+
+Created as POET, renamed FastObjects, now Actian NoSQL FastObjects.
+
+| Field      | Type    | Required | Description                                                            |
+| ---------- | ------- | -------- | ---------------------------------------------------------------------- |
+| `type`     | string  | Yes      | `poet`                                                                 |
+| `database` | string  | Yes      | Database name to connect to on the FastObjects instance.               |
+| `host`     | string  | No       | Hostname or IP address of the FastObjects server. Defaults to `LOCAL`. |
+| `port`     | integer | No       | Connection port for FastObjects connections. Defaults to `6001`.       |
+
+`LOCAL` is a literal FastObjects sentinel, not a hostname: it selects the in-process embedded engine. One `host` field therefore covers both the embedded and the client/server deployment.
+
+For both ODBMS types: no `schema` field is proposed. An object database has no SQL schema namespace; classes are scoped by the database.
 
 ### `btrieve`
 
@@ -110,6 +138,54 @@ servers:
     database: sales_mart
 ```
 
+Minimal, NoSQL Database:
+
+```yaml
+servers:
+  - server: prod
+    type: versant
+    host: nosql.acme.com
+    database: policies
+```
+
+Structured, NoSQL Database:
+
+```yaml
+servers:
+  - server: prod
+    type: versant
+    description: Policy administration OLTP object store
+    environment: prod
+    host: nosql01.acme.com
+    port: 5019
+    database: policies
+    roles:
+      - role: acme_policies_ro
+        access: read
+```
+
+Minimal, FastObjects embedded (no `host`, so the in-process engine):
+
+```yaml
+servers:
+  - server: device
+    type: poet
+    database: telemetry
+```
+
+Structured, FastObjects client/server:
+
+```yaml
+servers:
+  - server: preprod
+    type: poet
+    description: Embedded configuration store for the CAD workstations
+    environment: preprod
+    host: fastobjects02.acme.com
+    port: 6001
+    database: parts_catalog
+```
+
 Synonym, Zen addressed as Btrieve:
 
 ```yaml
@@ -124,7 +200,7 @@ servers:
 
 Proposed, not applied. They land only if the TSC approves.
 
-1. Add `btrieve`, `ingres` and `vectorwise` to the server `type` enum:
+1. Add `btrieve`, `ingres`, `poet`, `versant` and `vectorwise` to the server `type` enum:
 
 ```json
 "enum": [
@@ -132,7 +208,10 @@ Proposed, not applied. They land only if the TSC approves.
   "duckdb", "exasol", "glue", "hana", "cloudsql", "db2", "hive", "iceberg", "impala", "informix",
   "ingres", "kafka", "kinesis", "local",
   ...
-  "redshift", "s3", "sftp", "snowflake", "sqlserver", "synapse", "trino", "vectorwise", "vertica", "zen", "custom"
+  "oracle", "poet", "postgres", "postgresql",
+  ...
+  "redshift", "s3", "sftp", "snowflake", "sqlserver", "synapse", "trino", "vectorwise", "versant",
+  "vertica", "zen", "custom"
 ]
 ```
 
@@ -159,6 +238,24 @@ Proposed, not applied. They land only if the TSC approves.
 },
 {
   "if": {
+    "properties": { "type": { "const": "versant" } },
+    "required": ["type"]
+  },
+  "then": {
+    "$ref": "#/$defs/ServerSource/VersantServer"
+  }
+},
+{
+  "if": {
+    "properties": { "type": { "const": "poet" } },
+    "required": ["type"]
+  },
+  "then": {
+    "$ref": "#/$defs/ServerSource/PoetServer"
+  }
+},
+{
+  "if": {
     "properties": { "type": { "const": "btrieve" } },
     "required": ["type"]
   },
@@ -168,7 +265,7 @@ Proposed, not applied. They land only if the TSC approves.
 }
 ```
 
-3. Add two definitions under `$defs/ServerSource`:
+3. Add four definitions under `$defs/ServerSource`:
 
 ```json
 "IngresServer": {
@@ -216,27 +313,78 @@ Proposed, not applied. They land only if the TSC approves.
     }
   },
   "required": ["database", "host"]
+},
+"VersantServer": {
+  "type": "object",
+  "title": "VersantServer",
+  "properties": {
+    "database": {
+      "type": "string",
+      "description": "Database name to connect to on the NoSQL Database instance.",
+      "examples": ["policies"]
+    },
+    "host": {
+      "type": "string",
+      "description": "Hostname or IP address of the NoSQL Database server.",
+      "default": "localhost",
+      "examples": ["nosql.acme.com"]
+    },
+    "port": {
+      "$ref": "#/$defs/Port",
+      "description": "Connection port for Actian NoSQL Database connections.",
+      "default": 5019,
+      "examples": [5019]
+    }
+  },
+  "required": ["database"]
+},
+"PoetServer": {
+  "type": "object",
+  "title": "PoetServer",
+  "properties": {
+    "database": {
+      "type": "string",
+      "description": "Database name to connect to on the FastObjects instance.",
+      "examples": ["parts_catalog"]
+    },
+    "host": {
+      "type": "string",
+      "description": "Hostname or IP address of the FastObjects server. The literal LOCAL selects the in-process embedded engine.",
+      "default": "LOCAL",
+      "examples": ["LOCAL", "fastobjects02.acme.com"]
+    },
+    "port": {
+      "$ref": "#/$defs/Port",
+      "description": "Connection port for FastObjects connections.",
+      "default": 6001,
+      "examples": [6001]
+    }
+  },
+  "required": ["database"]
 }
 ```
 
 ## Open questions
 
-1. Add an optional `schema` field to both new types, for symmetry with the other SQL types?
+1. Add an optional `schema` field to `ingres` and `vectorwise`, for symmetry with the other SQL types?
 2. One RFC, or one per engine?
 3. Record the naming convention in contributor guidance, so the next server-type RFC inherits it?
 
 ## Alternatives
 
-| Rejected                               | Reason                                                                                        |
-| -------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `analytics`                            | A category, not a product. Every other value names a concrete engine.                         |
-| `vector`                               | Mid-life name, and overlaps the `vector` logical type of RFC 0042.                            |
-| `actian`                               | Vendor name. Actian ships Ingres, the Analytics Engine and Zen; `zen` is already in the enum. |
-| `actian-analytics`, `actianvector`     | Track current marketing, and `actian-analytics` would be the first hyphen in the enum.        |
-| `custom` for both                      | Hides connection details in unstructured fields.                                              |
-| Reuse `zen`                            | A different engine with a different connection model. Only the vendor is shared.              |
-| One `actian` type with a discriminator | Puts the engine choice in a secondary field, unlike every other engine in the enum.           |
-| Rename `zen` to `btrieve`              | Breaking. A synonym reaches the same result at no cost.                                       |
+| Rejected                               | Reason                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `analytics`                            | A category, not a product. Every other value names a concrete engine.                       |
+| `vector`                               | Mid-life name, and overlaps the `vector` logical type of RFC 0042.                          |
+| `actian`                               | Vendor name. Actian ships five of the engines named here; `zen` is already in the enum.     |
+| `actian-analytics`, `actianvector`     | Track current marketing, and `actian-analytics` would be the first hyphen in the enum.      |
+| `nsql`, `actian-nosql`                 | Post-acquisition branding, applied in 2017; `nsql` also reads as a category, not a product. |
+| `vod`                                  | Initialism. No other enum value is one.                                                     |
+| `fastobjects`                          | The 2001 rebrand of POET, not the creation name.                                            |
+| `custom` for any of them               | Hides connection details in unstructured fields.                                            |
+| Reuse `zen`                            | A different engine with a different connection model. Only the vendor is shared.            |
+| One `actian` type with a discriminator | Puts the engine choice in a secondary field, unlike every other engine in the enum.         |
+| Rename `zen` to `btrieve`              | Breaking. A synonym reaches the same result at no cost.                                     |
 
 ## Decision
 
@@ -244,8 +392,8 @@ Proposed, not applied. They land only if the TSC approves.
 
 ## Consequences
 
-- Nonbreaking: two new optional types, one new synonym. No existing value changes meaning.
-- `vectorwise` does not match current marketing. Tooling should display the Analytics Engine label and write `vectorwise`.
+- Nonbreaking: four new optional types, one new synonym. No existing value changes meaning.
+- `vectorwise`, `versant` and `poet` do not match current marketing. Tooling should display the Analytics Engine, Actian NoSQL Database and Actian NoSQL FastObjects labels, and write the enum value.
 - Two enum values now map to `ZenServer`, as with `postgresql` and `postgres`. Writers pick one; readers accept both.
 - The convention binds future server-type RFCs. It renames nothing.
 
@@ -253,12 +401,13 @@ Proposed, not applied. They land only if the TSC approves.
 
 - [Actian Ingres](https://www.actian.com/databases/ingres/)
 - [Actian Analytics Engine](https://www.actian.com/databases/analytics-engine/)
+- [Actian NoSQL object databases](https://www.actian.com/databases/nosql/)
 - RFC 0045 (HANA), RFC 0057 (Teradata), RFC 0058 (Exasol) — structural templates.
 - RFC 0042 (Vector Type) — the unrelated `vector` logical type.
 
 ## Appendix A: convention rationale
 
-An enum value cannot be renamed without a breaking change, so it is a permanent API. Product names are not: they change on rebrands and acquisitions while the connection model stays put. The Analytics Engine has been VectorWise (2010, from the CWI X100 research line), Actian Vector, and Actian Analytics Engine — three names, one engine. Zen has been Btrieve, Pervasive PSQL, Actian Zen. The creation name is the only one that never changes afterwards, so it is the only one safe to commit to an enum.
+An enum value cannot be renamed without a breaking change, so it is a permanent API. Product names are not: they change on rebrands and acquisitions while the connection model stays put. The Analytics Engine has been VectorWise (2010, from the CWI X100 research line), Actian Vector, and Actian Analytics Engine — three names, one engine. Zen has been Btrieve, Pervasive PSQL, Actian Zen. FastObjects has been POET (Poet Software GmbH), FastObjects by Poet (June 2001), Versant FastObjects (Versant merged with Poet Holdings in March 2004), Actian NoSQL FastObjects (Actian acquired Versant in December 2012) — four names, one engine. The Versant Object Database held its name from 1988 until the 2017 Actian NoSQL rebrand. The creation name is the only one that never changes afterwards, so it is the only one safe to commit to an enum.
 
 ## Appendix B: conformance of existing values
 
