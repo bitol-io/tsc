@@ -35,7 +35,6 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0055](0055-delta-server-type.md) | Delta Lake server type |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
 | [0057](0057-teradata-server-type.md) | Teradata server type |
-| [0059](0059-actian-server-types.md) | Actian server types |
 
 ## Approved RFCs
 
@@ -91,6 +90,7 @@ Accepted by the TSC and shipped in the standard/version shown. Each links to its
 | [0050](0050-variables.md) | Variables |
 | [0051](0051-deprecated-flag.md) | Deprecated flag for schema and properties |
 | [0058](0058-exasol-server-type.md) | Exasol server type |
+| [0059](0059-actian-server-types.md) | Actian server types |
 
 ### ODPS v0.9.0
 
