@@ -35,6 +35,8 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0055](0055-delta-server-type.md) | Delta Lake server type |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
 | [0057](0057-teradata-server-type.md) | Teradata server type |
+| [0059](0059-actian-server-types.md) | Actian server types |
+| [0060](0060-dq-dimensions.md) | Open Data Quality Dimensions |
 
 ## Approved RFCs
 
