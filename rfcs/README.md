@@ -37,6 +37,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0057](0057-teradata-server-type.md) | Teradata server type |
 | [0059](0059-actian-server-types.md) | Actian server types |
 | [0060](0060-dq-dimensions.md) | Open Data Quality Dimensions |
+| [0061](0061-sbom-metadata.md) | Tags, custom properties and authoritative definitions for SBOMs |
 
 ## Approved RFCs
 
