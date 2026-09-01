@@ -15,7 +15,7 @@ Applies to:
 * [ ] OOCS - Open Orchestration and Control Standard
 * [ ] OMMS - Open Maturity Model Standard
 * [ ] OMDS - Open Metadata Difference Standard
-* [X] OSDS - Open Semantic Definition Standard *(Option C only, as the import source)*
+* [X] OSDS - Open Semantic Definition Standard *(Option C only — as an import source, and as the standard Option C places requirements on)*
 
 ## Summary
 
@@ -23,7 +23,7 @@ Define a mechanism for reusing definitions (quality rules, property definitions,
 
 - **Option A** — Imports as a relationship type (`type: imports`) within the existing `relationships` block. The contract references external content that must be resolved at processing time. The contract is **not self-contained** until resolution.
 - **Option B** — A top-level `imports` block that declares external sources centrally, with content **always materialized inline**. The contract is **always self-contained**. A preprocessor refreshes materialized content from sources on demand, similar to how a C preprocessor expands `#include` directives.
-- **Option C** — No new block at all. An element binds to an OSDS semantic definition through the already-shared Authoritative Definitions block, using one new recommended `type` value, and **inherits** the attributes it does not state itself. Inline values always win, and an unresolved reference costs inherited attributes rather than breaking the document.
+- **Option C** — No new block at all. An element binds to a definition through the already-shared Authoritative Definitions block, using one new recommended `type` value, and **inherits** the attributes it does not state itself. The source is an OSDS semantic definition, or another document of the element's own standard — an ODCS contract for ODCS, an ODPS product for ODPS. Inline values always win, and an unresolved reference costs inherited attributes rather than breaking the document.
 
 ## Motivation
 
@@ -1303,16 +1303,28 @@ The new fields introduced by Option B do not conflict with existing ODCS or ODPS
 ### Prerequisites
 
 - The shared Authoritative Definitions block, already present in ODCS v3.x and ODPS v1.x. No new block, no new annotation, no `relationships` dependency.
-- RFC-0044 (OSDS) for the recommended source kind. Not a hard dependency: any document that carries the elements of a definition can be a source.
+- RFC-0044 (OSDS) for the recommended source kind. Not a hard dependency — an ODCS contract and an ODPS product are sources too. See *Import sources* below.
 - RFC-0047 (relationship id) for the id character set — ids cannot contain `@`, `#`, or `/`, which is what makes the delimiters below unambiguous.
 
 ### Overview
 
 An element does not declare *what it imports*; it declares *what it means*. It carries one Authoritative Definition whose `type` marks the link **resolvable**: the target is not documentation about the element, it is the definition the element inherits from. A resolver dereferences the link and fills in the attributes the element does not state itself. **Inline values always win.**
 
-The import source is an OSDS document (`kind: SemanticDefinition`) — a first-class semantic artifact owned by a domain — rather than another contract's internals. This is the RFC-0044 binding, given resolution semantics.
+The recommended source is an OSDS document (`kind: SemanticDefinition`) — a first-class semantic artifact owned by a domain, rather than another contract's internals. This is the RFC-0044 binding, given resolution semantics. It is not the only source: see *Import sources* below.
 
 Where Option A transcludes content at processing time and Option B materializes it behind a preprocessor, Option C **inherits attribute by attribute at the point of use**. The contract is never invalid for want of a resolver: an unresolved reference costs inherited attributes, it does not break the document.
+
+### Import sources
+
+**An element imports from OSDS, or from its own standard.** OSDS is the cross-standard source — meaning is meaning, whoever consumes it. Everything else stays within one standard, because a definition is only inheritable by an element of the same shape: an ODPS output port has nothing to give an ODCS property.
+
+| Source kind                       | Available to     | Fragment root                                     | The layering it serves                                                                     |
+| --------------------------------- | ---------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| OSDS `kind: SemanticDefinition`   | ODCS, ODPS, OSDS | `#/definitions/<id>`                              | A concept owned and versioned by a domain, bound to by anything that carries its data.     |
+| ODCS `kind: DataContract`         | ODCS             | `#/schema/<object-id>/properties/<property-id>`   | A business-level contract plus one technical contract per materialization.                 |
+| ODPS `kind: DataProduct`          | ODPS             | `#/outputPorts/<id>`, `#/inputPorts/<id>`, …      | A product template, or a reference product, that concrete products inherit their ports from. |
+
+Cross-standard imports other than OSDS are out of scope. Nothing forbids a resolver from supporting them, but this RFC defines no merge semantics for them.
 
 ### Structure
 
@@ -1393,7 +1405,7 @@ The identifier is the target document's root-level `id` — an OSDS document `id
 | `@latest`           | Reserved. Floating, explicitly and visibly.                                                                                              |
 | On a file locator   | An assertion on the resolved file's `version`, as above.                                                                                  |
 
-Both `@3.1.4` and `@v3.1.4` are accepted because both spellings are in use: semver writes `3.1.4`, git tags write `v3.1.4`.
+Both `@3.1.4` and `@v3.1.4` are accepted because both spellings are in use inside Bitol itself: ODCS contracts write `version: 1.5.0`, ODPS products write `version: v1.1.0`, and git tags write `v3.1.4`. A reference should not have to know which convention the target picked.
 
 Exact matching only is deliberate. A contract is a governance artifact; a floating dependency range inside one is a defect, not a convenience. Ranges remain a compatible future extension of the version token if usage demands them.
 
@@ -1402,8 +1414,9 @@ Exact matching only is deliberate. A contract is a governance artifact; a floati
 The fragment reuses the ODCS reference notation verbatim, in its external form (leading `/` after the `#`):
 
 ```
-#/definitions/<definition-id>[/properties/<id>]…[/items]   → into an OSDS document
+#/definitions/<definition-id>[/properties/<id>]…[/items]          → into an OSDS document
 #/schema/<object-id>/properties/<property-id>[/properties/<id>]…  → into an ODCS contract
+#/outputPorts/<port-id>   #/inputPorts/<port-id>   #/managementPorts/<port-id>   → into an ODPS product
 ```
 
 - Each segment matches on `id` first and falls back to `name`. Reference by `id`: a `name` is free to change, an `id` is not.
@@ -1426,6 +1439,7 @@ The fragment reuses the ODCS reference notation verbatim, in its external form (
 | `sales-semantics@latest#/definitions/clv`                            | Id; floating, stated explicitly.                          |
 | `urn:acme:semantics:sales@1.2.0#/definitions/clv`                    | Id (URN); pinned.                                         |
 | `top-artists.odcs.yaml#/schema/artists_ba/properties/artist_name`    | File; a property of an ODCS contract as the source.       |
+| `product-template@2.0.0#/outputPorts/tabular_port`                    | Id; an output port of an ODPS product as the source.      |
 
 ### Merge semantics
 
@@ -1437,11 +1451,16 @@ The fragment reuses the ODCS reference notation verbatim, in its external form (
 | Merged when absent     | `description`, `businessName`, `logicalType`, `logicalTypeOptions`, `classification`, `criticalDataElement`, `examples`     | Taken from the source only if the element does not state them.        |
 | Unioned                | `tags`, `customProperties`, `quality`                                                                                       | Source entries are added; on an `id` collision the element's entry wins. |
 
+The table above names ODCS fields. The three classes carry over to the other standards:
+
+- **ODPS** — never merged: `id`, `name`, `version`, `contractId`, `authoritativeDefinitions`, `sbom`, `inputContracts`. Merged when absent: `description`, `type`, `context`, `deprecated`. Unioned: `tags`, `customProperties`, `synonyms`.
+- **OSDS** — a definition importing from another definition follows the ODCS classes, with `semanticType` and `relationships` merged when absent and `properties` / `items` never merged, as everywhere else.
+
 Resolution recurses into nested `properties` and array `items`, so a link on a deeply nested field resolves too.
 
 **Transitive.** If the resolved definition itself carries a resolvable link — concept → ontology term, technical property → business property → glossary — that link resolves first and the result is merged inward. Each document is read once per run. A cycle is reported as an error, not followed.
 
-**Reusable quality rules.** Option C carries quality rules only when the source carries them. An ODCS property used as a source does; an OSDS `definitions` entry does not, in RFC-0044 as written. Covering the shared quality-rule-library use case through OSDS therefore requires adding `quality` to OSDS definitions — a small follow-up to RFC-0044, called out here because it is the one motivating use case Option C does not cover out of the box.
+**Reusable quality rules.** Option C carries quality rules only when the source carries them — an ODCS property does, an OSDS definition does not yet. See *Impact on OSDS* below.
 
 ### Degradation and materialization
 
@@ -1583,6 +1602,55 @@ schema:
 
 `crm_email` keeps `classification: restricted` and inherits `logicalType` and `examples`. `crm_cust_id` inherits `criticalDataElement` and `classification` but keeps its own `physicalType`, `required` and `primaryKey`. The structural `properties` of the `customer` concept are never merged: this contract flattens three sub-definitions into three columns, and says so field by field.
 
+### Example C-3: An ODPS product inheriting a port from a product template
+
+The source does not have to be a semantic definition. Within one standard, a product inherits from a reference product exactly as a technical contract inherits from a business contract.
+
+**acme-product-template.odps.yaml** (Platform team):
+```yaml
+apiVersion: v1.1.0
+kind: DataProduct
+id: acme.platform.product-template
+name: ACME Standard Data Product Template
+version: v2.0.0
+status: active
+domain: platform
+outputPorts:
+  - id: tabular_port
+    name: tabular
+    type: tables
+    description: Governed tabular access — Iceberg tables on the lakehouse.
+    tags:
+      - governed
+      - tabular
+    customProperties:
+      - property: retentionDays
+        value: 2555
+```
+
+**customer-360.odps.yaml** (Sales domain):
+```yaml
+apiVersion: v1.1.0
+kind: DataProduct
+id: acme.sales.customer-360
+name: Customer 360
+version: v1.0.0
+status: active
+domain: sales
+outputPorts:
+  - id: c360_tabular
+    name: tabular
+    version: 1.0.0
+    contractId: 8f2b4c1e-6d3a-4f9b-9c7e-2a1b3c4d5e6f
+    tags:
+      - customer
+    authoritativeDefinitions:
+      - type: semanticDefinition
+        url: acme.platform.product-template@v2.0.0#/outputPorts/tabular_port
+```
+
+The port inherits `type`, `description` and `customProperties`, and unions the template's `tags` with its own, giving `governed`, `tabular`, `customer`. It keeps its `id`, `name`, `version` and `contractId` — the template says what kind of port this is, the product says which one it is.
+
 ### Applicability to ODPS
 
 None required. The Authoritative Definitions block is already shared across all Bitol standards, so an ODPS element binds to an OSDS concept today with no ODPS schema change:
@@ -1597,6 +1665,19 @@ authoritativeDefinitions:
 The one addition, `semanticDefinition` in the shared recommended `type` vocabulary, lands in ODCS, ODPS and OSDS at once.
 
 **Effort:** None — the only change is a recommended value in a shared open vocabulary.
+
+### Impact on OSDS
+
+OSDS is still in discussion, so Option C can shape RFC-0044 rather than work around it. Option C asks one thing of OSDS: **a definition must be referenceable by anything, from anyone — and must itself be able to reference anything from anyone.** Any element of any Bitol standard, in any repository, owned by any domain or organization, binds to a concept; and a concept links onward to another concept, an ontology term, or a glossary entry, across those same boundaries. Neither direction has a central registry to mediate it.
+
+Four consequences for RFC-0044:
+
+1. **Document ids must be readable and globally scoped, not UUID-only.** RFC-0044 describes the document `id` as "a unique identifier for the document, such as a UUID". An id locator resolves that id — `acme.sales.semantics@1.2.0` — so a UUID-only convention makes every id locator unreadable and leaves the file locator as the only usable shape. OSDS should allow, and recommend, a reverse-DNS or URN-style id that is unique across organizations without anyone allocating it.
+2. **`version` must be present on any document meant to be referenced.** RFC-0044 marks the document `version` optional. `@version` matches that field, so an unversioned OSDS document cannot be pinned and floating becomes the only option available to its consumers.
+3. **OSDS outward links must accept this same locator grammar.** `relationships[].to` and `authoritativeDefinitions[].url` are the "reference anything from anyone" half of the requirement. If they accept file, network and id locators, with `@version` and the same fragment notation, then a whole chain — contract property → concept → concept in another domain → ontology term — resolves under one set of rules and one cycle detector. RFC-0044 already specifies `<url>#/...` external references; the id locator and the version token are what is missing.
+4. **Definitions should be able to carry `quality`.** Option C inherits quality rules only when the source has them. An ODCS property does; an OSDS `definitions` entry does not. This is the one motivating use case of this RFC — the shared quality-rule library — that Option C does not cover through OSDS out of the box.
+
+Points 1 to 3 are RFC-0044's to settle and belong in that discussion, not this vote. None of them block Option C: with an ODCS or ODPS source, or with a file locator against an OSDS document, Option C works against RFC-0044 exactly as written.
 
 ---
 
@@ -1613,6 +1694,7 @@ The one addition, `semanticDefinition` in the shared recommended `type` vocabula
 | **Updating from source**             | Automatic at processing time                                   | Explicit — run preprocessor to refresh                                           | Automatic, and pinnable — `@version` freezes it                                 |
 | **Versioning of the source**         | Not addressed                                                  | Not addressed                                                                    | First-class — `@3.1.4` / `@v3.1.4`, floating warned about                       |
 | **What is imported**                 | Any contract fragment                                          | Any contract fragment                                                            | The attributes of one definition; structure is never merged                     |
+| **Where it is imported from**        | Any contract or file                                           | Any contract or file                                                             | OSDS, or the element's own standard (ODCS from ODCS, ODPS from ODPS)            |
 | **Reusable quality rules**           | Yes                                                            | Yes                                                                              | Only if the source carries them (needs `quality` in OSDS definitions)           |
 | **Alignment with guiding values**    | Favors a small standard (reuses `relationships`)               | Favors interoperability (self-contained, tool-independent)                       | Favors both — no new surface, and meaning is owned by the domain that defines it |
 | **Precedent in ODCS**                | Consistent with RFC-0026b relationship patterns                | Consistent with RFC-0036 variable declaration pattern                            | Consistent with RFC-0038/RFC-0044 authoritative-definition binding              |
@@ -1682,14 +1764,16 @@ Key scenarios enabled by these options:
 - No schema change to ODCS or ODPS — one recommended value in a shared open vocabulary
 - Versioning of the source is part of the reference (`@1.2.0`), so a contract can pin what it depends on
 - Meaning is owned and versioned by the domain that defines it, not copied into every consumer
+- Works within a standard as well as across them: business contract → technical contract in ODCS, product template → product in ODPS
 - Graceful degradation — an unresolved reference costs inherited attributes, it does not invalidate the document
 - Composable with Option B: materializing a resolved contract yields an Option B contract
 - Already prototyped end to end in an existing tool (see [Appendix B](#appendix-b-prior-art-in-datacontract-cli))
 
 ### Negative (Option C)
-- Depends on RFC-0044 (OSDS) being approved for its recommended source kind
+- Depends on RFC-0044 (OSDS) being approved for its recommended source kind, and places requirements on it in return (readable document ids, a mandatory `version`, the same locator grammar on OSDS's own outward links)
 - Does not cover the shared quality-rule-library use case until OSDS definitions can carry `quality`
 - Imports one definition's attributes, not arbitrary contract fragments — no SLA blocks, no server templates
+- Cross-standard imports other than from OSDS are undefined — an ODCS property cannot inherit from an ODPS port
 - Resolution requires a resolver for id locators; the standard specifies the notation, not the registry
 - Reading a contract in full requires following links, unless a tool materializes them first
 
