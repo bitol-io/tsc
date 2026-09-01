@@ -23,7 +23,7 @@ Applies to:
 
 A Bitol delivery is several documents: a product, the contracts its ports expose, the semantic definitions those contracts bind to. Several files is right while they are authored — each is owned, versioned and reviewed by a different team. It is wrong at a system boundary, where the delivery has to be one file a consumer can read, validate and verify without fetching anything.
 
-This RFC opens the question of letting one document **embed the documents it references**, so a product plus its contracts plus its definitions travel as a single, signable artifact. It presents three candidate shapes and asks the TSC which to specify; it does not pick one.
+This RFC opens the question of letting one document **embed the documents it references**, so a product plus its contracts plus its definitions travel as a single, signable artifact. It presents two candidate options and asks the TSC which to specify; it does not pick one.
 
 ## Motivation
 
@@ -36,9 +36,9 @@ Ownership splits files. Delivery wants one.
 
 ## Design and examples
 
-Three shapes. Each is sketched with the same delivery: a data product with two output ports, both exposing contracts, one contract binding to a semantic definition.
+Two options. Each is sketched with the same delivery: a data product with two output ports, both exposing contracts, one contract binding to a semantic definition.
 
-### Shape 1 — Inline at the reference site
+### Option A — Inline at the reference site
 
 The referencing element carries the referenced document.
 
@@ -65,29 +65,37 @@ outputPorts:
               logicalType: string
 ```
 
-Obvious to read and to write. Two ports sharing one contract embed it twice, and an OSDS document, which no port references, has nowhere to go.
+Obvious to read and to write, and the delivered file is still a data product — the thing the consumer asked for, with more of it filled in.
 
-### Shape 2 — A document bundle at the root
+Against it: a contract exposed by two ports is embedded twice, and the copies can drift apart within one file. An OSDS document, which no port references, has nowhere to go at all, so this option covers the product-to-contract case and no other.
 
-A top-level array carries whole documents, each keeping its own envelope. Existing references resolve against the bundle first, then outward.
+### Option B — An envelope kind
+
+A new `kind: Bundle` carries the documents and names the root one. Every document keeps its own envelope, and each appears once however often it is referenced.
 
 ```yaml
-apiVersion: v1.1.0
-kind: DataProduct
-id: acme.sales.customer-360
+apiVersion: v1.0.0
+kind: Bundle
+id: acme.sales.customer-360.delivery
 version: 2.3.0
-name: Customer 360
-outputPorts:
-  - id: c360_tabular
-    name: tabular
-    contractId: acme.sales.customer-360.tabular
-    version: 1.4.0
-  - id: c360_events
-    name: events
-    contractId: acme.sales.customer-360.events
-    version: 1.1.0
+root: acme.sales.customer-360
 
 documents:
+  - apiVersion: v1.1.0
+    kind: DataProduct
+    id: acme.sales.customer-360
+    version: 2.3.0
+    name: Customer 360
+    outputPorts:
+      - id: c360_tabular
+        name: tabular
+        contractId: acme.sales.customer-360.tabular
+        version: 1.4.0
+      - id: c360_events
+        name: events
+        contractId: acme.sales.customer-360.events
+        version: 1.1.0
+
   - apiVersion: v3.2.0
     kind: DataContract
     id: acme.sales.customer-360.tabular
@@ -134,15 +142,13 @@ signatures:
     value: MEUCIQDf1x9nQ8mZ2K3hV0pQ7yJ8Lx4aB6cE9dG2fH5iK1mNoA==
 ```
 
-One copy per document, whatever references it and however often. It covers every reference kind, not only ports — the OSDS document is reachable because the bundle is addressed by id, not by position. Strip `documents:` and what remains is exactly the product as authored. The cost is a new top-level section in every standard that can carry a bundle.
+No change to any existing standard: ODCS, ODPS and OSDS documents go in unmodified, and every reference between them is the one their authors already wrote. It covers every reference kind, not only ports — the OSDS document is reachable because documents are addressed by id, not by position. One signature over the envelope covers the whole delivery.
 
-### Shape 3 — An envelope kind
-
-A new `kind: Bundle` holding a list of documents and naming the root one. No change to any existing standard, but every tool must learn a new document kind, and the product stops being the artifact — what is delivered is a box with a product in it.
+Against it: every tool has to learn a new document kind, and the product stops being the artifact — what arrives is a box with a product in it, and a consumer expecting `kind: DataProduct` at the root gets something else.
 
 ### Resolution order
 
-Whichever shape is chosen, resolution is: **the bundle first, then the outside world.** An id present in the bundle resolves there and no fetch happens. An id present in the bundle at a version other than the one requested is an error, never a silent fallback to the network. The same id and version twice in a bundle is an error.
+Whichever option is chosen, resolution is: **the artifact first, then the outside world.** An id carried by the artifact resolves there and no fetch happens. An id carried at a version other than the one requested is an error, never a silent fallback to the network. The same id and version twice in one artifact is an error.
 
 This composes with [RFC-0032](0032-imports.md) rather than replacing it: RFC-0032 says how a reference is written and resolved, this says where the resolver looks first.
 
@@ -151,35 +157,36 @@ This composes with [RFC-0032](0032-imports.md) rather than replacing it: RFC-003
 The question the TSC has to answer, because everything else follows from it.
 
 - **A cache** — the canonical document wins whenever it is reachable, and the embedded copy is a convenience for when it is not.
-- **The artifact** — what was bundled, signed and delivered is what is true. A later divergence from the canonical source is a governance event to be reported, not an override to be applied silently.
+- **The artifact** — what was assembled, signed and delivered is what is true. A later divergence from the canonical source is a governance event to be reported, not an override to be applied silently.
 
 This RFC recommends **the artifact**. A signed delivery whose content can be changed by something it references has not been delivered, and a consumer cannot verify what they were given.
 
 ### Signing
 
-Bundle, then sign. Never the reverse: bundling a signed document changes its bytes, and RFC-0062 forbids lenient verification, so the signature would correctly read as `invalid`.
+Assemble, then sign. Never the reverse: embedding a signed document changes the bytes around it and its own position in them, and RFC-0062 forbids lenient verification, so the signature would correctly read as `invalid`.
 
-With shape 2, one signature over the outer document covers every embedded document, because they are part of the canonical bytes. RFC-0062's `covers` stays the tool for what you deliberately do not embed — a large SBOM, a rendered PDF — binding it by digest instead of by value.
+Under either option, one signature over the delivered artifact covers every document inside it, because they are part of its canonical bytes. That is the whole point of the exercise. RFC-0062's `covers` stays the tool for what you deliberately do not embed — a large SBOM, a rendered PDF — binding it by digest instead of by value.
 
 ## Alternatives
 
 - **Do nothing; resolve at read time.** The status quo. It works in a repository and fails at every boundary that matters.
+- **A root-level `documents:` array inside the product itself.** The product keeps its `kind` and gains a top-level array holding whole documents, referenced by id. Rejected, and it was the most tempting of the three designs considered: it gives one copy per document and leaves the artifact a data product. But it makes a product both a product and a container of unrelated documents, so its `kind` no longer describes its content; it needs a new top-level section in every standard that can carry one, the largest schema change of the three in a family that avoids exactly that kind of churn; and it puts a shadowing mechanism inside an ordinary document, where a bundled copy silently wins over the canonical one with nothing in the `kind` to warn a reader. An envelope makes the same containment explicit, at the cost of being explicit.
 - **A sidecar archive (tar, zip) holding the document set.** Loses the single-file property that makes a Bitol document readable, greppable and schema-validated, and the sidecar is the thing that gets lost.
 - **RFC-0062 `covers` digests alone.** Proves what a referenced document was at signing time, which is real value, but the consumer still has to fetch it — the boundary problem is untouched.
 - **An OCI artifact or image manifest.** The right shape from the right ecosystem, and worth revisiting for distribution, but it moves the answer out of the YAML that every other Bitol standard lives in.
 
 ## Decision
 
-> Pending. This RFC is deliberately a discussion opener: it names the problem and three shapes, and asks the TSC which to specify.
+> Pending. This RFC is deliberately a discussion opener: it names the problem and two options, and asks the TSC which to specify.
 
 ## Consequences
 
-- Additive and optional in every standard it touches. A document with no bundle is unchanged.
+- Additive and optional. Under Option A a document with no inline contract is unchanged; under Option B no existing standard changes at all.
 - Duplication is the cost, accepted deliberately — the same trade RFC-0032 Option B makes, for the same reason.
-- Bundled deliveries are large. Tooling has to stream rather than assume a document fits comfortably in memory.
+- Assembled deliveries are large. Tooling has to stream rather than assume a document fits comfortably in memory.
 - Version drift between an embedded copy and its canonical source becomes visible and reportable, where today it is invisible.
 - RFC-0062 signatures become meaningful at the delivery boundary: what is signed is what the consumer got, in full.
-- A bundle is a snapshot. Deciding it is the artifact rather than a cache means a consumer can be reading a definition its owning domain has already superseded — which is the point, and has to be said out loud.
+- An assembled artifact is a snapshot. Deciding it is the artifact rather than a cache means a consumer can be reading a definition its owning domain has already superseded — which is the point, and has to be said out loud.
 
 ## References
 
