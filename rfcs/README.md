@@ -38,6 +38,8 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0059](0059-actian-server-types.md) | Actian server types |
 | [0060](0060-dq-dimensions.md) | Open Data Quality Dimensions |
 | [0061](0061-sbom-metadata.md) | Tags, custom properties and authoritative definitions for SBOMs |
+| [0062](0062-signatures.md) | Signatures — integrity and provenance for every Bitol document |
+| [0063](0063-single-artifact.md) | Single Artifact — embedding referenced documents for delivery |
 
 ## Approved RFCs
 
