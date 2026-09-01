@@ -1349,8 +1349,6 @@ No new fields. Option C uses the shared Authoritative Definitions fields as they
 
 `semanticDefinition` is a working name; see [Appendix A](#appendix-a-naming-the-resolvable-type-option-c) for the alternatives and the recommendation. The name is the TSC's to settle; the mechanism is unchanged either way.
 
-`businessDefinition` stays **informational**. Making the existing value resolvable would change the behaviour of contracts already in the wild — a `businessDefinition` pointing at a Confluence page would start failing to resolve. A new value avoids that entirely.
-
 ### The URL mechanism
 
 Every reference is a **locator**, optionally followed by a **fragment**:
@@ -1477,11 +1475,11 @@ A definition inheriting from another definition, in the same document or another
 | ------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Never merged       | `id`, `name`, `properties`(*), `items`(*)                                                                         | Identity and structure belong to the referencing author.                 |
 | Merged when absent | `description`, `businessName`, `semanticType`, `logicalType`, `classification`, `criticalDataElement`, all others | Taken from the source only if the element does not state them.           |
-| Unioned            | `tags`, `customProperties`, `relationships`(*), `authoritativeDefinitions`(*)                                     | Source entries are added; on an `id` collision the element's entry wins. |
+| Unioned            | `tags`, `customProperties`, `quality`, `relationships`(*), `authoritativeDefinitions`(*)                          | Source entries are added; on an `id` collision the element's entry wins. |
 
 (*) To be discussed
 
-`quality` is absent from the OSDS table because OSDS definitions cannot carry quality rules today — an ODCS property source can hand them over, an OSDS definition cannot. It will have to. It is updated as you read this nevertheless. See *Impact on OSDS* below.
+An OSDS definition carries `quality` when its `appliesTo` names an element kind that has it — a property, a schema object — so a shared quality-rule library works through OSDS exactly as it does through an ODCS source. See RFC-0044, *Element coverage*.
 
 Resolution recurses into nested `properties` and array `items`, so a link on a deeply nested field resolves too.
 
@@ -1696,16 +1694,14 @@ The one addition, `semanticDefinition` in the shared recommended `type` vocabula
 
 OSDS is still in discussion, so Option C  will need to reshape RFC-0044 rather than work around it. Option C asks one thing of OSDS: **a definition must be referenceable by anything, from anyone — and must itself be able to reference anything from anyone.** Any element of any Bitol standard, in any repository, owned by any domain or organization, binds to a concept; and a concept links onward to another concept, an ontology term, or a glossary entry, across those same boundaries. Neither direction has a central registry to mediate it.
 
-Four consequences for RFC-0044:
+Three consequences for RFC-0044:
 
 1. **Document ids must be readable and globally scoped, not UUID-only.** RFC-0044 describes the document `id` as "a unique identifier for the document, such as a UUID". An id locator resolves that id — `acme.sales.semantics@1.2.0` — so a UUID-only convention makes every id locator unreadable and leaves the file locator as the only usable shape. OSDS should allow, and recommend, a reverse-DNS or URN-style id that is unique across organizations without anyone allocating it.
 2. **`version` must be present on any document meant to be referenced.** RFC-0044 marks the document `version` optional. `@version` matches that field, so an unversioned OSDS document cannot be pinned and floating becomes the only option available to its consumers.
 3. **OSDS outward links must accept this same locator grammar.** `relationships[].to` and `authoritativeDefinitions[].url` are the "reference anything from anyone" half of the requirement. If they accept file, network and id locators, with `@version` and the same fragment notation, then a whole chain — contract property → concept → concept in another domain → ontology term — resolves under one set of rules and one cycle detector. RFC-0044 already specifies `<url>#/...` external references; the id locator and the version token are what is missing.
-4. **Definitions should be able to carry `quality`.** Option C inherits quality rules only when the source has them. An ODCS property does; an OSDS `definitions` entry does not. This is the one motivating use case of this RFC — the shared quality-rule library — that Option C does not cover through OSDS out of the box.
-
 Points 1 to 3 are RFC-0044's to settle and belong in that discussion, not this vote. None of them block Option C: with an ODCS or ODPS source, or with a file locator against an OSDS document, Option C works against RFC-0044 as originally written.
 
-[RFC-0044](0044-osds.md) now proposes all four — readable, globally scoped document ids; `version` required on any referenced document; the same locator grammar on OSDS's own outward links; and, through its `appliesTo` field, definitions that carry any element's fields, `quality` included. Whether they land is that RFC's vote, not this one.
+[RFC-0044](0044-osds.md) now proposes all three, and closes what this RFC used to list as a fourth: through its `appliesTo` field a definition carries any element's fields, `quality` included, so the shared quality-rule library works through OSDS. Whether they land is that RFC's vote, not this one.
 
 ---
 
@@ -1729,6 +1725,50 @@ Points 1 to 3 are RFC-0044's to settle and belong in that discussion, not this v
 | **Programming analogy**              | Dynamic linking — resolved at load time                        | Static linking with source annotation — expanded at build time, traced to origin | Inheritance — the subclass states what differs, the rest comes from the parent     |
 
 Options B and C are not exclusive: a resolver that writes the merged result out produces exactly an Option B contract. C is the reference; B is one way to freeze it.
+
+---
+
+## Design time and delivery time
+
+Every option above produces a set of files. That is correct while the documents are being authored, and it stops being correct the moment they leave the place that holds them.
+
+### Several files is right at design time
+
+Splitting is how ownership works. A domain owns its semantic definitions and versions them on its own cadence. A business contract and the technical contracts that materialize it are reviewed by different people. A product template belongs to the platform team, the products built on it do not. Collapsing all of that into one document would put one team's approval in another team's file.
+
+### One artifact is right at delivery time
+
+A reference resolves in the repository that holds it. It does not resolve in a Kafka message, an API response, an object store, an email attachment, a customer's air-gapped environment, or a catalog that ingested the file two years ago and has been serving it ever since. At every one of those boundaries the consumer has the bytes and nothing else — no file system, no resolver, no network path back to the source.
+
+So a delivery **flattens**: resolve every reference and write the result out. Option C's *a resolver MAY write the merged result out* becomes a SHOULD at a system boundary. The output is Option B's materialized document, which is the point at which the three options stop being alternatives and become stages: **C is how you write it, B is what you ship.**
+
+### Three levels of flattening
+
+| Level                          | What it is                                                                       | Where it belongs                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **As authored**                | References unresolved. Requires a resolver to read fully.                        | The repository, the pull request, the review.                         |
+| **Flattened with provenance**  | Values merged in, and the links kept so each value can be traced to its source.  | Everywhere else. The recommended delivery form.                       |
+| **Flattened bare**             | Values merged in, links dropped. A plain self-contained document.                | Consumers that must not, or cannot, see the internal topology.        |
+
+Flattened with provenance is the recommendation: it costs one field per binding and it is the difference between a consumer being able to ask *where did this value come from* and having to guess.
+
+### Signing a flattened artifact
+
+[RFC-0062](0062-signatures.md) signs the canonical bytes of one document. That interacts with flattening in one direction only.
+
+An **as-authored** document is signable, and the signature is honest about what it covers: the references. It attests that these are the links the signer committed to — not to what those links resolve to, which may have changed since, and which the consumer may resolve differently or not at all. For a governance artifact that is usually not the promise anyone meant to make.
+
+A **flattened** document signs the values themselves. What the consumer verifies is what the consumer got.
+
+The order is therefore **flatten, then sign** — never the reverse. Flattening a signed document changes its bytes, and RFC-0062 forbids lenient verification, so the signature would correctly read as `invalid`. A pipeline that signs before it flattens has built a machine for producing broken signatures.
+
+Where a reference must stay unresolved — the source is large, or deliberately external — RFC-0062's `covers` binds it by digest instead of by value, so the signature still says something about it.
+
+### Further: one file, not one document
+
+Flattening resolves references *within* a document. It does not put an ODCS contract inside an ODPS product: ports carry `contractId` and `version`, never a contract, so a product delivery is still several files even fully flattened.
+
+Whether a product should embed its contracts, and its semantic definitions with them, so that a delivery is literally one file, is [RFC-0063](0063-single-artifact.md). It is out of scope here.
 
 ---
 
@@ -1819,6 +1859,8 @@ Key scenarios enabled by these options:
 - [ODCS References](https://github.com/bitol-io/open-data-contract-standard/blob/main/docs/references.md) — the fragment notation Option C reuses
 - [ODCS Authoritative Definitions](https://github.com/bitol-io/open-data-contract-standard/blob/dev/docs/authoritative-definitions.md) — the shared block Option C rides on
 - [datacontract-cli#1453](https://github.com/datacontract/datacontract-cli/pull/1453) (Simon Harrer) — the resolution model Option C adopts; see [Appendix B](#appendix-b-prior-art-in-datacontract-cli)
+- [RFC-0062 (Signatures)](0062-signatures.md) — what a signature over a flattened, versus an unflattened, document actually attests to
+- [RFC-0063 (Single Artifact)](0063-single-artifact.md) — the further step, one document embedding the documents it references
 - OpenAPI `$ref` mechanism
 - JSON Schema `$ref`
 - C/C++ preprocessor `#include` and `#define` model (inspiration for Option B)
