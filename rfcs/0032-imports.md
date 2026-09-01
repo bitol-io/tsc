@@ -1449,11 +1449,11 @@ The three classes are the same in every standard. Only the field lists differ, b
 
 #### ODCS
 
-| Class              | Fields                                                                                                                  | Behaviour                                                                |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Never merged       | `id`, `name`, `physicalName`, `physicalType`, `required`, `primaryKey`, `partitioned`,  `properties`(*), `items`(*)           | Structure and physical shape belong to the referencing author.           |
+| Class              | Fields                                                                                                                              | Behaviour                                                                |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Never merged       | `id`, `name`, `physicalName`, `physicalType`, `required`, `primaryKey`, `partitioned`,  `properties`(*), `items`(*)                 | Structure and physical shape belong to the referencing author.           |
 | Merged when absent | `description`, `businessName`, `logicalType`, `logicalTypeOptions`, `classification`, `criticalDataElement`, `examples`, all others | Taken from the source only if the element does not state them.           |
-| Unioned            | `tags`, `customProperties`, `quality`, `authoritativeDefinitions`(*)                                                       | Source entries are added; on an `id` collision the element's entry wins. |
+| Unioned            | `tags`, `customProperties`, `quality`, `authoritativeDefinitions`(*)                                                                | Source entries are added; on an `id` collision the element's entry wins. |
 
 (*) To be discussed
 
@@ -1461,11 +1461,11 @@ The three classes are the same in every standard. Only the field lists differ, b
 
 A port inheriting from a port of a template or reference product. The template says what kind of port this is; the product says which one it is, and which contract sits behind it.
 
-| Class              | Fields                                                                                              | Behaviour                                                                |
-| ------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Never merged       | `id`, `name`, `version`, `contractId`, `inputContracts`(*), `sbom`(*)                                | Identity, and the binding to a specific contract, belong to the referencing product. |
-| Merged when absent | `description`, `type`, `context`, `url`, `channel`, `content`, `deprecated`(*), all others           | Taken from the source only if the element does not state them.           |
-| Unioned            | `tags`, `customProperties`, `synonyms`, `authoritativeDefinitions`(*)                                | Source entries are added; on an `id` collision the element's entry wins. |
+| Class              | Fields                                                                                     | Behaviour                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Never merged       | `id`, `name`, `version`, `contractId`, `inputContracts`(*), `sbom`(*)                      | Identity, and the binding to a specific contract, belong to the referencing product. |
+| Merged when absent | `description`, `type`, `context`, `url`, `channel`, `content`, `deprecated`(*), all others | Taken from the source only if the element does not state them.                       |
+| Unioned            | `tags`, `customProperties`, `synonyms`, `authoritativeDefinitions`(*)                      | Source entries are added; on an `id` collision the element's entry wins.             |
 
 (*) To be discussed
 
@@ -1473,15 +1473,15 @@ A port inheriting from a port of a template or reference product. The template s
 
 A definition inheriting from another definition, in the same document or another domain's. OSDS has no physical shape to protect, so the never-merged class shrinks to identity and structure.
 
-| Class              | Fields                                                                                                          | Behaviour                                                                |
+| Class              | Fields                                                                                                            | Behaviour                                                                |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Never merged       | `id`, `name`, `properties`(*), `items`(*)                                                                        | Identity and structure belong to the referencing author.                 |
+| Never merged       | `id`, `name`, `properties`(*), `items`(*)                                                                         | Identity and structure belong to the referencing author.                 |
 | Merged when absent | `description`, `businessName`, `semanticType`, `logicalType`, `classification`, `criticalDataElement`, all others | Taken from the source only if the element does not state them.           |
-| Unioned            | `tags`, `customProperties`, `relationships`(*), `authoritativeDefinitions`(*)                                    | Source entries are added; on an `id` collision the element's entry wins. |
+| Unioned            | `tags`, `customProperties`, `relationships`(*), `authoritativeDefinitions`(*)                                     | Source entries are added; on an `id` collision the element's entry wins. |
 
 (*) To be discussed
 
-`quality` is absent from the OSDS table because OSDS definitions cannot carry quality rules today — an ODCS property source can hand them over, an OSDS definition cannot. See *Impact on OSDS* below.
+`quality` is absent from the OSDS table because OSDS definitions cannot carry quality rules today — an ODCS property source can hand them over, an OSDS definition cannot. It will have to. It is updated as you read this nevertheless. See *Impact on OSDS* below.
 
 Resolution recurses into nested `properties` and array `items`, so a link on a deeply nested field resolves too.
 
@@ -1694,7 +1694,7 @@ The one addition, `semanticDefinition` in the shared recommended `type` vocabula
 
 ### Impact on OSDS
 
-OSDS is still in discussion, so Option C can shape RFC-0044 rather than work around it. Option C asks one thing of OSDS: **a definition must be referenceable by anything, from anyone — and must itself be able to reference anything from anyone.** Any element of any Bitol standard, in any repository, owned by any domain or organization, binds to a concept; and a concept links onward to another concept, an ontology term, or a glossary entry, across those same boundaries. Neither direction has a central registry to mediate it.
+OSDS is still in discussion, so Option C  will need to reshape RFC-0044 rather than work around it. Option C asks one thing of OSDS: **a definition must be referenceable by anything, from anyone — and must itself be able to reference anything from anyone.** Any element of any Bitol standard, in any repository, owned by any domain or organization, binds to a concept; and a concept links onward to another concept, an ontology term, or a glossary entry, across those same boundaries. Neither direction has a central registry to mediate it.
 
 Four consequences for RFC-0044:
 
@@ -1703,28 +1703,30 @@ Four consequences for RFC-0044:
 3. **OSDS outward links must accept this same locator grammar.** `relationships[].to` and `authoritativeDefinitions[].url` are the "reference anything from anyone" half of the requirement. If they accept file, network and id locators, with `@version` and the same fragment notation, then a whole chain — contract property → concept → concept in another domain → ontology term — resolves under one set of rules and one cycle detector. RFC-0044 already specifies `<url>#/...` external references; the id locator and the version token are what is missing.
 4. **Definitions should be able to carry `quality`.** Option C inherits quality rules only when the source has them. An ODCS property does; an OSDS `definitions` entry does not. This is the one motivating use case of this RFC — the shared quality-rule library — that Option C does not cover through OSDS out of the box.
 
-Points 1 to 3 are RFC-0044's to settle and belong in that discussion, not this vote. None of them block Option C: with an ODCS or ODPS source, or with a file locator against an OSDS document, Option C works against RFC-0044 exactly as written.
+Points 1 to 3 are RFC-0044's to settle and belong in that discussion, not this vote. None of them block Option C: with an ODCS or ODPS source, or with a file locator against an OSDS document, Option C works against RFC-0044 as originally written.
+
+[RFC-0044](0044-osds.md) now proposes all four — readable, globally scoped document ids; `version` required on any referenced document; the same locator grammar on OSDS's own outward links; and, through its `appliesTo` field, definitions that carry any element's fields, `quality` included. Whether they land is that RFC's vote, not this one.
 
 ---
 
 ## Option A vs Option B vs Option C
 
-| Concern                              | Option A (Relationship Type)                                   | Option B (Top-Level Imports)                                                     | Option C (External Definition References)                                        |
-| ------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **Self-contained contract**          | No — requires resolution at processing time                    | Yes — content always materialized inline                                         | Yes — valid unresolved; resolution enriches, it never validates                  |
-| **Standard surface area**            | Smaller — reuses existing `relationships` block                | Larger — new `imports` section + `$import` annotation                            | Smallest — one recommended `type` value in a shared open vocabulary              |
-| **Schema change required**           | Yes — new `imports` enum value (and `relationships` in ODPS)   | Yes — new top-level section and annotation in both standards                     | None                                                                             |
-| **Import declaration**               | Scattered across `relationships` blocks on individual elements | Centralized on the declaration side (`imports` section)                          | At the element that carries the meaning — no inventory                           |
+| Concern                              | Option A (Relationship Type)                                   | Option B (Top-Level Imports)                                                     | Option C (External Definition References)                                          |
+| ------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Self-contained contract**          | No — requires resolution at processing time                    | Yes — content always materialized inline                                         | Yes — valid unresolved; resolution enriches, it never validates                    |
+| **Standard surface area**            | Smaller — reuses existing `relationships` block                | Larger — new `imports` section + `$import` annotation                            | Smallest — one recommended `type` value in a shared open vocabulary                |
+| **Schema change required**           | Yes — new `imports` enum value (and `relationships` in ODPS)   | Yes — new top-level section and annotation in both standards                     | None                                                                               |
+| **Import declaration**               | Scattered across `relationships` blocks on individual elements | Centralized on the declaration side (`imports` section)                          | At the element that carries the meaning — no inventory                             |
 | **Provenance**                       | Implicit — the `type: imports` relationship is the only trace  | Explicit — `$import` annotation on every use site                                | Explicit — the link stays in the document, and the element's own entry always wins |
-| **External dependencies at runtime** | Required — tooling must access source files                    | Not required — contract stands alone                                             | Optional — unresolved means fewer inherited attributes, not an error             |
-| **Updating from source**             | Automatic at processing time                                   | Explicit — run preprocessor to refresh                                           | Automatic, and pinnable — `@version` freezes it                                  |
-| **Versioning of the source**         | Not addressed                                                  | Not addressed                                                                    | First-class — `@3.1.4` / `@v3.1.4`, floating warned about                        |
-| **What is imported**                 | Any contract fragment                                          | Any contract fragment                                                            | The attributes of one definition; whether structure comes too is open            |
-| **Where it is imported from**        | Any contract or file                                           | Any contract or file                                                             | OSDS, or the element's own standard (ODCS from ODCS, ODPS from ODPS)             |
-| **Reusable quality rules**           | Yes                                                            | Yes                                                                              | Only if the source carries them (needs `quality` in OSDS definitions)            |
-| **Alignment with guiding values**    | Favors a small standard (reuses `relationships`)               | Favors interoperability (self-contained, tool-independent)                       | Favors both — no new surface, and meaning is owned by the domain that defines it |
-| **Precedent in ODCS**                | Consistent with RFC-0026b relationship patterns                | Consistent with RFC-0036 variable declaration pattern                            | Consistent with RFC-0038/RFC-0044 authoritative-definition binding               |
-| **Programming analogy**              | Dynamic linking — resolved at load time                        | Static linking with source annotation — expanded at build time, traced to origin | Inheritance — the subclass states what differs, the rest comes from the parent   |
+| **External dependencies at runtime** | Required — tooling must access source files                    | Not required — contract stands alone                                             | Optional — unresolved means fewer inherited attributes, not an error               |
+| **Updating from source**             | Automatic at processing time                                   | Explicit — run preprocessor to refresh                                           | Automatic, and pinnable — `@version` freezes it                                    |
+| **Versioning of the source**         | Not addressed                                                  | Not addressed                                                                    | First-class — `@3.1.4` / `@v3.1.4`, floating warned about                          |
+| **What is imported**                 | Any contract fragment                                          | Any contract fragment                                                            | The attributes of one definition; whether structure comes too is open              |
+| **Where it is imported from**        | Any contract or file                                           | Any contract or file                                                             | OSDS, or the element's own standard (ODCS from ODCS, ODPS from ODPS)               |
+| **Reusable quality rules**           | Yes                                                            | Yes                                                                              | Yes                                                                                |
+| **Alignment with guiding values**    | Favors a small standard (reuses `relationships`)               | Favors interoperability (self-contained, tool-independent)                       | Favors both — no new surface, and meaning is owned by the domain that defines it   |
+| **Precedent in ODCS**                | Consistent with RFC-0026b relationship patterns                | Consistent with RFC-0036 variable declaration pattern                            | Consistent with RFC-0038/RFC-0044 authoritative-definition binding                 |
+| **Programming analogy**              | Dynamic linking — resolved at load time                        | Static linking with source annotation — expanded at build time, traced to origin | Inheritance — the subclass states what differs, the rest comes from the parent     |
 
 Options B and C are not exclusive: a resolver that writes the merged result out produces exactly an Option B contract. C is the reference; B is one way to freeze it.
 
@@ -1796,8 +1798,7 @@ Key scenarios enabled by these options:
 - Already prototyped end to end in an existing tool (see [Appendix B](#appendix-b-prior-art-in-datacontract-cli))
 
 ### Negative (Option C)
-- Depends on RFC-0044 (OSDS) being approved for its recommended source kind, and places requirements on it in return (readable document ids, a mandatory `version`, the same locator grammar on OSDS's own outward links)
-- Does not cover the shared quality-rule-library use case until OSDS definitions can carry `quality`
+- May depend on RFC-0044 (OSDS) being approved for its recommended source kind, and places requirements on it in return (readable document ids, a mandatory `version`, the same locator grammar on OSDS's own outward links)
 - Imports one definition's attributes, not arbitrary contract fragments — no SLA blocks, no server templates
 - Cross-standard imports other than from OSDS are undefined — an ODCS property cannot inherit from an ODPS port
 - Resolution requires a resolver for id locators; the standard specifies the notation, not the registry
