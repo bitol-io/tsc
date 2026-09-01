@@ -17,6 +17,15 @@ Applies to:
 * [x] OMDS - Open Metadata Difference Standard
 * [x] OSDS - Open Semantic Definition Standard
 
+Target release, per standard:
+
+| Standard    | Current release | `signatures` lands in                     |
+| ----------- | --------------- | ------------------------------------------- |
+| ODCS        | v3.2.0          | **v3.3.0**                                |
+| ODPS        | v1.1.0          | **v1.2.0**                                |
+| OORS        | v0.2.0          | v1.0.0, its first stable release          |
+| OOCS, OMMS, OMDS, OSDS | none — in RFC | their first release                       |
+
 ## Summary
 
 Add one optional top-level `signatures` array, defined once and identical in every Bitol standard, so that any Bitol document can carry one or more detached-key, enveloped digital signatures — and so that any tool can verify one without knowing which vendor produced it. The array is excluded from the signing input, which makes signatures composable: several parties can sign the same document, in any order, without invalidating each other.
@@ -42,18 +51,18 @@ Add an optional `signatures` array at the root of every Bitol document. It is de
 
 ### The signature object
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | string | No | Stable identifier for this signature, as elsewhere in the standards. |
-| `algorithm` | string | Yes | JWA algorithm name. This RFC registers `RS256`, `ES256`, `ES384`, and `EdDSA`. |
-| `canonicalization` | string | Yes | Canonicalization profile. This RFC registers exactly one value: `JCS-RFC8785`. |
-| `created` | string | Yes | RFC 3339 UTC instant, asserted by the signer. |
-| `role` | string | No | Why this party signed: `author`, `approver`, `steward`, `publisher`, `producer`, or `auditor`. |
-| `signer` | object | Yes | Claimed identity: `name` (required), `email`, `url`, `scope` (`user`, `workspace`, or `service`). |
-| `key` | object | Yes | How to obtain the verification key. Exactly one of `certificateChain` (array of PEM strings, leaf first), `jwk` (RFC 7517 public key), or `uri` (dereferenceable key location). |
-| `covers` | array | No | Digests of external artifacts this signature also binds. Each entry: `url` or `id`, plus `digest` in `<alg>:<hex>` form. |
-| `expires` | string | No | RFC 3339 UTC instant after which the signer no longer stands behind the document. |
-| `value` | string | Yes | Base64 signature over the canonical bytes. |
+| Field              | Type   | Required | Description                                                                                                                                                                     |
+| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`               | string | No       | Stable identifier for this signature, as elsewhere in the standards.                                                                                                            |
+| `algorithm`        | string | Yes      | JWA algorithm name. This RFC registers `RS256`, `ES256`, `ES384`, and `EdDSA`.                                                                                                  |
+| `canonicalization` | string | Yes      | Canonicalization profile. This RFC registers exactly one value: `JCS-RFC8785`.                                                                                                  |
+| `created`          | string | Yes      | RFC 3339 UTC instant, asserted by the signer.                                                                                                                                   |
+| `role`             | string | No       | Why this party signed: `author`, `approver`, `steward`, `publisher`, `producer`, or `auditor`.                                                                                  |
+| `signer`           | object | Yes      | Claimed identity: `name` (required), `email`, `url`, `scope` (`user`, `workspace`, or `service`).                                                                               |
+| `key`              | object | Yes      | How to obtain the verification key. Exactly one of `certificateChain` (array of PEM strings, leaf first), `jwk` (RFC 7517 public key), or `uri` (dereferenceable key location). |
+| `covers`           | array  | No       | Digests of external artifacts this signature also binds. Each entry: `url` or `id`, plus `digest` in `<alg>:<hex>` form.                                                        |
+| `expires`          | string | No       | RFC 3339 UTC instant after which the signer no longer stands behind the document.                                                                                               |
+| `value`            | string | Yes      | Base64 signature over the canonical bytes.                                                                                                                                      |
 
 The document is valid with `signatures` absent, with one entry, or with many.
 
@@ -76,7 +85,7 @@ Verification MUST NOT normalize values before hashing. If a tool rewrote `versio
 ### Example 1: minimal
 
 ```yaml
-apiVersion: v3.2.0
+apiVersion: v3.3.0
 kind: DataContract
 id: 53581432-6c55-4ba2-a65f-72344a91553a
 version: 1.0.0
@@ -99,7 +108,7 @@ signatures:
 ### Example 2: structured — two signers, a certificate chain, and a covered SBOM
 
 ```yaml
-apiVersion: v1.1.0
+apiVersion: v1.2.0
 kind: DataProduct
 id: fbe8d147-28db-4f1d-bedf-a3fe9f458427
 version: 2.3.0
@@ -170,7 +179,7 @@ Pending TSC vote.
 ## Consequences
 
 - Non-breaking and additive in every standard: `signatures` is optional, and every currently valid document stays valid.
-- Schema: add a shared `$defs.Signature` and the root `signatures` property to the ODCS, ODPS, and OORS JSON schemas, and to OOCS, OMMS, OMDS, and OSDS as each is published. Because `signatures` is removed before canonicalization, the root staying `additionalProperties: false` costs nothing.
+- Schema: add a shared `$defs.Signature` and the root `signatures` property to ODCS v3.3.0 and ODPS v1.2.0, to OORS in v1.0.0, and to OOCS, OMMS, OMDS and OSDS in their first release. Because `signatures` is removed before canonicalization, the root staying `additionalProperties: false` costs nothing.
 - Docs: one shared page per standard, plus a signed example file and a negative fixture (a tampered document that must verify as `invalid`).
 - Interoperability: the TSC publishes a set of test vectors — a document, a key pair, the expected canonical bytes, and the expected signature — as the conformance bar. Without them, independent implementations will disagree on canonicalization and every signature will be unverifiable across tools. This is the single most important deliverable after the schema change.
 - Migration: implementations carrying a `customProperties`-based signature should read both forms for one release and write only `signatures`.
@@ -208,14 +217,14 @@ What it already gets right, and what this RFC keeps: JCS RFC 8785 canonicalizati
 
 What has to change, and why:
 
-| Today | This RFC | Why |
-| --- | --- | --- |
-| `customProperties` entry named `signature` | Top-level `signatures` | Vendor space, unvalidated, collides |
-| One block, replaced on re-sign | An array | Author, approver, and auditor all need to sign |
-| `digest` | `value` | It holds a signature, not a digest |
-| `timestamp` | `created` | Consistent with the family's field naming |
-| Certificate chain only | `certificateChain` \| `jwk` \| `uri` | Self-signed certificates are a key transport, not a trust model |
-| Nothing binds referenced files | `covers` | Signing the YAML does not sign the SBOM it points at |
+| Today                                      | This RFC                             | Why                                                             |
+| ------------------------------------------ | ------------------------------------ | --------------------------------------------------------------- |
+| `customProperties` entry named `signature` | Top-level `signatures`               | Vendor space, unvalidated, collides                             |
+| One block, replaced on re-sign             | An array                             | Author, approver, and auditor all need to sign                  |
+| `digest`                                   | `value`                              | It holds a signature, not a digest                              |
+| `timestamp`                                | `created`                            | Consistent with the family's field naming                       |
+| Certificate chain only                     | `certificateChain` \| `jwk` \| `uri` | Self-signed certificates are a key transport, not a trust model |
+| Nothing binds referenced files             | `covers`                             | Signing the YAML does not sign the SBOM it points at            |
 
 ## Appendix B: Why verification must not be lenient
 
