@@ -19,12 +19,14 @@ Applies to:
 
 Target release, per standard:
 
-| Standard    | Current release | `signatures` lands in                     |
-| ----------- | --------------- | ------------------------------------------- |
-| ODCS        | v3.2.0          | **v3.3.0**                                |
-| ODPS        | v1.1.0          | **v1.2.0**                                |
-| OORS        | v0.2.0          | v1.0.0, its first stable release          |
-| OOCS, OMMS, OMDS, OSDS | none — in RFC | their first release                       |
+| Standard               | Current release             | `signatures` lands in            |
+| ---------------------- | --------------------------- | ---------------------------------- |
+| ODCS                   | v3.1.0 (v3.2.0 in progress) | **v3.3.0**                       |
+| ODPS                   | v1.0.0 (v1.1.0 in draft)    | **v1.2.0**                       |
+| OORS                   | v0.2.0                      | v1.0.0, its first stable release |
+| OOCS, OMMS, OMDS, OSDS | none — in RFC               | their first release              |
+
+Signatures deliberately skip the release each of ODCS and ODPS currently has open, rather than adding scope to it.
 
 ## Summary
 
