@@ -1,6 +1,6 @@
 # Geometry and Geography Data Types
 
-Champion: [Sander Bylemans](https://github.com/SBylemans)
+Champion: TBD
 
 Authors: 
 * [Sander Bylemans](https://github.com/SBylemans)
@@ -19,7 +19,7 @@ Applies to:
 
 ## Summary
 
-This RFC introduces two new values for `logicalType` in ODCS — `geometry` and `geography` — together with a dedicated set of `logicalTypeOptions` (`subType`, `crs`, `dimensions`, `algorithm`, and `encoding`). `geometry` represents shapes in a flat-earth (planar/Euclidean) coordinate system; `geography` represents coordinates on a round-earth (spherical/ellipsoidal) model. Both align with ISO 19125-1 (Simple Features for SQL), Apache Iceberg v3, GeoArrow, and GeoParquet. The physical encoding format (WKT, WKB, GeoJSON, etc.) is captured by the `encoding` option in `logicalTypeOptions`, while `physicalType` carries the target system's native column type.
+This RFC introduces two new values for `logicalType` in ODCS — `geometry` and `geography` — together with a dedicated set of `logicalTypeOptions` (`subType`, `crs`, `dimensions`, `algorithm`, `encoding`, and `bbox`). `geometry` represents shapes in a flat-earth (planar/Euclidean) coordinate system; `geography` represents coordinates on a round-earth (spherical/ellipsoidal) model. Both align with ISO 19125-1 (Simple Features for SQL), Apache Iceberg v3, GeoArrow, and GeoParquet. The physical encoding format (WKT, WKB, GeoJSON, etc.) is captured by the `encoding` option in `logicalTypeOptions`, while `physicalType` carries the target system's native column type.
 
 ## Motivation
 
@@ -37,7 +37,7 @@ Adding `geometry` and `geography` as first-class logical types matches the prece
 
 ### Use cases
 
-1. **Parcel and land-registry data**: A data contract declares a `parcel_boundary` column as `logicalType: geometry` with `subType: Polygon` and `crs: urn:ogc:def:crs:EPSG::28992`, letting GIS tools load the correct projection without manual configuration.
+1. **Parcel and land-registry data**: A data contract declares a `parcel_boundary` column as `logicalType: geometry` with `subType: Polygon` and `crs: EPSG:28992`, letting GIS tools load the correct projection without manual configuration.
 2. **Ride-sharing and logistics**: A `pickup_location` column is declared as `logicalType: geography` (round-earth), ensuring that distance calculations account for Earth's curvature.
 3. **Sensor and IoT data**: A `gps_track` column is typed `logicalType: geography`, `subType: LineString`, `dimensions: 3` (XYZ with altitude), enabling spatial analytics over device trajectories.
 4. **Data lakehouse migration**: Teams migrating geospatial tables from PostGIS to Snowflake or from Hive to Iceberg v3 use the contract to generate correct DDL without hand-editing.
@@ -45,7 +45,7 @@ Adding `geometry` and `geography` as first-class logical types matches the prece
 
 ### Alignment with guiding values
 
-- **Small standard over large**: This RFC adds two `logicalType` values and five optional `logicalTypeOptions`. No new top-level structures.
+- **Small standard over large**: This RFC adds two `logicalType` values and six `logicalTypeOptions`. No new top-level structures.
 - **Interoperability over readability**: The shape maps onto PostGIS, BigQuery, Snowflake, Databricks, DuckDB, Apache Sedona, GeoParquet, GeoArrow, and Apache Iceberg v3.
 - **Non-breaking**: `geometry` and `geography` are new optional `logicalType` values. Existing contracts are unaffected.
 
@@ -82,10 +82,11 @@ The physical encoding (how the bytes are laid out on disk) is separate from both
 | Option       | Applies to            | Required | Type    | Description                                                                                                                                                                                                                                        |
 | ------------ | --------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `subType`    | geometry, geography   | No       | string  | The geometry subtype per ISO 19125-1. One of `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiLineString`, `MultiPolygon`, `GeometryCollection`. When omitted, any subtype is accepted.                                                       |
-| `crs`        | geometry, geography   | No       | string  | The Coordinate Reference System in OGC URN format, e.g. `urn:ogc:def:crs:EPSG::4326`. Short-form EPSG codes (e.g. `EPSG:4326`) are also accepted. When omitted, the default is `urn:ogc:def:crs:EPSG::4326` (WGS 84 longitude/latitude).         |
+| `crs`        | geometry, geography   | Yes (geometry) / No (geography) | string  | The Coordinate Reference System. EPSG codes (e.g. `EPSG:4326`) are the recommended format; OGC URN identifiers (e.g. `urn:ogc:def:crs:EPSG::4326`) are also accepted. Required for `geometry` — no universal default exists for planar coordinate systems. When omitted for `geography`, `EPSG:4326` (WGS 84) is assumed. |
 | `dimensions` | geometry, geography   | No       | integer | Number of coordinate dimensions: `2` (XY, default), `3` (XYZ or XYM), `4` (XYZM).                                                                                                                                                                |
 | `algorithm`  | geography only        | No       | string  | Interpretation of edges between vertices. One of `spherical` (great-circle arcs on the unit sphere, default) or `vincenty` (geodesic on a reference ellipsoid). Ignored for `geometry`.                                                           |
 | `encoding`   | geometry, geography   | No       | string  | The physical serialisation format of the geometry value. One of `wkt`, `wkb`, `geojson`, `ewkt`, `ewkb`. When omitted, the encoding is system-defined or unspecified.                                                                             |
+| `bbox`       | geometry, geography   | No       | array   | Bounding box of the column's spatial data as `[xmin, ymin, xmax, ymax]` in `EPSG:4326` (WGS 84 longitude/latitude), following the GeoParquet convention. Used as a spatial extent validation hint.                                               |
 
 ### Example 1: Minimal — a GPS coordinate column
 
@@ -136,14 +137,14 @@ schema:
         description: "Parcel boundary polygon in the Dutch RD New projection."
         logicalTypeOptions:
           subType: Polygon
-          crs: urn:ogc:def:crs:EPSG::28992
+          crs: EPSG:28992
           dimensions: 2
           encoding: wkb
       - name: centroid
         logicalType: geometry
         logicalTypeOptions:
           subType: Point
-          crs: urn:ogc:def:crs:EPSG::28992
+          crs: EPSG:28992
           dimensions: 2
           encoding: wkt
 ```
@@ -165,7 +166,7 @@ schema:
         description: "Full 3D flight path (longitude, latitude, altitude in metres)."
         logicalTypeOptions:
           subType: LineString
-          crs: urn:ogc:def:crs:EPSG::4326
+          crs: EPSG:4326
           dimensions: 3
           algorithm: vincenty
           encoding: wkb
@@ -190,16 +191,18 @@ The `physicalType` field carries the target system's native column type, while `
 
 ### Coordinate Reference Systems
 
-The `crs` option accepts OGC URN identifiers as defined in OGC 07-092r3. Common values:
+The `crs` option accepts EPSG-prefixed codes (recommended) or OGC URN identifiers. EPSG codes are the preferred format as they are widely recognised across the geospatial ecosystem and align with GeoParquet and Apache Parquet's geospatial extensions. Common values:
 
-| CRS name                        | URN                                     | Short form      |
-| ------------------------------- | --------------------------------------- | --------------- |
-| WGS 84 (longitude/latitude)     | `urn:ogc:def:crs:EPSG::4326`           | `EPSG:4326`     |
-| WGS 84 / Pseudo-Mercator        | `urn:ogc:def:crs:EPSG::3857`           | `EPSG:3857`     |
-| Dutch RD New                    | `urn:ogc:def:crs:EPSG::28992`          | `EPSG:28992`    |
-| UTM Zone 32N                    | `urn:ogc:def:crs:EPSG::32632`          | `EPSG:32632`    |
+| CRS name                        | EPSG code (recommended) | OGC URN                              |
+| ------------------------------- | ----------------------- | ------------------------------------ |
+| WGS 84 (longitude/latitude)     | `EPSG:4326`             | `urn:ogc:def:crs:EPSG::4326`        |
+| WGS 84 / Pseudo-Mercator        | `EPSG:3857`             | `urn:ogc:def:crs:EPSG::3857`        |
+| Dutch RD New                    | `EPSG:28992`            | `urn:ogc:def:crs:EPSG::28992`       |
+| UTM Zone 32N                    | `EPSG:32632`            | `urn:ogc:def:crs:EPSG::32632`       |
 
-When `crs` is omitted, `urn:ogc:def:crs:EPSG::4326` (WGS 84) is assumed, matching the GeoParquet and GeoJSON conventions.
+When `logicalType` is `geometry`, `crs` is **required**: there is no universal default for planar coordinate systems, and assuming one leads to data quality issues.
+
+When `logicalType` is `geography` and `crs` is omitted, `EPSG:4326` (WGS 84 longitude/latitude) is assumed, matching the GeoParquet and GeoJSON conventions.
 
 ### Geometry subtypes (ISO 19125-1)
 
@@ -214,6 +217,42 @@ The `subType` option maps directly to the ISO 19125-1 Simple Features geometry h
 | `MultiLineString`    | A collection of line strings                        |
 | `MultiPolygon`       | A collection of polygons                            |
 | `GeometryCollection` | A heterogeneous collection of any geometry subtypes |
+
+### Spatial extent (bounding box)
+
+A bounding box can be declared at two levels to document and validate the spatial extent of geospatial data, following the GeoParquet convention of expressing extents in `EPSG:4326` (WGS 84 longitude/latitude) regardless of the column's native CRS.
+
+#### Column-level `bbox`
+
+The `bbox` option in `logicalTypeOptions` records the expected spatial extent of an individual geometry or geography column as `[xmin, ymin, xmax, ymax]`. It serves as a validation hint: values falling outside the declared bounding box indicate data quality issues.
+
+```yaml
+logicalTypeOptions:
+  subType: Polygon
+  crs: EPSG:28992
+  bbox: [3.2, 50.75, 7.22, 53.55]   # Netherlands in WGS 84
+```
+
+When a dataset contains multiple spatial columns, each column carries its own `bbox`, which makes the per-column extent precise and unambiguous.
+
+#### Table-level `spatialExtent`
+
+A `spatialExtent` block at the schema (table) level captures the combined geographic footprint of the entire dataset, also expressed as `[xmin, ymin, xmax, ymax]` in `EPSG:4326`. This gives consumers a quick overview without inspecting individual column metadata.
+
+```yaml
+schema:
+  - name: parcels
+    physicalName: cadastral_parcels
+    spatialExtent:
+      bbox: [3.2, 50.75, 7.22, 53.55]
+    properties:
+      - name: boundary
+        logicalType: geometry
+        logicalTypeOptions:
+          subType: Polygon
+          crs: EPSG:28992
+          bbox: [3.2, 50.75, 7.22, 53.55]
+```
 
 ### Relationship to existing types
 
@@ -262,7 +301,7 @@ TBD.
 - **Non-breaking**: `geometry` and `geography` are new optional `logicalType` values; no existing contract is affected.
 - **Interoperable**: Maps cleanly onto PostGIS, BigQuery, Snowflake, Databricks/Iceberg v3, DuckDB, GeoParquet, and GeoArrow.
 - **Composable with other RFCs**: Works with [RFC-0034](0034-measures-and-dimensions.md) (geospatial columns can coexist with measures and dimensions) and [RFC-0041](0041-synonyms.md) (synonyms on geospatial columns aid discovery).
-- **Validator impact**: Contract validators SHOULD warn when `logicalType` is `geometry` or `geography` and `logicalTypeOptions.encoding` is absent, as omitting it leaves the serialisation format ambiguous for consumers.
+- **Validator impact**: Contract validators MUST warn (or error) when `logicalType` is `geometry` and `logicalTypeOptions.crs` is absent — no default exists for planar coordinate systems. Validators SHOULD warn when `logicalTypeOptions.encoding` is absent for either type, as omitting it leaves the serialisation format ambiguous for consumers.
 - **Binary support**: The original issue request for a binary logical type is addressed by combining `logicalType: geometry` (or `geography`) with `logicalTypeOptions.encoding: wkb`.
 
 ## References
