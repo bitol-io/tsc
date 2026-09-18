@@ -1,5 +1,9 @@
 # Members
 
+This list is maintained alphabetically by first name. When a member changes
+their affiliation or timezone, update the entry in the same pull request so
+the directory remains useful for scheduling TSC work.
+
 In alphabetical order by first name.
 
 ## Technical Steering Committee (TSC)
