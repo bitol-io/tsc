@@ -19,13 +19,13 @@ Applies to:
 
 ## Summary
 
-This RFC introduces two new values for `logicalType` in ODCS — `geometry` and `geography` — together with a dedicated set of `logicalTypeOptions` (`subType`, `crs`, `dimensions`, `algorithm`, `encoding`, and `bbox`). `geometry` represents shapes in a flat-earth (planar/Euclidean) coordinate system; `geography` represents coordinates on a round-earth (spherical/ellipsoidal) model. Both align with ISO 19125-1 (Simple Features for SQL), Apache Iceberg v3, GeoArrow, and GeoParquet. The physical encoding format (WKT, WKB, GeoJSON, etc.) is captured by the `encoding` option in `logicalTypeOptions`, while `physicalType` carries the target system's native column type.
+This RFC introduces two new values for `logicalType` in ODCS — `geometry` and `geography` — together with a dedicated set of `logicalTypeOptions` (`subType`, `crs`, `dimensions`, `algorithm`, `encoding`, `bbox`, `orientation`, and `epoch`). `geometry` represents shapes in a flat-earth (planar/Euclidean) coordinate system; `geography` represents coordinates on a round-earth (spherical/ellipsoidal) model. Both align with ISO 19125-1 (Simple Features for SQL), Apache Iceberg v3, GeoArrow, GeoParquet 2.0, and the Apache Parquet native `GEOMETRY` / `GEOGRAPHY` logical types. The physical encoding format (WKT, WKB, GeoJSON, etc.) is captured by the `encoding` option in `logicalTypeOptions`, while `physicalType` carries the target system's native column type.
 
 ## Motivation
 
 ### Why are we doing this?
 
-Geospatial data is a first-class data shape in modern analytics, logistics, real estate, infrastructure, and scientific datasets. Virtually every major database and data lakehouse ships a native geometric or geographic type — PostGIS, BigQuery `GEOGRAPHY`, Snowflake `GEOGRAPHY`, Databricks (Delta Lake + Iceberg v3), DuckDB, Apache Sedona, Hive, Presto/Trino, and others. Formats like GeoParquet and GeoArrow have standardized the columnar representation of geospatial data.
+Geospatial data is a first-class data shape in modern analytics, logistics, real estate, infrastructure, and scientific datasets. Virtually every major database and data lakehouse ships a native geometric or geographic type — PostGIS, BigQuery `GEOGRAPHY`, Snowflake `GEOGRAPHY`, Databricks (Delta Lake + Iceberg v3), DuckDB, Apache Sedona, Hive, Presto/Trino, and others. Formats like GeoParquet 2.0 and GeoArrow have standardized the columnar representation of geospatial data, and Apache Parquet now ships native `GEOMETRY` and `GEOGRAPHY` logical types.
 
 ODCS today has no standard way to describe a geospatial column. Authors are forced to use `logicalType: string` (for WKT) or leave the column type opaque, which:
 
@@ -60,13 +60,13 @@ Geospatial data comes in two flavours:
 
 The physical encoding (how the bytes are laid out on disk) is separate from both the logical type and the target system's column type. It is captured by the `encoding` option in `logicalTypeOptions`:
 
-| `encoding` value | Description                                                          |
-| ---------------- | -------------------------------------------------------------------- |
-| `wkt`            | Well-Known Text — human-readable string, e.g. `POINT (4.9 52.4)`   |
-| `wkb`            | Well-Known Binary — compact binary encoding defined by OGC           |
-| `geojson`        | GeoJSON encoding (JSON object with `type` and `coordinates`)         |
-| `ewkt`           | Extended WKT — PostGIS extension that embeds the SRID in the string  |
-| `ewkb`           | Extended WKB — PostGIS extension that embeds the SRID in binary form |
+| `encoding` value | Description                                                                                                    |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `wkb`            | Well-Known Binary — compact binary encoding defined by OGC. **Canonical** for GeoParquet 2.0 and Parquet native `GEOMETRY` / `GEOGRAPHY` (the only encoding they accept). |
+| `wkt`            | Well-Known Text — human-readable string, e.g. `POINT (4.9 52.4)`                                             |
+| `geojson`        | GeoJSON encoding (JSON object with `type` and `coordinates`)                                                   |
+| `ewkt`           | Extended WKT — PostGIS extension that embeds the SRID in the string                                            |
+| `ewkb`           | Extended WKB — PostGIS extension that embeds the SRID in binary form                                           |
 
 `physicalType` carries the target system's native column type (e.g. `GEOMETRY` in PostGIS, `GEOGRAPHY` in BigQuery, `STRING` in Databricks). See the [Physical type mapping](#physical-type-mapping) section below.
 
@@ -82,11 +82,13 @@ The physical encoding (how the bytes are laid out on disk) is separate from both
 | Option       | Applies to            | Required | Type    | Description                                                                                                                                                                                                                                        |
 | ------------ | --------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `subType`    | geometry, geography   | No       | string  | The geometry subtype per ISO 19125-1. One of `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiLineString`, `MultiPolygon`, `GeometryCollection`. When omitted, any subtype is accepted.                                                       |
-| `crs`        | geometry, geography   | Yes (geometry) / No (geography) | string  | The Coordinate Reference System. EPSG codes (e.g. `EPSG:4326`) are the recommended format; OGC URN identifiers (e.g. `urn:ogc:def:crs:EPSG::4326`) are also accepted. Required for `geometry` — no universal default exists for planar coordinate systems. When omitted for `geography`, `EPSG:4326` (WGS 84) is assumed. |
+| `crs`         | geometry, geography   | Yes (geometry) / No (geography) | string  | The Coordinate Reference System. Accepted forms: authority codes (e.g. `EPSG:4326`, `OGC:CRS84`) — **recommended**; OGC URN identifiers (e.g. `urn:ogc:def:crs:EPSG::4326`); an inline PROJJSON document (as a JSON string); a `srid:<n>` SRID reference (e.g. `srid:0` for unspecified); or a `projjson:<key>` reference to a PROJJSON blob stored elsewhere in metadata. Required for `geometry` — no universal default exists for planar coordinate systems. When omitted for `geography`, `EPSG:4326` (WGS 84) is assumed; note that GeoParquet 2.0 and Parquet native geospatial use the equivalent `OGC:CRS84` to make the (longitude, latitude) axis order explicit. |
 | `dimensions` | geometry, geography   | No       | integer | Number of coordinate dimensions: `2` (XY, default), `3` (XYZ or XYM), `4` (XYZM).                                                                                                                                                                |
-| `algorithm`  | geography only        | No       | string  | Interpretation of edges between vertices. One of `spherical` (great-circle arcs on the unit sphere, default) or `vincenty` (geodesic on a reference ellipsoid). Ignored for `geometry`.                                                           |
-| `encoding`   | geometry, geography   | No       | string  | The physical serialisation format of the geometry value. One of `wkt`, `wkb`, `geojson`, `ewkt`, `ewkb`. When omitted, the encoding is system-defined or unspecified.                                                                             |
-| `bbox`       | geometry, geography   | No       | array   | Bounding box of the column's spatial data as `[xmin, ymin, xmax, ymax]` in `EPSG:4326` (WGS 84 longitude/latitude), following the GeoParquet convention. Used as a spatial extent validation hint.                                               |
+| `algorithm`   | geography only        | No       | string  | Interpretation of edges between vertices. One of `spherical` (great-circle arcs on a sphere, default), `vincenty` (Vincenty's formulae on an ellipsoid), `thomas`, `andoyer`, or `karney` (GeographicLib). Values align with Apache Parquet native geospatial and GeoParquet 2.0. Ignored for `geometry` (edges are always planar). |
+| `encoding`    | geometry, geography   | No       | string  | The physical serialisation format of the geometry value. One of `wkb` (canonical for GeoParquet 2.0 and Parquet native geospatial), `wkt`, `geojson`, `ewkt`, `ewkb`. When omitted, the encoding is system-defined or unspecified.                |
+| `bbox`        | geometry, geography   | No       | array   | Bounding box of the column's spatial data, expressed in the column's own `crs` (matching GeoParquet 2.0). Format: `[xmin, ymin, xmax, ymax]` for 2D data; `[xmin, ymin, zmin, xmax, ymax, zmax]` when a Z dimension is present; `[xmin, ymin, zmin, mmin, xmax, ymax, zmax, mmax]` when both Z and M are present. Used as a spatial extent validation hint. |
+| `orientation` | geometry, geography   | No       | string  | Winding order for polygon rings. Currently only `counterclockwise` is defined (exterior rings counterclockwise, interior rings clockwise), matching GeoParquet 2.0. Recommended for `geography` with non-planar edges to avoid ambiguity around which side of a ring is "inside". |
+| `epoch`       | geometry, geography   | No       | number  | Decimal year (e.g. `2021.47`) indicating the coordinate epoch for dynamic CRSs whose reference frames evolve over time. Optional; only meaningful when the `crs` is dynamic. |
 
 ### Example 1: Minimal — a GPS coordinate column
 
@@ -185,24 +187,35 @@ The `physicalType` field carries the target system's native column type, while `
 | Apache Iceberg v3         | `geometry` / `geography`           |
 | DuckDB (spatial ext.)     | `GEOMETRY`                         |
 | Apache Sedona             | `geometry`                         |
-| GeoParquet                | `BYTE_ARRAY` (WKB, Parquet binary) |
+| GeoParquet 2.0            | `GEOMETRY` / `GEOGRAPHY` (native Parquet logical types over `BYTE_ARRAY`, WKB) |
 | Oracle Spatial            | `SDO_GEOMETRY`                     |
 | SQL Server                | `geometry` / `geography`           |
 
 ### Coordinate Reference Systems
 
-The `crs` option accepts EPSG-prefixed codes (recommended) or OGC URN identifiers. EPSG codes are the preferred format as they are widely recognised across the geospatial ecosystem and align with GeoParquet and Apache Parquet's geospatial extensions. Common values:
+The `crs` option accepts several forms:
 
-| CRS name                        | EPSG code (recommended) | OGC URN                              |
-| ------------------------------- | ----------------------- | ------------------------------------ |
-| WGS 84 (longitude/latitude)     | `EPSG:4326`             | `urn:ogc:def:crs:EPSG::4326`        |
-| WGS 84 / Pseudo-Mercator        | `EPSG:3857`             | `urn:ogc:def:crs:EPSG::3857`        |
-| Dutch RD New                    | `EPSG:28992`            | `urn:ogc:def:crs:EPSG::28992`       |
-| UTM Zone 32N                    | `EPSG:32632`            | `urn:ogc:def:crs:EPSG::32632`       |
+- **Authority codes** — e.g. `EPSG:4326`, `OGC:CRS84`. **Recommended.**
+- **OGC URN identifiers** — e.g. `urn:ogc:def:crs:EPSG::4326`.
+- **Inline PROJJSON** — a full PROJJSON document as a JSON string, for CRSs that cannot be referenced by an authority code.
+- **`srid:<n>`** — an SRID reference (e.g. `srid:0` for unspecified), aligning with Apache Parquet native geospatial.
+- **`projjson:<key>`** — a reference to a PROJJSON blob stored elsewhere in metadata.
+
+Common values:
+
+| CRS name                                                 | Authority code (recommended) | OGC URN                        |
+| -------------------------------------------------------- | ---------------------------- | ------------------------------ |
+| WGS 84 (longitude/latitude, explicit lon/lat axis order) | `OGC:CRS84`                  | `urn:ogc:def:crs:OGC::CRS84`   |
+| WGS 84 (longitude/latitude)                              | `EPSG:4326`                  | `urn:ogc:def:crs:EPSG::4326`   |
+| WGS 84 / Pseudo-Mercator                                 | `EPSG:3857`                  | `urn:ogc:def:crs:EPSG::3857`   |
+| Dutch RD New                                             | `EPSG:28992`                 | `urn:ogc:def:crs:EPSG::28992`  |
+| UTM Zone 32N                                             | `EPSG:32632`                 | `urn:ogc:def:crs:EPSG::32632`  |
+
+`EPSG:4326` and `OGC:CRS84` refer to the same datum (WGS 84); they differ only in the conventional axis order (`EPSG:4326` is defined as latitude/longitude, `OGC:CRS84` as longitude/latitude). GeoParquet 2.0 and Parquet native geospatial use `OGC:CRS84` to make the axis order unambiguous.
 
 When `logicalType` is `geometry`, `crs` is **required**: there is no universal default for planar coordinate systems, and assuming one leads to data quality issues.
 
-When `logicalType` is `geography` and `crs` is omitted, `EPSG:4326` (WGS 84 longitude/latitude) is assumed, matching the GeoParquet and GeoJSON conventions.
+When `logicalType` is `geography` and `crs` is omitted, `EPSG:4326` (WGS 84 longitude/latitude) is assumed, matching the GeoJSON convention and the historical ODCS default. For GeoParquet 2.0 interoperability, prefer `OGC:CRS84` explicitly.
 
 ### Geometry subtypes (ISO 19125-1)
 
@@ -218,40 +231,54 @@ The `subType` option maps directly to the ISO 19125-1 Simple Features geometry h
 | `MultiPolygon`       | A collection of polygons                            |
 | `GeometryCollection` | A heterogeneous collection of any geometry subtypes |
 
+#### Mapping to GeoParquet 2.0 `geometry_types`
+
+GeoParquet 2.0 expresses the set of subtypes present in a column as an array of strings under `geometry_types`, with dimension suffixes baked into each string (` Z`, ` M`, ` ZM`). ODCS keeps `subType` (a single string, the union of allowed subtypes) and `dimensions` (an integer) as separate options, in line with the rest of `logicalTypeOptions`. The mapping is straightforward:
+
+| ODCS `subType` + `dimensions`       | GeoParquet 2.0 `geometry_types` entry |
+| ----------------------------------- | ------------------------------------- |
+| `Point`, `dimensions: 2`            | `Point`                               |
+| `Point`, `dimensions: 3` (XYZ)      | `Point Z`                             |
+| `LineString`, `dimensions: 3` (XYM) | `LineString M`                        |
+| `Polygon`, `dimensions: 4` (XYZM)   | `Polygon ZM`                          |
+
+When `subType` is omitted (any subtype accepted), the corresponding GeoParquet 2.0 form is an empty `geometry_types` array (unknown/mixed types).
+
 ### Spatial extent (bounding box)
 
-A bounding box can be declared at two levels to document and validate the spatial extent of geospatial data, following the GeoParquet convention of expressing extents in `EPSG:4326` (WGS 84 longitude/latitude) regardless of the column's native CRS.
+A bounding box can be declared at two levels to document and validate the spatial extent of geospatial data. Bounding boxes are always expressed in the CRS of the geometry they describe, matching GeoParquet 2.0 (whose bbox is stated in the column's own `crs`, not forced to WGS 84).
 
 #### Column-level `bbox`
 
-The `bbox` option in `logicalTypeOptions` records the expected spatial extent of an individual geometry or geography column as `[xmin, ymin, xmax, ymax]`. It serves as a validation hint: values falling outside the declared bounding box indicate data quality issues.
+The `bbox` option in `logicalTypeOptions` records the expected spatial extent of an individual geometry or geography column, expressed in the column's own `crs`. Format: `[xmin, ymin, xmax, ymax]` for 2D data; `[xmin, ymin, zmin, xmax, ymax, zmax]` when a Z dimension is present; `[xmin, ymin, zmin, mmin, xmax, ymax, zmax, mmax]` when both Z and M are present. It serves as a validation hint: values falling outside the declared bounding box indicate data quality issues.
 
 ```yaml
 logicalTypeOptions:
   subType: Polygon
   crs: EPSG:28992
-  bbox: [3.2, 50.75, 7.22, 53.55]   # Netherlands in WGS 84
+  bbox: [12621, 306846, 278026, 619256]   # Netherlands in RD New (EPSG:28992)
 ```
 
 When a dataset contains multiple spatial columns, each column carries its own `bbox`, which makes the per-column extent precise and unambiguous.
 
 #### Table-level `spatialExtent`
 
-A `spatialExtent` block at the schema (table) level captures the combined geographic footprint of the entire dataset, also expressed as `[xmin, ymin, xmax, ymax]` in `EPSG:4326`. This gives consumers a quick overview without inspecting individual column metadata.
+A `spatialExtent` block at the schema (table) level captures the combined geographic footprint of the entire dataset. Because a table may combine columns with different CRSs, the table-level `spatialExtent.bbox` MUST carry its own `crs` alongside the array. When only one spatial column exists (or all spatial columns share a CRS), reusing that column's CRS is the natural choice.
 
 ```yaml
 schema:
   - name: parcels
     physicalName: cadastral_parcels
     spatialExtent:
-      bbox: [3.2, 50.75, 7.22, 53.55]
+      crs: EPSG:28992
+      bbox: [12621, 306846, 278026, 619256]
     properties:
       - name: boundary
         logicalType: geometry
         logicalTypeOptions:
           subType: Polygon
           crs: EPSG:28992
-          bbox: [3.2, 50.75, 7.22, 53.55]
+          bbox: [12621, 306846, 278026, 619256]
 ```
 
 ### Relationship to existing types
@@ -309,7 +336,8 @@ TBD.
 - [ISO 19125-1: Geographic information — Simple feature access — Part 1: Common architecture](https://www.iso.org/standard/40114.html)
 - [OGC 07-092r3: Definition identifier URNs in OGC namespace](https://docs.ogc.org/is/07-092r3/07-092r3.html) — specifies the `urn:ogc:def:crs:EPSG::*` URN format
 - [Apache Iceberg v3 spec — geometry and geography types](https://iceberg.apache.org/spec/#primitive-types)
-- [GeoParquet specification](https://geoparquet.org/releases/v1.1.0/)
+- [GeoParquet 2.0 specification (v2.0.0-rc.1)](https://geoparquet.org/releases/v2.0.0-rc.1/)
+- [Apache Parquet native geospatial logical types (`GEOMETRY`, `GEOGRAPHY`)](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
 - [GeoArrow specification](https://geoarrow.org/)
 - [PostGIS geometry/geography reference](https://postgis.net/docs/manual-3.5/using_postgis_dbmanagement.html#PostGIS_GeographyVSGeometry)
 - [Snowflake GEOGRAPHY data type](https://docs.snowflake.com/en/sql-reference/data-types-geospatial)
