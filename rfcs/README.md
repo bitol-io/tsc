@@ -34,7 +34,6 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0053](0053-classification-sensitivity.md) | Data category as a distinct dimension |
 | [0055](0055-delta-server-type.md) | Delta Lake server type |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
-| [0057](0057-teradata-server-type.md) | Teradata server type |
 | [0060](0060-dq-dimensions.md) | Open Data Quality Dimensions |
 | [0062](0062-signatures.md) | Signatures — integrity and provenance for every Bitol document |
 | [0063](0063-single-artifact.md) | Single Artifact — embedding referenced documents for delivery |
@@ -92,6 +91,7 @@ Accepted by the TSC and shipped in the standard/version shown. Each links to its
 | [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
 | [0050](0050-variables.md) | Variables |
 | [0051](0051-deprecated-flag.md) | Deprecated flag for schema and properties |
+| [0057](0057-teradata-server-type.md) | Teradata server type |
 | [0058](0058-exasol-server-type.md) | Exasol server type |
 | [0059](0059-actian-server-types.md) | Actian server types |
 
