@@ -4,6 +4,8 @@ Champion: Jean-Georges Perrin
 
 Authors: Jean-Georges Perrin
 
+GitHub issue: https://github.com/bitol-io/tsc/issues/133
+
 Applies to:
 * [x] ODCS - Open Data Contract Standard
 * [ ] ODPS - Open Data Product Standard
