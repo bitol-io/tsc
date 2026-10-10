@@ -31,7 +31,8 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0044](0044-osds.md) | Open Semantic Definition Standard (OSDS) |
 | [0048](0048-geometry-geography.md) | Geometry and Geography Data Types |
 | [0052](0052-blob-storage-file-logical-type.md) | Schema's Blob logicalType |
-| [0053](0053-classification-sensitivity.md) | Data category as a distinct dimension |
+| [0053](0053-classification-sensitivity.md) | Taxonomy-backed classification assignments |
+| [0054](0054-odts.md) | Open Data Taxonomy Standard (ODTS) |
 | [0055](0055-delta-server-type.md) | Delta Lake server type |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
 | [0060](0060-dq-dimensions.md) | Open Data Quality Dimensions |
