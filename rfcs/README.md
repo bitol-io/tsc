@@ -32,7 +32,12 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0048](0048-geometry-geography.md) | Geometry and Geography Data Types |
 | [0052](0052-blob-storage-file-logical-type.md) | Schema's Blob logicalType |
 | [0053](0053-classification-sensitivity.md) | Taxonomy-backed classification assignments |
+| [0055](0055-delta-server-type.md) | Delta Lake server type |
 | [0056](0056-oaas.md) | Open Access Agreement Standard (OAAS) |
+| [0060](0060-dq-dimensions.md) | Open Data Quality Dimensions |
+| [0062](0062-signatures.md) | Signatures — integrity and provenance for every Bitol document |
+| [0063](0063-single-artifact.md) | Single Artifact — embedding referenced documents for delivery |
+| [0064](0064-mcp-server-type.md) | MCP server type |
 
 ## Approved RFCs
 
@@ -87,6 +92,9 @@ Accepted by the TSC and shipped in the standard/version shown. Each links to its
 | [0049](0049-iceberg-server-type.md) | Apache Iceberg server type |
 | [0050](0050-variables.md) | Variables |
 | [0051](0051-deprecated-flag.md) | Deprecated flag for schema and properties |
+| [0057](0057-teradata-server-type.md) | Teradata server type |
+| [0058](0058-exasol-server-type.md) | Exasol server type |
+| [0059](0059-actian-server-types.md) | Actian server types |
 
 ### ODPS v0.9.0
 
@@ -110,6 +118,7 @@ Accepted by the TSC and shipped in the standard/version shown. Each links to its
 | [0041](0041-synonyms.md) | Synonyms |
 | [0050](0050-variables.md) | Variables |
 | [0051](0051-deprecated-flag.md) | Deprecated flag for schema and properties |
+| [0061](0061-sbom-metadata.md) | Tags, custom properties and authoritative definitions for SBOMs |
 
 ### OORS v1.0.0
 
@@ -136,7 +145,7 @@ Although there is no single way to prepare for submitting an RFC, it is generall
 
 - Fork the RFC repository.
   - Copy [`0000-template.md`](0000-template.md) to `xxxx-my-feature.md`, where "my-feature" is descriptive and the number is the next in sequence.
-  - Fill in the RFC.
+  - Fill in the RFC. Be concise: the body says what changes and why, and anything that needs explaining goes in an appendix.
   - Submit a pull request. As a pull request the RFC will receive design feedback from the larger community, and the author should be prepared to revise it in response.
   - Build consensus and integrate feedback. RFCs that have broad support are much more likely to make progress than those that don't receive any comments. Feel free to reach out to the RFC assignee in particular to get help identifying stakeholders and obstacles.
   - RFCs rarely go through this process unchanged, especially as alternatives and drawbacks are shown. You can make edits, big and small, to the RFC to clarify or change the design, but make changes as new commits to the pull request, and leave a comment on the pull request explaining your changes. Specifically, do not squash or rebase commits after they are visible on the pull request.
