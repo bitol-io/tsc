@@ -1,6 +1,6 @@
-# RFC-0053: Data category as a distinct dimension
+# RFC-0053: Taxonomy-backed classification assignments
 
-Champion: *TBD — seeking a TSC champion*
+Champion: TBD — seeking a TSC champion
 
 Authors: Thomas Brackin
 
@@ -20,105 +20,109 @@ Applies to:
 
 ## Summary
 
-ODCS's `classification` field is settled practice for sensitivity — the handling tier of an element. What a contract cannot carry today is the other governance dimension: what the data *is*. This RFC adds an optional `category` field holding a single data-category term, at property and schema-object level, and a contract-level `taxonomies` block that identifies, by reference, the schemes governing `category` and `classification` terms. It also makes `classification` available on schema objects, which is what issue [#282](https://github.com/bitol-io/open-data-contract-standard/issues/282) asks for. The change is additive only: no field changes meaning, nothing is removed, every existing contract remains valid. Neither field imposes a vocabulary — a three-rung identification ladder makes terms resolvable against ISO/IEC 19944-1, the IAB Tech Lab Privacy Taxonomy, or any internal taxonomy.
+Allow ODCS `classification` to be either a string or an array of `{taxonomy, value}` objects, on schema objects and properties, including nested properties. Existing strings retain their meaning. The array form references taxonomies defined by the companion [RFC-0054](https://github.com/jarlbrak/tsc/blob/rfc-0054-odts/rfcs/0054-odts.md).
 
 ## Motivation
 
-Category ("this is customer contact information") and sensitivity ("restricted") are different dimensions with different owners, change cadences, and consumers — and the category is where regulatory meaning attaches: in GDPR, CCPA, and ISO/IEC 19944-1, obligations follow from what the data is. ODCS has a settled home for sensitivity (`classification`, inherited from the first version of the standard) and no home for category, so category terms get pressed into whatever slot exists. Approved [RFC-0026b](approved/odcs-v3.1.0/0026b-internal-references.md) carries `classification: pii` — a category term in the sensitivity field — next to `classification: restricted` in the same contract. [RFC-0015](0015-business-definitions.md)'s pending example fuses both dimensions into compound tokens (`classification: 02_GDPR_direct`). Organizations that keep the dimensions separate do it in customProperties, which no other party's tooling can read.
-
-The ecosystem already models the two dimensions separately: Snowflake assigns classified columns both a semantic category and a privacy category; Microsoft Purview separates classifications from sensitivity labels. And no single vocabulary fits all parties — ISO/IEC 19944-1 is scoped to the cloud-services ecosystem, and its most prominent public adopter maps an internal taxonomy to the standard's clauses rather than adopting its terms. This RFC therefore defines mechanics, not vocabulary: the slot, the term syntax, and scheme identification. The organization brings the taxonomy.
-
-Guiding values: one optional field and one optional block; scheme identification makes terms portable across organizational boundaries; nothing breaks; terms with declared schemes are computable metadata a CI tool or an agent can check.
+A column may have both a data category, such as contact information, and a handling tier, such as restricted. A single string cannot identify the source taxonomy or represent these independent assignments. A structured form lets tools check each value against its taxonomy while preserving existing contracts.
 
 ## Design and examples
 
-### Fields
+### Classification
 
-| Key | UX label | Type | Required | Description |
-|---|---|---|---|---|
-| `category` | Data Category | string | No | New. A single data-category term identifying what the data is, drawn from a data taxonomy (internal or published). Property and schema-object level. |
-| `classification` | Classification | string | No | Existing; unchanged in meaning (the element's sensitivity per the organization's scheme). This RFC adds schema-object-level availability. |
-| `taxonomies` | Taxonomies | array | No | Contract-level. Named, versioned identification of the schemes governing this contract's `category` and `classification` terms — by reference only, never defined inline. |
-| `taxonomies[].name` | Name | string | Yes | Short name, usable as a term prefix (e.g. `corp-edt`). |
-| `taxonomies[].version` | Version | string | No | Version the contract's terms were authored against. |
-| `taxonomies[].url` | URL | string | No | Where the taxonomy is published. |
-| `taxonomies[].description`, `taxonomies[].authoritativeDefinitions` | | | No | Human context; standard block (e.g. a published mapping to ISO/IEC 19944-1). |
+`classification` remains optional. It accepts a string or an array with the following entry fields:
 
-Both fields may appear on schema objects and on properties; each level is an independent statement about its own element. Cardinality is one term per field per element — cross-scheme equivalence is the taxonomy's responsibility, published once as a mapping, not repeated per column.
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `taxonomy` | string | Yes | ID of a root `authoritativeDefinitions` entry of type `Taxonomy`. |
+| `value` | non-empty string | Yes | Exact term key in the referenced taxonomy. |
+| `provenance` | object | No | Current attribution for the assignment's fields; see below. |
 
-### Term resolution — the three-rung ladder
+Each referenced declaration MUST have a unique ID and resolve to an ODTS `DataTaxonomy` through an immutable, version-specific URL. The URL and the artifact's `name` and `version` identify the taxonomy version. A policy-document link cannot serve as a taxonomy assignment target. Missing, duplicate, unresolved, or non-taxonomy references and unknown term values are invalid.
 
-Every rung is valid ODCS; each adds resolvability; none is required.
-
-1. **Bare term.** `category: customer_content`, no declaration — meaningful inside one governance boundary, exactly like a bare `classification` value today.
-2. **Anchored.** An `authoritativeDefinitions` entry of `type: Taxonomy` (introduced by approved [RFC-0038](approved/odcs-v3.2.0/0038-context.md)) identifies the governing taxonomy; bare terms SHOULD be terms of it.
-3. **Named.** The `taxonomies` block declares one or more schemes; terms MAY carry a `name:` prefix (`iso-19944-1:customer_content`) — needed only when multiple schemes are in play.
-
-A prefixed term resolves to the declared taxonomy of that name; an unprefixed term with exactly one applicable declaration SHOULD be a term of it. Validators MAY verify term membership when the referenced taxonomy is machine-readable; the standard imposes no enforcement. This is what puts the checking on the tool and the CI process: given a declared name, version, and url, a validator can confirm a cited term exists, is not deprecated, and — for ordered sensitivity schemes — rolls up correctly from properties to objects.
+Array order has no meaning. Each element may have at most one assignment per taxonomy; duplicates are invalid even when their values match. An empty array explicitly records no assignments; an absent field makes no assertion. Assignments apply to their own element without cascading to children or changing parents. ODTS defines retired-term warnings and ranked aggregation checks.
 
 ### Example
 
 ```yaml
-taxonomies:
-  - name: iso-19944-1
-    version: "2020"
-    description: ISO/IEC 19944-1 data categories (keys shortened).
-  - name: tiers
-    version: "1.0.0"
-    url: https://governance.example.com/schemes/tiers
-    description: public < internal < confidential < restricted
+authoritativeDefinitions:
+  - id: data-category
+    type: Taxonomy
+    url: https://governance.example.com/taxonomies/customer-data_v2_0_0.odts.yaml
+  - id: handling
+    type: Taxonomy
+    url: https://governance.example.com/taxonomies/handling_v1_0_0.odts.yaml
 
 schema:
-  - name: transactions
+  - name: customers
     logicalType: object
-    category: iso-19944-1:customer_content
-    classification: restricted
+    classification:
+      - taxonomy: data-category
+        value: customer_content
+      - taxonomy: handling
+        value: restricted
     properties:
-      - name: customer_email
+      - name: email
         logicalType: string
-        category: iso-19944-1:customer_content
-        classification: restricted
-      - name: account_id
+        classification:
+          - taxonomy: data-category
+            value: customer_content.contact_information
+          - taxonomy: handling
+            value: restricted
+      - name: legacy_customer_id
         logicalType: string
-        category: iso-19944-1:account_data
         classification: confidential
-      - name: usage_events
-        logicalType: string
-        category: iso-19944-1:derived_data
-        classification: internal
 ```
 
-Rung 1 is the same picture with bare terms and no `taxonomies` block.
+The same forms apply to nested properties. The legacy string is preserved as written; tools do not infer a taxonomy from it.
 
-### Migration and compatibility
+### Current provenance
 
-- Nothing changes meaning and nothing is removed; every existing contract validates unchanged, and existing `classification` values stay exactly where they are.
-- The `classification` description's "can be anything" wording can be aligned with its settled usage in a separate documentation change; this RFC does not depend on it.
-- DCS `classification` (defined there as a sensitivity level) maps directly to ODCS `classification`; DCS `pii: true` maps to a `category` term rather than a stringified customProperty.
+An optional `provenance` map records current attribution, keyed by immediate sibling field names. An assignment uses `provenance.value` or `provenance.taxonomy`; a scalar classification uses its owning element's `provenance.classification`.
+
+```yaml
+classification:
+  - taxonomy: handling
+    value: restricted
+    provenance:
+      value:
+        method: manual
+        author: urn:example:identity:org-a:user:11111111-1111-4111-8111-111111111111
+        vendor: example-tool
+        at: '2026-09-22T10:20:00.000Z'
+        justification: Handling tier selected for this use.
+```
+
+Each provenance entry requires `method` (`manual`, `ai-assisted`, or `automated`), `vendor`, and `at`. A stable, authority-qualified `author` is required for `manual` and `ai-assisted`, and optional for `automated`. Optional `justification` must be nonblank and at most 4,000 UTF-8 bytes.
+
+Trusted manual attribution marks a human pin; other methods remain unpinned. Tools establish trust through authorized authoring or a protected repository. The serialized claim alone does not authenticate its author. Provenance records the current value, without a separate pin flag, confidence, history, or derivation proof. RFC-0054 reuses this structure.
+
+### Compatibility
+
+Existing strings remain valid without changes to their content or meaning. Arrays and schema-object classification require the ODCS version adopting this RFC; earlier schemas remain unchanged. Consumers that do not support the new form must report unsupported input without coercing arrays to strings or discarding entries.
+
+Converting a string requires an explicit taxonomy and term mapping. Tools must not split, prefix, or infer values. DCS `classification` continues to map to the string form; DCS `pii` requires an explicit mapping to an assignment.
 
 ## Alternatives
 
-1. **Redefine `classification` as the category term** (this RFC's own first draft) or **rename it** ([#137](https://github.com/bitol-io/open-data-contract-standard/issues/137)). Rejected: `classification` as sensitivity is settled practice inherited from the standard's first version; redefining it is a semantic break for every existing user, and removal to avoid misuse would be worse. Adding the missing dimension breaks nobody.
-2. **Add a `pii` boolean** (DCS parity). Rejected: "PII" is jurisdiction-specific, identifiability is a mutable spectrum, and the bit is derivable from any serious category scheme while the reverse is not.
-3. **Standardize an enum** (e.g. ISO/IEC 19944-1 categories). Rejected: 19944-1 is scoped to the cloud-services ecosystem, ISO/IEC 19944-2 itself expects extension, and any imposed vocabulary is wrong for someone. Mechanics, not vocabulary.
-4. **Links only** (`authoritativeDefinitions` without a term field). Rejected: a link is documentation; a term is data. Pointing at a taxonomy does not let a column carry a resolvable value from it.
-5. **Tags with structured values** (e.g. `gdpr:r1`, context plus specifier). The prefix idea is right — it is the same syntax as rung 3 — but a tag's context is not declared anywhere, so a CI tool has nothing to resolve it against: no version, no url, no term list. The `taxonomies` block is that missing declaration; customProperties have the same limitation with private names.
-6. **Array of category terms per element.** Rejected: dual-annotating every column duplicates what a taxonomy-level mapping states once, and blurs which term governs handling.
+- **Separate `category` field:** adds a field for each classification dimension. The array represents multiple dimensions in one structure.
+- **Root `taxonomies` block and prefixed strings:** duplicates the existing `authoritativeDefinitions` mechanism.
+- **Tags or custom properties:** require private conventions for taxonomy references and values.
+- **Fixed vocabulary or `pii` flag:** cannot express the range of organizational and regulatory taxonomies.
+- **Rename or redefine `classification`:** changes existing meaning; the proposed union preserves it.
 
 ## Decision
 
-*To be completed by the TSC.*
+To be completed by the TSC.
 
 ## Consequences
 
-- The JSON schema adds `category` (property and object level), `taxonomies` (contract level), and object-level `classification`. Existing contracts are untouched; resolves [#282](https://github.com/bitol-io/open-data-contract-standard/issues/282) directly and [#137](https://github.com/bitol-io/open-data-contract-standard/issues/137)'s underlying confusion without the rename.
-- Platform importers/exporters (Snowflake, Purview, DCS tooling) gain unambiguous targets for their dual constructs.
-- The same mechanism extends later to allowed and disallowed data-use stipulations at element and product level — a future RFC citing a declared data-use taxonomy through the same block.
-- This RFC specifies only how contracts *reference* taxonomies. The natural follow-on is a small ancillary standard — an Open Data Taxonomy Standard (ODTS) — defining the machine-readable taxonomy artifact, and with it a CLI that validates contracts and products against their declared taxonomies in CI. The `taxonomies` block's `name`/`version`/`url` triple is designed as that seam.
+- The ODCS schema gains a string-or-array classification field on schema objects and properties.
+- Tools can validate multiple assignments against shared taxonomy artifacts.
+- Existing scalar contracts remain valid; structured assignments require consumer support.
 
 ## References
 
-- Bitol: issues [#137](https://github.com/bitol-io/open-data-contract-standard/issues/137), [#282](https://github.com/bitol-io/open-data-contract-standard/issues/282); [RFC-0026b](https://github.com/bitol-io/tsc/blob/main/rfcs/approved/odcs-v3.1.0/0026b-internal-references.md) (mixed `restricted`/`pii` example); [RFC-0015](https://github.com/bitol-io/tsc/blob/main/rfcs/0015-business-definitions.md) (compound tokens); [RFC-0038](https://github.com/bitol-io/tsc/blob/main/rfcs/approved/odcs-v3.2.0/0038-context.md) (`Taxonomy` link type).
-- ISO/IEC 19944-1:2020 and 19944-2:2022; Microsoft's [Windows diagnostic-data mapping](https://learn.microsoft.com/en-us/windows/privacy/optional-diagnostic-data) to 19944-1 clauses (equivalence mapping, not adoption).
-- [Snowflake classification](https://docs.snowflake.com/en/user-guide/classify-intro) (semantic + privacy categories); [Purview classifications vs. sensitivity labels](https://learn.microsoft.com/en-us/purview/data-map-sensitivity-labels-faq).
-- [Fideslang / IAB Tech Lab Privacy Taxonomy](https://github.com/IABTechLab/fideslang) (85 hierarchical categories; separate sensitivity scoring); [Data Contract Specification](https://github.com/datacontract/datacontract-specification) (`classification` = sensitivity level; `pii` boolean).
+- [RFC-0038: Context](approved/odcs-v3.2.0/0038-context.md), which introduced taxonomy links in `authoritativeDefinitions`.
+- [RFC-0054: Open Data Taxonomy Standard](https://github.com/jarlbrak/tsc/blob/rfc-0054-odts/rfcs/0054-odts.md), companion draft; numbering and filing remain provisional.
+- [ODCS schema documentation](https://github.com/bitol-io/open-data-contract-standard/blob/main/docs/schema.md) and ODCS issues [#137](https://github.com/bitol-io/open-data-contract-standard/issues/137) and [#282](https://github.com/bitol-io/open-data-contract-standard/issues/282).
