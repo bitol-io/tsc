@@ -48,10 +48,10 @@ Array order has no meaning. Each element may have at most one assignment per tax
 authoritativeDefinitions:
   - id: data-category
     type: Taxonomy
-    url: https://governance.example.com/taxonomies/customer-data/2.0.0.odts.yaml
+    url: https://governance.example.com/taxonomies/customer-data_v2_0_0.odts.yaml
   - id: handling
     type: Taxonomy
-    url: https://governance.example.com/taxonomies/handling/1.0.0.odts.yaml
+    url: https://governance.example.com/taxonomies/handling_v1_0_0.odts.yaml
 
 schema:
   - name: customers
