@@ -19,6 +19,8 @@ Applies to:
 * [ ] OMDS - Open Metadata Difference Standard
 * [ ] OSDS - Open Semantic Definition Standard
 
+> **Style.** Be concise. The body says what changes and why, and nothing else. Anything that needs explaining — rationale, background, prior art, comparisons — goes in an appendix.
+
 ## Summary
 
 > One paragraph explanation of the RFC.
@@ -49,3 +51,7 @@ Applies to:
 ## References
 
 > Prior art, inspiration, and other references you used to create this based on what's worked well before.
+
+## Appendix A: *title*
+
+> Optional, repeatable: `## Appendix <letter>: <title>`. Where the long explanations go, so the body stays short. Link to them from the body.
