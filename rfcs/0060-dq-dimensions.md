@@ -227,7 +227,7 @@ The meaning of a custom dimension is no longer guaranteed by the field name alon
 
 ## Additional Considerations
 
-The (quality)`dimension` property is not the only property that may benefit from being represented as an array of open strings. Other properties like `classification` and `domain` could also adopt a similar approach if there is a need for extensibility beyond a fixed enum or single open-string value.
+The (quality)`dimension` property is not the only property that may benefit from being represented as an array of open strings. Other properties like `classification` (see [RFC 0053 Classification-sensitive for details](0053-classification-sensitivity.md)) and `domain` could also adopt a similar approach if there is a need for extensibility beyond a fixed enum or single open-string value.
 
 Organizations often use their own quality dimensions, classification schemes and domain definitions, but also are looking for ways to enforce the (array) values to comply with their internal standards, such as through controlled vocabularies/taxonomies, and/or governance processes. Currently, the standard does not provide mechanisms for enforcing such compliance, leaving it to individual organizations and tools to implement these controls as needed.
 
