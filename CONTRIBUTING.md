@@ -29,7 +29,7 @@ Each RFC usually has its own public channel. You will find the link at the top o
 
 ### Project
 
-* Project charter: https://github.com/bitol-io/tsc/blob/main/Bitol%20Technical%20Charter%202023-11-30.pdf
+* Project charter: https://github.com/bitol-io/tsc/blob/main/231130%20Bitol%20Technical%20Charter%202023-11-30.pdf
 * ODCS contributing file: https://github.com/bitol-io/open-data-contract-standard/blob/main/CONTRIBUTING.md
 * GitHub repo: https://github.com/bitol-io/open-data-contract-standard
 
