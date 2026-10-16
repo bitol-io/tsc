@@ -49,7 +49,7 @@ Existing schema fields are used as follows:
 | `physicalName`                      | Object   | Name of the entity set or singleton.                                                                |
 | `physicalType`                      | Object   | `entitySet` or `singleton` (singletons were introduced in OData 4.0).                                             |
 | `physicalType`                      | Property | Qualified EDM type name, e.g. `Edm.String`, `Edm.Int32`, `Collection(Edm.String)`, `Namespace.Address`. |
-| `logicalType`                       | Property | Derived from the EDM type, see [Appendix A](#appendix-a-edm-to-logicaltype-mapping).                |
+| `logicalType`                       | Property | Derived from the EDM type.                |
 | `primaryKey` / `primaryKeyPosition` | Property | Membership and order in the OData entity type's `Key`.                                                    |
 | `required`                          | Property | `true` when a single-valued OData property has `Nullable="false"`. For `Collection(T)`, `Nullable` applies to the items and maps to `items.required`. |
 | `logicalTypeOptions.maxLength`      | Property | Numeric `MaxLength` of an `Edm.String` OData property. For `Collection(Edm.String)` it applies to `items`. |
@@ -174,29 +174,3 @@ Extend `api` with a `protocol` field (`rest`, `odata`, `graphql`). Rejected: the
 - [OData Version 4.01 Part 1: Protocol](https://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html)
 - [OData Version 4.01 Part 2: URL Conventions](https://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part2-url-conventions.html)
 - [OData Common Schema Definition Language (CSDL) XML Version 4.01](https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/odata-csdl-xml-v4.01.html)
-
-## Appendix A: EDM to logicalType mapping
-
-This mapping is normative. Open points are listed in [Appendix B](#appendix-b-open-questions).
-
-| OData EDM type                                                 | `logicalType` | Notes                                                                                            |
-| -------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------ |
-| `Edm.String`                                                   | `string`      |                                                                                                  |
-| `Edm.Guid`                                                     | `string`      | `logicalTypeOptions.format: uuid`                                                                |
-| `Edm.Boolean`                                                  | `boolean`     |                                                                                                  |
-| `Edm.Byte`, `Edm.SByte`, `Edm.Int16`, `Edm.Int32`, `Edm.Int64` | `integer`     |                                                                                                  |
-| `Edm.Single`, `Edm.Double`, `Edm.Decimal`                      | `number`      |                                                                                                  |
-| `Edm.Date`                                                     | `date`        |                                                                                                  |
-| `Edm.DateTimeOffset`, `Edm.DateTime` (2.0/3.0)                 | `timestamp`   |                                                                                                  |
-| `Edm.TimeOfDay`                                                | `time`        |                                                                                                  |
-| `Edm.Time` (2.0/3.0)                                           | `time`        | Serialized as an ISO 8601 duration since midnight (e.g. `PT13H20M`); interpreted as time of day. |
-| `Edm.Duration`                                                 | `string`      | ISO 8601 duration (days to seconds).                                                             |
-| `Edm.Binary`                                                   | `string`      | `logicalTypeOptions.format: byte` (base64url-encoded in OData JSON).                             |
-| Complex type                                                   | `object`      | Nested `properties`                                                                              |
-| Enum type                                                      | `string`      |                                                                                                  |
-| `Collection(T)`                                                | `array`       | `items` mapped from `T`                                                                          |
-
-## Appendix B: Open questions
-
-- `Edm.Decimal` `Precision` and `Scale`: ODCS has no dedicated fields. Encode in `physicalType` (`Edm.Decimal(18,2)`), as done for SQL types, or leave to a general RFC?
-- Geospatial types (`Edm.Geography*`, `Edm.Geometry*`): align with RFC 0048 if approved.
