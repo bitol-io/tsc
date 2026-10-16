@@ -19,7 +19,6 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | --- | --- |
 | [0011](0011-lineage.md) | Lineage |
 | [0015](0015-business-definitions.md) | Business Definitions |
-| [0018](0018-oors.md) | Open Observability Results Standard (OORS) |
 | [0019](0019-global-context.md) | Global Context |
 | [0020](0020-named-objects.md) | Named objects |
 | [0027](0027-unstructured-data-quality.md) | Unstructured Data Quality for ODCS & ODPS |
@@ -121,6 +120,12 @@ Accepted by the TSC and shipped in the standard/version shown. Each links to its
 | [0050](0050-variables.md) | Variables |
 | [0051](0051-deprecated-flag.md) | Deprecated flag for schema and properties |
 | [0061](0061-sbom-metadata.md) | Tags, custom properties and authoritative definitions for SBOMs |
+
+### OORS v0.8.0
+
+| RFC | Title |
+| --- | --- |
+| [0018](0018-oors.md) | Open Observability Results Standard (OORS) |
 
 ### OORS v1.0.0
 
