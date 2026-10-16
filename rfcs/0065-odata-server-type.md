@@ -42,14 +42,6 @@ The ODCS server identifies the OData service, and each ODCS schema object identi
 - Metadata document: `{location}/$metadata`
 - Entity set or singleton: `{location}/{physicalName}`
 
-Existing schema fields are used as follows:
-
-| Field                               | Level    | OData meaning                                                                                       |
-| ----------------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
-| `physicalName`                      | Object   | Name of the entity set or singleton.                                                                |
-| `primaryKey` / `primaryKeyPosition` | Property | Whether the property belongs to the OData entity type’s `Key`, and its position within that key.                                                    |
-| `required`                          | Property | `true` when a single-valued OData property has `Nullable="false"`. For `Collection(T)`, `Nullable` applies to the items and maps to `items.required`. |                                             |
-
 ### Example 1: Minimal
 
 ```yaml
@@ -89,39 +81,6 @@ schema:
       - name: DATE_START
         physicalType: Edm.Date
         logicalType: date
-```
-
-### Example 3: Structured — WHO reference data with relation
-
-OData can provide referential constraints. This minimal example includes a foreign-key relationship from `REF_COUNTRY_CURRENCY.CODE_ISO_3` to `REF_COUNTRY.CODE_ISO_3`.
-
-```yaml
-servers:
-  - server: uat
-    type: odata
-    environment: uat
-    location: https://xmart-api-public-uat.who.int/refmart/
-    protocolVersion: "4.0"
-schema:
-  - name: REF_COUNTRY
-    physicalName: REF_COUNTRY
-    physicalType: entitySet
-    logicalType: object
-    properties:
-      - name: CODE_ISO_3
-        physicalType: Edm.String
-        logicalType: string
-  - name: REF_COUNTRY_CURRENCY
-    physicalName: REF_COUNTRY_CURRENCY
-    physicalType: entitySet
-    logicalType: object
-    properties:
-      - name: CODE_ISO_3
-        physicalType: Edm.String
-        logicalType: string
-        relationships:
-          - type: foreignKey
-            to: REF_COUNTRY.CODE_ISO_3
 ```
 
 ## Proposed schema changes
