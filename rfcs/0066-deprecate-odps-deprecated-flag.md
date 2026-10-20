@@ -1,4 +1,4 @@
-# Deprecate the `deprecated` flag on ODPS data products and output ports
+# Deprecate the `deprecated` flag on ODPS data products and ports
 
 Champion: Simon Harrer
 
@@ -15,14 +15,15 @@ Applies to:
 
 ## Summary
 
-Deprecate the `deprecated` boolean on the ODPS data product and on output ports in ODPS v1.2.0, and remove it in ODPS v2.0.0.
+Deprecate the `deprecated` boolean on the ODPS data product and on input, output and management ports in ODPS v1.2.0, and remove it in ODPS v2.0.0.
 
 ## Motivation
 
-[RFC-0051](approved/odcs-v3.2.0/0051-deprecated-flag.md) added a `deprecated` flag to schema objects and properties. Adding it to the ODPS data product and output ports in v1.1.0 was an oversight. The RFC was written for schema elements, and ODPS already has a way to say this:
+[RFC-0051](approved/odcs-v3.2.0/0051-deprecated-flag.md) added a `deprecated` flag to schema objects and properties. Adding it to the ODPS data product and its ports in v1.1.0 was an oversight. The RFC was written for schema elements, and ODPS already has a way to say this:
 
 - **Data product:** `status: deprecated` already marks a data product as deprecated. A second field means two sources of truth that can disagree, e.g. `status: active` with `deprecated: true`.
-- **Output port:** an output port points to a data contract through `contractId`, and the contract's `status` (`deprecated`, `retired`, …) already says whether its data should still be used.
+- **Input and output ports:** a port points to a data contract through `contractId`, and the contract's `status` (`deprecated`, `retired`, …) already says whether its data should still be used.
+- **Management port:** a management port is an operational endpoint (discoverability, observability, control). One that should no longer be used is removed; a notice in `description` covers the transition.
 
 We cannot remove the field in a minor version without breaking v1.1.0 documents, so we deprecate it now and remove it in the next major version.
 
@@ -30,20 +31,22 @@ We cannot remove the field in a minor version without breaking v1.1.0 documents,
 
 ### ODPS v1.2.0
 
-- `deprecated` on the data product (root) and on `outputPorts[]` stays valid but is marked deprecated.
-- The JSON Schema marks both with the `deprecated: true` annotation, so editors and validators can warn.
+- `deprecated` on the data product (root), `inputPorts[]`, `outputPorts[]` and `managementPorts[]` stays valid but is marked deprecated.
+- The JSON Schema marks each with the `deprecated: true` annotation, so editors and validators can warn.
 - The documentation marks the field as deprecated and names its replacement:
 
-| Element         | Deprecated field | Use instead                                      |
-| --------------- | ---------------- | ------------------------------------------------ |
-| Data product    | `deprecated`     | `status: deprecated`                             |
+| Element         | Deprecated field | Use instead                                          |
+| --------------- | ---------------- | ---------------------------------------------------- |
+| Data product    | `deprecated`     | `status: deprecated`                                 |
+| Input port      | `deprecated`     | `status: deprecated` on the referenced data contract |
 | Output port     | `deprecated`     | `status: deprecated` on the referenced data contract |
+| Management port | `deprecated`     | remove the port; announce it in `description`        |
 
 - Implementations SHOULD warn when the field is used, and SHOULD treat a data product with `deprecated: true` as `status: deprecated`.
 
 ### ODPS v2.0.0
 
-- Remove `deprecated` from the data product and from `outputPorts[]`.
+- Remove `deprecated` from the data product, `inputPorts[]`, `outputPorts[]` and `managementPorts[]`.
 
 ### Example: data product
 
@@ -109,11 +112,37 @@ description:
   purpose: "DEPRECATED: use the 'tables' output port instead."
 ```
 
+### Example: management port
+
+Before (v1.1.0):
+
+```yaml
+managementPorts:
+  - name: legacy-status
+    content: observability
+    type: rest
+    url: https://example.com/legacy/status
+    deprecated: true
+```
+
+After, until the port is removed:
+
+```yaml
+managementPorts:
+  - name: legacy-status
+    content: observability
+    type: rest
+    url: https://example.com/legacy/status
+    description: "DEPRECATED: use 'status' instead. Will be removed on 2027-01-31."
+```
+
+Input ports follow the output port example: drop the flag and rely on the referenced contract's `status`.
+
 ## Alternatives
 
-- **Keep the flag.** Rejected: two fields for one fact on the data product, and the output port duplicates its contract's status.
+- **Keep the flag.** Rejected: two fields for one fact on the data product, and input and output ports duplicate their contract's status.
 - **Remove the flag in v1.2.0.** Rejected: breaks valid v1.1.0 documents in a minor version.
-- **Add a `status` field to output ports.** Rejected for now: the contract status already covers it. Can be proposed separately if a port needs a lifecycle of its own.
+- **Add a `status` field to ports.** Rejected for now: the contract status already covers it. Can be proposed separately if a port needs a lifecycle of its own.
 
 ## Decision
 
