@@ -38,6 +38,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0062](0062-signatures.md) | Signatures — integrity and provenance for every Bitol document |
 | [0063](0063-single-artifact.md) | Single Artifact — embedding referenced documents for delivery |
 | [0064](0064-mcp-server-type.md) | MCP server type |
+| [0066](0066-deprecate-odps-deprecated-flag.md) | Deprecate the `deprecated` flag on ODPS data products and ports |
 
 ## Approved RFCs
 
