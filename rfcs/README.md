@@ -40,6 +40,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0064](0064-mcp-server-type.md) | MCP server type |
 | [0065](0065-odata-server-type.md) | OData server type |
 | [0066](0066-deprecate-odps-deprecated-flag.md) | Deprecate the `deprecated` flag on ODPS data products and ports |
+| [0067](0067-oucs.md) | Open Use Case Standard (OUCS) |
 
 ## Approved RFCs
 
