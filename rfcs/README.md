@@ -1,6 +1,6 @@
 # RFCs
 
-The RFC (request for comments) process provides a consistent, controlled path for changes to the Bitol standards — ODCS, ODPS, OORS, OOCS, OMMS, OMDS, OSDS — so that all stakeholders can be confident about the project's direction.
+The RFC (request for comments) process provides a consistent, controlled path for changes to the Bitol standards — ODCS, ODPS, OORS, OOCS, OMMS, OMDS, OSDS, ODMS — so that all stakeholders can be confident about the project's direction.
 
 This page doubles as a **dashboard**. Open RFCs under discussion are listed first, followed by everything that has been approved (and in which standard and version), and finally the archived proposals. Every row links to its document.
 
@@ -41,6 +41,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0065](0065-odata-server-type.md) | OData server type |
 | [0066](0066-deprecate-odps-deprecated-flag.md) | Deprecate the `deprecated` flag on ODPS data products and ports |
 | [0067](0067-oucs.md) | Open Use Case Standard (OUCS) |
+| [0068](0068-odms.md) | Open Data Mesh Standard (ODMS) |
 
 ## Approved RFCs
 
