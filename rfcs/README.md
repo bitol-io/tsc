@@ -42,6 +42,7 @@ Proposed or under discussion — not yet approved by the TSC. These are what rem
 | [0066](0066-deprecate-odps-deprecated-flag.md) | Deprecate the `deprecated` flag on ODPS data products and ports |
 | [0067](0067-oucs.md) | Open Use Case Standard (OUCS) |
 | [0068](0068-odms.md) | Open Data Mesh Standard (ODMS) |
+| [0069](0069-unit.md) | `unit` Field for Schema Properties |
 
 ## Approved RFCs
 
